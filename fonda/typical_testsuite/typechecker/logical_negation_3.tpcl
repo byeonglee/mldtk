@@ -1,0 +1,9 @@
+module logical_negation_3;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue bar = ! (4.5); (* {{ dg-error "expected boolean, found 64-bit float" }} *)

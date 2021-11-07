@@ -1,0 +1,6 @@
+pipeline {
+  filter { work {tf <- FrequencyDecode(peek(1), peek(2)); push(tf); pop();}}
+  filter { work {tm <- MotionVecDecode(peek(1)); push(tm); pop();}}
+  filter{s; work {s,tc <- MotionComp(s,peek(1)); push(tc); pop(); }}
+}
+

@@ -1,0 +1,15 @@
+module function_app_14;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  |  M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n ;
+
+mlvalue bar = function
+    Module(nl) -> List.length nl
+  | ScopeDefinition _ | M _ -> 1 ;
+
+mlvalue bor n = (bar n) + 1 ; 

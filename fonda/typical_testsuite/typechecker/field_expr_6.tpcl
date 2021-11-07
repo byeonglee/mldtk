@@ -1,0 +1,25 @@
+module field_expr_6;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mltype foo = {
+  a: re,
+  b: bool
+ };
+
+mltype re = {
+  e: string
+};
+
+mlvalue bar = {a = {e = "abc"}, b = false};
+
+mlvalue baz = {bar with b = true};

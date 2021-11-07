@@ -1,0 +1,10 @@
+module unused_var_9;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mlvalue bar m = let m = 2 in m + 11 ; {{ dg-warning "unused var" }}
+
+

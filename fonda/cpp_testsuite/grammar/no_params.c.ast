@@ -1,0 +1,23 @@
+#superc_args -printAST
+ExternalDeclarationList(
+  Conditional(
+    1,
+    FunctionDefinition(
+      FunctionDeclarator(
+        BasicTypeSpecifier(
+          BasicTypeName(
+            xtc.lang.cpp.Syntax$Language(
+              "void"
+            )
+          )
+        ),
+        SimpleDeclarator(
+          xtc.lang.cpp.Syntax$Text(
+            "mtrr_bp_init"
+          )
+        )
+      ),
+      DeclarationOrStatementList()
+    )
+  )
+)

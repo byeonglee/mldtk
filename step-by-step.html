@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>xtc Installation Notes</title>
+  <link rel="stylesheet" href="http://cs.nyu.edu/rgrimm/bedrock2.css">
+</head>
+<body>
+
+<h1>xtc Installation Notes</h1>
+
+<p>This page provides step-by-step instructions for intalling xtc's
+source release.  <a href="development">A separate page</a> provides
+the reference for xtc's development setup.</p>
+
+<!-- ================================================================== -->
+
+<h2 class="highlight" id="steps">Step by Step</h2>
+
+<p>Remember to fix any errors <em>before</em> moving on to the next
+step.</p>
+
+<ol class="spacious">
+
+<li>Be sure that you are running
+the <a href="http://www.gnu.org/software/bash/bash.html">bash</a>
+shell.  It is the default interactive shell on both Mac OS and
+Linux.</li>
+
+<li>Install all necessary Unix command line tools
+(including <a href="http://www.gnu.org/software/make/">make</a>), the
+Java Development Kit (JDK), and
+<a href="http://www.gnu.org/software/dejagnu/">DejaGnu</a>:
+
+<ul class="spacious">
+
+<li>On Linux, these tools need to be installed individually and you
+probably want to use a package manager.  For example, when using the
+Ubuntu distribution of Linux, you can install all necessary tools by
+executing the following two commands:
+<pre>
+sudo apt-get update
+sudo apt-get install build-essential openjdk-6-jdk dejagnu
+</pre>
+The first command updates APT's package index, and the second command
+installs the <code>build-essential</code>, <code>openjdk-6-jdk</code>,
+and <code>dejagnu</code> packages as well as their dependencies.
+Since these commands change your system's configuration, you will need
+to provide your superuser password.</li>
+
+<li>On Mac OS X, necessary Unix command line tools and the JDK are
+automatically installed with Apple's
+<a href="http://developer.apple.com/xcode/">XCode</a> IDE.  However,
+after installing XCode, you still need to install DejaGnu.  First,
+download its source distribution.  Second, in the root directory of
+the source distribution, execute the following three commands (which
+are the customary incantations for installing all GNU software):
+<pre>
+./configure
+make
+sudo make install
+</pre>
+The first command determines your system's tools and configuration.
+The second command builds the binaries.  The third command moves the
+binaries in the right location.  Since the last command changes your
+system's configuration, you will need to provide your administrator
+password.</li>
+
+</ul></li>
+
+<li>Download xtc:
+
+<ul>
+
+<li>Download
+xtc's <a href="http://cs.nyu.edu/rgrimm/xtc/xtc-core.zip">source
+distribution</a> and place the directory in a convenient location.</li>
+
+<li>Download
+xtc's <a href="http://cs.nyu.edu/rgrimm/xtc/xtc-testsuite.zip">test
+suite</a>.  Place the test suite's <code>data</code>
+and <code>fonda</code> directories inside the <code>xtc</code>
+directory contained in the source distribution.</li>
+
+<li>Download
+xtc's <a href="http://cs.nyu.edu/rgrimm/xtc/dependencies.zip">dependencies</a>
+and place the JAR files contained in that ZIP file in xtc's <code>bin</code>
+directory.</li>
+
+</ul>
+
+</li>
+
+<li>Edit xtc's configuration script in <code>setup.sh</code>:
+
+<ul>
+
+<li><code>JAVA_DEV_ROOT</code> must point to xtc's directory.</li>
+
+<li><code>CLASSPATH</code> must point to the <code>classes</code>
+directory and the <code>junit.jar</code> and <code>javabdd.jar</code>
+JAR files.</li>
+
+<li><code>JAVA_HOME</code> must point to your Java installation.
+<ul>
+<li>On Mac OS X, it is <code>/Library/Java/Home</code>.</li>
+<li>On Linux, it depends on Java's install location.  For example, on
+Ubuntu running OpenJDK&nbsp;6, it
+is <code>/usr/lib/jvm/java-6-openjdk</code>.</li>
+</ul></li>
+
+</ul></li>
+
+<li>Source xtc's configuration script:
+<pre>
+source setup.sh
+</pre>
+or
+<pre>
+. setup.sh
+</pre>
+This makes the environment variable definitions visible in the current
+shell.  You need to perform this step <em>every time</em> you start a
+new shell, e.g., by opening a terminal window.
+</li>
+
+<li>Build xtc:
+<pre>
+make configure
+make
+make doc
+</pre>
+The first command configures xtc for your system's C compiler.  The
+second command builds xtc's classes.  The third command builds xtc's
+documentation (to be found in the <code>doc</code> subdirectory).
+</li>
+
+<li>Test xtc:
+<pre>
+make check
+</pre>
+If the command completes with
+&ldquo;***&nbsp;Happy&nbsp;happy&nbsp;joy&nbsp;joy!&nbsp;***,&rdquo;
+your are in great shape.</li>
+
+<li>Start developing your own code:
+
+<ul>
+
+<li>Add a new package, say <code>the.package.name</code>, by creating
+the <code>src/the/package/name</code> directory.</li>
+
+<li>Copy the <a href="PackageMakefile.txt">make file template</a> into
+that directory and rename it to <code>Makefile</code>.</li>
+
+<li>Update the <code>Makefile</code> for your new package by changing
+the definitions for <code>PACKAGE</code>, <code>PACKAGE_LOC</code>,
+and <code>SOURCE</code>.</li>
+
+<li>Add your new package to the <code>Makefile</code> in xtc's root
+directory, i.e., by adding the package name to the list of
+packages <code>PACKAGES</code>.</li>
+
+</ul>
+
+You are good to go.</li>
+
+</ol>
+
+</body></html>

@@ -1,0 +1,16 @@
+module list_pattern_5;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue analyzeList l = match l with
+    [_,_] -> true 
+  | [1,2,3] -> false
+  | _ -> false
+  ;

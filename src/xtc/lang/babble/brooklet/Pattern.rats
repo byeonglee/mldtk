@@ -1,0 +1,10 @@
+module xtc.lang.babble.brooklet.Pattern(Core);
+
+modify Core;
+
+Node BrookletPattern = <OpInvoke> OpInvoke ;
+
+// Make program non-public.
+transient generic Program := ... ;
+
+generic NodeVariable             = void:'#' Word ;

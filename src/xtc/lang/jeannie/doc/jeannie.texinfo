@@ -1,0 +1,2489 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename jeannie.info
+@settitle User Guide for a compiler contributed to xtc Version 1.13.3 (05/14/08).
+@c %** end of header
+
+@c Part 2: Summary Description and Copyright.
+@copying
+The current Jeannie project members are
+@uref{http://cs.nyu.edu/rgrimm,Robert Grimm},
+@uref{http://www.research.ibm.com/people/h/hirzel,Martin Hirzel},
+@uref{http://www.cs.utexas.edu/users/bclee,Byeoncheol ``BK'' Lee}, and
+@uref{http://www.cs.utexas.edu/users/mckinley,Kathryn McKinley}.
+
+We received helpful feedback from Joshua Auerbach, Rodric Rabbah, Gang
+Tan, David Ungar, and Jan Vitek.
+
+This material is based in part upon work supported by the National
+Science Foundation under Grants No. CNS-0448349 and CNS-0615129 and by
+the Defense Advanced Research Projects Agency under Contract No.
+NBCH30390004.
+
+@vskip 0in plus 1filll
+This is the
+user guide for a compiler contributed to xtc Version 1.13.3 (05/14/08).
+
+Copyright @copyright{} 2007, 2008 IBM, Robert Grimm, and NYU.
+@end copying
+
+@c Part 3: Titlepage, Contents, Copyright
+@titlepage
+@title Jeannie User Guide
+@subtitle A compiler contributed to xtc, Version 1.13.3 (05/14/08)
+@author Martin Hirzel and Robert Grimm
+
+@page
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@c Part 4: 'Top' Node and Master Menu
+@ifnottex
+@node Top
+@top Jeannie User Guide
+This document is a user guide for a compiler contributed to xtc that
+implements the Jeannie programming language. The latest official version
+of this user guide is here:
+@uref{http://cs.nyu.edu/rgrimm/xtc/jeannie.html}. This guide is also
+available in pdf format:
+@uref{http://cs.nyu.edu/rgrimm/xtc/jeannie.pdf}.
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction:: Introduction.
+* Examples:: Examples.
+* Reference:: Reference.
+* Index:: Index.
+@end menu
+
+@c Part 5: The Body of the Document
+@c EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+@node Introduction
+@chapter Introduction
+
+Jeannie is a programming language that combines Java and C. It supports
+the full syntax of both languages, and adds a backtick (@code{`})
+operator for nesting Java in C and nesting C in Java. You can use it to
+implement a feature of your Java application with an existing C
+library. In this case, you would write glue code that nests C in
+Java. Another common usage scenario is when you want to enhance your C
+application with some Java features, such as multi-threading, exception
+handling, or GUI controls. In this case, you would nest Java code in C.
+
+@cindex Jeannie
+
+The Jeannie language is implemented by a compiler contributed to
+xtc. That is the official name of the code that IBM has donated to the
+xtc compiler framework (@uref{http://cs.nyu.edu/rgrimm/xtc/}). The
+compiler translates Jeannie code first into Java and C source code that
+uses the JNI, and then from there into class files for Java and a
+dynamically linked library for C. This user guide describes how to use
+the compiler and the language in practice. The research that went into
+Jeannie is described in a conference paper
+(@uref{http://domino.watson.ibm.com/comm/research_people.nsf/pages/hirzel.main.html#oopsla07-jeannie}).
+
+@menu
+* Installation:: How to install the compiler.
+* Hello world:: How to write a simple program.
+* Trouble shooting:: What to do if it does not work.
+@end menu
+
+@c ==================================================================
+@node Installation
+@section Installation
+@cindex installation
+
+This section describes how to install xtc, which includes the Jeannie
+compiler, and how to test that the installed Jeannie compiler runs
+correctly.
+
+@menu
+* Requirements:: System requirements for installing the compiler.
+* Download:: Where to get the compiler.
+* Configuration:: How to set up the compiler.
+* Testing the installation:: How to validate an installation.
+@end menu
+
+@c ------------------------------------------------------------------
+@node Requirements
+@subsection Requirements
+@cindex requirements
+@cindex dependencies
+
+The Jeannie compiler uses Java Standard Edition version 5 or higher and
+several GNU command line tools, including gcc, bash, make, find, zip,
+and others. You need to make sure that the Java compiler, the JVM, and
+the GNU tools are installed and on your @env{PATH}. We have tested
+Jeannie with multiple Java virtual machines (IBM J9, Sun HotSpot, and
+Jikes RVM), and on multiple operating systems (Linux, Windows/Cygwin,
+and Mac OS X).
+@cindex PATH
+
+@c ------------------------------------------------------------------
+@node Download
+@subsection Download
+@cindex download
+@cindex obtaining Jeannie
+
+You need xtc-core.zip to run Jeannie, xtc-testsuite.zip to test your
+local Jeannie installation, and antlr.jar and junit.jar to compile
+xtc. You can download these four files from their respective project
+websites, for example like this:
+
+@example
+wget http://cs.nyu.edu/rgrimm/xtc/xtc-core.zip
+wget http://cs.nyu.edu/rgrimm/xtc/xtc-testsuite.zip
+wget http://www.antlr.org/download/antlrworks-1.1.4.jar
+wget http://downloads.sourceforge.net/junit/junit-4.4.jar
+@end example
+
+@noindent
+Pick a directory where you want your local xtc and Jeannie installation
+to live. Assuming your directory is called @code{local_install_dir},
+populate it with your downloads like this:
+
+@example
+unzip -d local_install_dir xtc-core.zip
+unzip -d local_install_dir xtc-testsuite.zip
+mv antlrworks-1.1.4.jar local_install_dir/xtc/bin/antlr.jar
+mv junit-4.4.jar local_install_dir/xtc/bin/junit.jar
+@end example
+
+@c ------------------------------------------------------------------
+@node Configuration
+@subsection Configuration
+@cindex configuration
+
+You need to set your @env{PATH} environment variable to include your
+Java 1.5 compiler and JVM. In addition, you need to set @env{PATH_SEP}
+either to `@code{:}' on Linux or Mac OS X or to `@code{;}' on
+Windows/Cygwin. Assuming you unzipped xtc to a directory called
+@code{local_install_dir}, you now need to perform the following steps:
+
+@cindex PATH_SEP
+@cindex JAVA_DEV_ROOT
+@cindex PATH
+@cindex CLASSPATH
+@example
+export PATH_SEP=':'
+export JAVA_DEV_ROOT=local_install_dir/xtc
+export PATH=$JAVA_DEV_ROOT/src/xtc/lang/jeannie:$PATH
+export CLASSPATH=$JAVA_DEV_ROOT/bin/junit.jar$PATH_SEP$CLASSPATH
+export CLASSPATH=$JAVA_DEV_ROOT/bin/antlr.jar$PATH_SEP$CLASSPATH
+export CLASSPATH=$JAVA_DEV_ROOT/classes$PATH_SEP$CLASSPATH
+make -C $JAVA_DEV_ROOT classes configure
+@end example
+
+@noindent
+The last step will use @code{xtc/Makefile} to compile and configure xtc
+along with the Jeannie compiler. You may see some warning messages
+related to Java generics, but the compilation should keep going and
+finish without any fatal error messages.
+
+@c ------------------------------------------------------------------
+@node Testing the installation
+@subsection Testing the installation
+@cindex testing the installation
+@cindex regression tests
+
+After completing the download and configuration step, try the following:
+
+@example
+make -C $JAVA_DEV_ROOT check-jeannie
+@end example
+
+@noindent
+This first invokes a few hundred JUnit tests, each of which writes a dot
+`@code{.}' to the console. Next, it invokes a few dozen integration
+tests, each of which writes a couple of lines to the console. Overall,
+the testing output should look like this:
+
+@smallexample
+java -ea junit.textui.TestRunner xtc.lang.jeannie.UnitTests
+.........................................
+.........................................
+@end smallexample
+@i{many more dots for unit tests}
+@smallexample
+.........................................
+.............
+Time: 7.15
+
+OK (874 tests)
+
+make -C local_install_dir/xtc/fonda/jeannie_testsuite cleanall
+find local_install_dir/xtc/fonda/jeannie_testsuite -name '*~' -exec rm -f \@{\@} \;
+rm -f -r tmp
+rm -f core.*.dmp javacore.*.txt
+make -C /Users/hirzel/local_install_dir/xtc/fonda/jeannie_testsuite test
+==== integration test_000 ====
+diff tmp/000mangled/output.txt tmp/000sugared/output.txt
+==== integration test_001 ====
+diff tmp/001mangled/output.txt tmp/001sugared/output.txt
+@end smallexample
+@i{many more lines for integration tests}
+@smallexample
+==== integration test_035 ====
+diff tmp/035mangled/output.txt tmp/035sugared/output.txt
+==== integration test_036 ====
+diff tmp/036mangled/output.txt tmp/036sugared/output.txt
+==== integration tests completed ====
+@end smallexample
+
+@noindent
+By the time you read this, there may be more tests than shown above.
+Two of the integration tests (18 and 26) write some timing numbers to
+the console, but as long as all tests end with @code{diff} and without
+finding any differences between the mangled and sugared output,
+everything went fine.
+
+@c ==================================================================
+@node Hello world
+@section Hello world!
+@cindex hello world
+@cindex getting started
+
+The following Jeannie program (integration test 041) has a Java main
+method that uses a nested C call to print @code{"Hello, world!"} to the
+console.
+
+@example
+`.C @{                                      // 1
+#include <stdio.h>                         // 2
+@}                                          // 3
+class Main @{                               // 4
+  public static void main(String[] args) @{ // 5
+    `printf("Hello, world!\n");            // 6
+  @}                                        // 7
+@}                                          // 8
+@end example
+
+@noindent
+The file starts with a block of C code that includes a header file
+(Lines 1-3) containing, among other things, the prototype for the
+@code{printf} function. In general, the backtick symbol (@code{`})
+toggles between the languages Java and C.  It can be either qualified
+(like @code{`.C} on Line 1) or simple (like on Line 6). The example code
+defines a Java class @code{Main} with a Java method @code{main} (Lines
+4 and 5). The body of the method (Line 6) contains a simple backtick to
+toggle from Java to C for the call @code{printf("Hello,
+world!\n")}. When used in an expression, the backtick is a unary prefix
+operator that affects the following subexpression.
+
+To test this hello world program, you need to compile it as follows:
+
+@example
+jeannie.sh Main.jni
+@end example
+
+@noindent
+@cindex LD_LIBRARY_PATH
+The Jeannie compiler will generate a class file (@code{Main.class}), a
+shared library (on Linux: @code{libMain.so}; on Windows/Cygwin:
+@code{Main.dll}; on Mac OS X: @code{libMain.jnilib}), and several
+intermediate files. Before you can run the example, you need to tell the
+operating system where to find the shared library, by adding the
+directory to your @env{PATH} and @env{LD_LIBRARY_PATH} environment
+variables. Assuming the example code is in the current directory
+(@code{.}), you can run it as follows:
+
+@example
+java -cp . -Djava.library.path=. Main
+@end example
+
+@noindent
+This should, of course, print @code{"Hello, world!"} to the console.
+
+@c ==================================================================
+@node Trouble shooting
+@section Trouble shooting
+@cindex trouble shooting
+@cindex debugging
+
+As with any complex piece of software, you may run into trouble when
+trying to use the Jeannie compiler. This section describes a few common
+issues and how to address them. We will keep updating this section as we
+encounter additional difficulties and their solutions.
+
+If you cannot compile the Jeannie compiler at all, or if it does not
+run, you should double-check whether all the required tools are
+installed on your local machine. In particular, you need Java 1.5 or
+higher, and you need the GNU C compiler, see @ref{Requirements}. To get the
+required tools on Windows, use Cygwin. To get the required tools on Mac
+OS, install XCode (that should be on one of the CDs that came with your
+Mac), and get the remaining tools from an open source site such as
+Fink. Next, try whether you can run the tests that come with Jeannie,
+see @ref{Testing the installation}. Finally, double-check that you set your
+environment variables correctly, in particular, @env{PATH},
+@env{CLASSPATH}, and @env{LD_LIBRARY_PATH}.
+@cindex PATH
+@cindex CLASSPATH
+@cindex LD_LIBRARY_PATH
+
+If the Jeannie compiler throws an internal exception rather than
+producing a nice error message, that's a bug; please report it, along
+with a minimal test case that reproduces it.
+
+If you get your Jeannie program to compile, but it crashes at runtime,
+the two most common symptoms are segmentation faults or dynamic linker
+errors.
+
+A segmentation fault occurs when your program tries to access an illegal
+memory address. This is usually caused by null pointers or out of bounds
+accesses in C. To find the defect, you should start by rebuilding your
+program from scratch, to rule out problems caused by inconsistent
+incremental compilation. Next, you should run with a symbolic
+interactive debugger; see @ref{Debugging}. If you find that the problem
+is in the Jeannie compiler (e.g., using an illegal method ID), please
+report the bug, along with a minimal test case that reproduces it.
+
+A dynamic linker error occurs when your program can not find a function
+that should be in a shared object file (DLL on Windows). This problem is
+common in hand-written JNI code, but should not occur for
+Jeannie-generated JNI code. To find the defect, you should start by
+rebuilding your program from scratch, to rule out problems caused by
+inconsistent incremental compilation. Next, make sure the shared library
+is on the path, using the @code{-Dload-library-path} JVM command line
+option or the @code{PATH} and @code{LD_LIBRARY_PATH} environment
+variables. If it still does not work, you should inspect the code
+related to the missing symbol. To make Jeannie-generated code easier to
+read, use the @code{-pretty} compiler flag. If you believe that the
+problem is caused by Jeannie-generated code, please report the bug,
+along with a minimal test case that reproduces it. It is more likely
+that the problem is caused by other shared libraries that you link
+to. Consult your local linker guru, and use tools such as @code{nm} to
+investigate the symbols of your object files. You may need to specify
+the external DLL like any other file at the end of the compiler command
+line.
+
+@c EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+@node Examples
+@chapter Examples
+
+This chapter discusses Jeannie by example. Each section uses a short
+self-contained piece of code to illustrate one aspect of how to use the
+Jeannie language. If you read this on your computer screen instead of in
+a printed hardcopy, I recommend you read the html version, since it does
+not have the page breaks of the pdf version. The examples are designed
+so you can easily copy-and-paste them and try them out yourself. You
+should play with the examples, changing things here and there to see
+what happens.
+
+@menu
+* Program structure:: Program structure.
+* Locals:: Formal parameters and local variables.
+* Garbage collection:: Pointing from C to Java objects.
+* Arrays:: Accessing Java arrays from C.
+* Abrupt control flow:: Returns, exceptions, cancel and commits, etc.
+* Strings:: Accessing Java strings from C.
+* Debugging:: Determining the origin of a defect.
+@end menu
+
+@c ==================================================================
+@node Program structure
+@section Program structure
+@cindex program structure
+
+The following example (integration test 039) illustrates the structure of a Jeannie file.
+
+@example
+package cstdlib;                                                 // 1
+import java.util.Random;                                         // 2
+`.C @{                                                            // 3
+#include <math.h>                                                // 4
+@}                                                                // 5
+class Math @{                                                     // 6
+  public static native double pow(double x, double y) `@{         // 7
+    return (`double)pow(`x, `y);                                 // 8
+  @}                                                              // 9
+@}                                                                //10
+public class Main @{                                              //11
+  public static void main(String[] args) @{                       //12
+    Random random = new Random(123);                             //13
+    for (int i=0; i<3; i++) @{                                    //14
+      double d = 100.0 * random.nextDouble();                    //15
+      double r = Math.pow(d, 1.0 / 3.0);                         //16
+      System.out.println("d " + d + " r " + r + " ^3 " + r*r*r); //17
+    @}                                                            //18
+  @}                                                              //19
+@}                                                                //20
+@end example
+
+@noindent
+A Jeannie file starts like a regular Java file with an optional package
+(Line 1) and imports (Line 2). These are followed by top-level C
+declarations enclosed in @code{`.C@{ @}} (Lines 3-5). They usually come
+from header files, as in
+the example, but you can also declare your own C functions and types in
+this section.  The rest of the Jeannie file is structured like a regular
+Java file, with an optional package (Line 4), imports (Line 5), and one
+(Line 6) or more (Line 11) top-level classes or interfaces. The example
+illustrates how you might write a wrapper for parts of the C standard
+library, hence the package is called @code{cstdlib} (Line 4).
+
+In Jeannie, a native method has a body, which must be a block of C code
+(Line 7). Inside of the C code, you can use backticked C types (such as
+@code{`double} on Line 8) that are equivalent to the corresponding Java
+types (e.g., @code{double}).  You can also use nested Java expressions,
+for example, to refer to Java variables and parameters (such as
+@code{`x} and @code{`y} on Line 8).
+
+To build this example, run the Jeannie compiler like this:
+
+@example
+(bash) jeannie.sh -lm cstdlib/Main.jni
+@end example
+
+@noindent
+The @code{-lm} linker flag is passed on to the native C compiler, which
+uses it to link the @code{m} library (math) into the generated native
+shared object file. After compiling, the package directory
+@code{cstdlib} will contain class files for the top-level classes
+@code{Math} and @code{Main}, a shared library, and some
+compiler intermediate files. You can run the program like this:
+
+@example
+(bash) java -cp . -Djava.library.path=./cstdlib cstdlib.Main
+d 72.31742029971468 r 4.166272210190459 ^3 72.31742029971466
+d 99.08988967772393 r 4.627464705142208 ^3 99.08988967772387
+d 25.329310557439133 r 2.9368005732853377 ^3 25.32931055743913
+@end example
+
+@noindent
+The program should print a series of numbers with their cubic roots as
+shown above. You can simplify
+the command line by putting the shared library on your @env{PATH} or
+@env{LD_LIBRARY_PATH}.
+
+The example illustrates how Jeannie toggles between the languages for a
+block, for an expression, or for a Java type name. In each case, you can
+use either the simple language toggle backtick (@code{`}), or the
+qualified form (@code{`.C} or @code{`.Java}). Language toggle is also
+allowed for certain Java statements in C (@code{synchronized},
+@code{try}, @code{throw}), and for putting a @code{throws} clause on a C
+function. @xref{Syntax}, which shows the entire Jeannie grammar.
+
+@c ==================================================================
+@node Locals
+@section Locals
+@cindex locals
+
+The following example (integration test 040) illustrates code with multiple local variables,
+both in Java (@code{args}, @code{input}, and @code{hasDecimalPoint}) and in C
+(@code{intOrFloat}, @code{f}, and @code{i}).
+
+@example
+`.C @{ @}                                                 // 1
+class Main @{                                            // 2
+  public static void main(String[] args) @{              // 3
+    String input = "12.34E1";                           // 4
+    boolean hasDecimalPoint = -1 != input.indexOf('.'); // 5
+    `.C @{                                               // 6
+      `Number intOrFloat;                               // 7
+      if (`hasDecimalPoint) @{                           // 8
+        `Float f = `Float.valueOf(input);               // 9
+        intOrFloat = f;                                 //10
+      @} else @{                                          //11
+        `Integer i = `Integer.valueOf(input);           //12
+        intOrFloat = i;                                 //13
+      @}                                                 //14
+      `.Java @{                                          //15
+        System.out.println(`intOrFloat);                //16
+      @}                                                 //17
+    @}                                                   //18
+  @}                                                     //19
+@}                                                       //20
+@end example
+
+@noindent
+You can run the program like this:
+
+@example
+(bash) jeannie.sh Main.jni
+(bash) java -cp . Main
+123.4
+@end example
+
+@noindent
+Each local variable in Jeannie has a defining language (Java or C), a
+scope (a portion of the program text where it is valid), and a type. The
+following table characterizes the local variables from the example:
+
+@multitable { } {Java} {@code{String[]}} {@code{hasDecimalPoint}} {11-12}
+@item @tab Java @tab @code{String[]} @tab @code{args}            @tab 3-18
+@item @tab Java @tab @code{String}   @tab @code{input}           @tab 4-18
+@item @tab Java @tab @code{boolean}  @tab @code{hasDecimalPoint} @tab 5-18
+@item @tab C    @tab @code{`Number}  @tab @code{intOrFloat}      @tab 7-17
+@item @tab C    @tab @code{`Float}   @tab @code{f}               @tab 9-10
+@item @tab C    @tab @code{`Integer} @tab @code{i}               @tab 12-13
+@end multitable
+
+@noindent
+In Jeannie, you can only access a local variable in code of the same
+language. For example, Line 8 contains a C @code{if} statement, and must
+therefore toggle to Java to access the Java local variable
+@code{hasDecimalPoint}. And of course, you can only access a local
+variable if it is in scope; for example, the scope of @code{intOrFloat}
+ends in Line 17, so the variable can not be used after that. Like in
+Java and C, scopes can nest, and variables in inner scopes can shadow
+variables of the same name from outer scopes. Backticked expressions in
+Jeannie are immutable (in programming languages terminology, they are
+not l-values, since they can not appear on the left-hand side of an
+assignment). That means that any modification to a variable has to occur
+in the variable's language.
+
+This example also illustrates that C local variables can hold references
+to Java objects. For example, the result of @code{`Float.valueOf(..)} in
+Line 9 is a reference to a Java object containing a boxed floating point
+number. This reference gets stored in the C local variable @code{f}.
+Note that this variable has type @code{`Float}. In Jeannie, a backticked
+Java type is a C type. Furthermore, since class @code{Float} is a
+subclass of @code{Number} in Java, Jeannie permits the C code in Line 10
+to widen the reference in the assignment @code{intOrFloat = i}. On the
+other hand, if the code were to contain the reverse assignment @code{i =
+intOrFloat}, the compiler would give an error message. You should try it
+out.
+
+@c ==================================================================
+@node Garbage collection
+@section Garbage collection
+@cindex garbage collection
+@cindex global references
+
+Do not store references to Java objects in non-local C data. Non-local
+data is any data that is not in local variables, and thus, does not go
+away when the enclosing function or method returns. In other words,
+non-local data in C resides in global variables or on the heap. You
+should not store any references to Java objects there, because by the
+time you access them again, the objects may have already been garbage
+collected. When that happens, the reference is a dangling reference, and
+using it can cause a crash, or worse, can corrupt important data.  In
+fact, on some JVMs, the reference is unusable even without garbage
+collection, which make the problem easier to diagnose, because the
+program fails more quickly and deterministically.
+
+Instead, you should store references to Java objects into Java static or
+instance fields. Jeannie makes it very easy to access a Java field from
+C by using a backtick. The following example illustrates the difference
+between storing reference to a Java object in a C global variable versus
+a Java static field.
+
+@example
+import java.io.PrintWriter;                                       // 1
+`.C @{                                                             // 2
+`PrintWriter badGlob;                                             // 3
+@}                                                                 // 4
+class Main @{                                                      // 5
+  static PrintWriter goodGlob;                                    // 6
+  static native void setGlob(boolean beGood, PrintWriter init) `@{ // 7
+    if (`beGood) `( Main.goodGlob = init );                       // 8
+    else         badGlob = `init;                                 // 9
+  @}                                                               //10
+  static native PrintWriter getGlob(boolean beGood) `@{            //11
+    if (`beGood) return `Main.goodGlob;                           //12
+    else         return badGlob;                                  //13
+  @}                                                               //14
+  static native void useGlob(boolean beGood, Object obj) `@{       //15
+    `.Java @{                                                      //16
+      PrintWriter out = Main.getGlob(beGood);                     //17
+      out.println(obj);                                           //18
+      out.flush();                                                //19
+    @}                                                             //20
+  @}                                                               //21
+  public static void main(String[] args) @{                        //22
+    boolean beGood = true;                                        //23
+    setGlob(beGood, new PrintWriter(System.out));                 //24
+    for (int i=0; i<3; i++) @{                                     //25
+      useGlob(beGood, "o_" + i);                                  //26
+      System.gc();                                                //27
+    @}                                                             //28
+  @}                                                               //29
+@}                                                                 //30
+@end example
+
+@noindent
+If you run this program unchanged, it uses a Java static field, if you change
+Line 23 to set @code{beGood = false}, it uses a C global variable. In the
+good case, it prints @code{o_0 o_1 o_2}, otherwise, it crashes with an
+error message that depends on your Java virtual machine, operating
+system, and C compiler. You should try it out, so you can recognize the
+error if you see the symptom again in another context. You should also
+try whether the symptom goes away if you delete Line 27.
+
+If you do make a mistake related to global references, you may end up
+needing a debugger to find the source of the defect; see
+@ref{Debugging}.
+
+@c ==================================================================
+@node Arrays
+@section Arrays
+@cindex arrays
+
+This section is about how C code can access Java arrays. Arrays are
+important for Jeannie, since people frequently use native code either
+for I/O, which usually involves buffers, or for high-performance
+computing, which usually involves matrix computations. Just like any
+other Java expression can be nested in C using a backtick, so can Java
+expressions that access an array. C code can read from a Java array
+using a Java array subscript, for instance, @code{`arr[i]}. C code can
+write to a Java array using a Java assignment, for instance,
+@code{`(arr[i] = v)}. Since backticked expressions in Jeannie are
+immutable, a C assignment to a Java array (e.g., @code{`arr[i] = v})
+would be illegal.
+
+The following example (integration test 043) shows a native method @code{replace(chars, oldC,
+newC)} that modifies the Java array @code{chars}, replacing the first
+occurrence of @code{oldC} in @code{chars} by @code{newC}. It returns the
+index of the replaced element, or @code{-1} if the element was not
+found.
+
+@example
+`.C@{ @}                                                             // 1
+class Main @{                                                       // 2
+  static native int replace(char[] chars, char oldC, char newC) `@{ // 3
+    for (int i=0; i<`chars.length; i++) @{                          // 4
+      if (`oldC == `chars[`i]) @{                                   // 5
+        `(chars[`i] = newC);                                       // 6
+        return (`int)i;                                            // 7
+      @}                                                            // 8
+    @}                                                              // 9
+    return (`int)-1;                                               //10
+  @}                                                                //11
+  public static void main(String []args) @{                         //12
+    char[] a = @{ 'a', 'b', 'c' @};                                  //13
+    int r;                                                         //14
+    r = replace(a, 'b', 'd');                                      //15
+    System.out.println(r + "  " + new String(a));                  //16
+    r = replace(a, 'b', 'd');                                      //17
+    System.out.println(r + "  " + new String(a));                  //18
+  @}                                                                //19
+@}                                                                  //20
+@end example
+
+@noindent
+The example also includes a @code{main} method that invokes @code{replace}
+twice to replace @code{'b'} by @code{'d'}. You can compile and run the
+program like this:
+
+@example
+(bash) jeannie.sh Main.jni
+(bash) java -cp . Main
+1  adc
+-1  adc
+@end example
+
+@noindent
+The output shows that the first call to replace changed the element at
+index @code{1}, yielding @code{adc}, whereas the second call did not
+find any element to change and therefore returned @code{-1}, leaving the
+array unchanged as @code{adc}.
+
+Accessing arrays with simple backticked Java expressions is convenient.
+But users may want to use Java arrays in performance-critical loops,
+where the transition between languages can become a bottle-neck. To
+accommodate faster access to an entire Java array, Jeannie provides the
+@code{with}-statement. The header of a @code{with}-statement associates
+a C variable with a Java array; for example, @w{@code{with(`char* s =
+`chars) @{ .. @}}} associates the C variable @code{s} with the Java
+array @code{chars}. The body of the @code{with} statement can use that C
+variable as a normal C array. For example, the following code (integration test 044) implements
+the same @code{replace} method as before, but this time using a
+@code{with}-statement instead of a simple array access. Notice that the
+body of the @code{for}-loop is pure C code without language transitions.
+
+@example
+`.C@{ @}                                                             // 1
+class Main @{                                                       // 2
+  static native int replace(char[] chars, char oldC, char newC) `@{ // 3
+    `char old = `oldC, new = `newC;                                // 4
+    `int len = `chars.length;                                      // 5
+    with (`char* s = `chars) @{                                     // 6
+      for (int i=0; i<len; i++) @{                                  // 7
+        if (old == s[i]) @{                                         // 8
+          s[i] = new;                                              // 9
+          return (`int)i;                                          //10
+        @}                                                          //11
+      @}                                                            //12
+      cancel s;                                                    //13
+    @}                                                              //14
+    return (`int)-1;                                               //15
+  @}                                                                //16
+  public static void main(String []args) @{                         //17
+    char[] a = @{ 'a', 'b', 'c' @};                                  //18
+    int r;                                                         //19
+    r = replace(a, 'b', 'd');                                      //20
+    System.out.println(r + "  " + new String(a));                  //21
+    r = replace(a, 'b', 'd');                                      //22
+    System.out.println(r + "  " + new String(a));                  //23
+  @}                                                                //24
+@}                                                                  //25
+@end example
+
+@noindent
+The @code{main}-method is unchanged, and this program should produce the
+same output as the previous example. In general, the initializer of a
+@code{with}-statement can be a variable declaration, like in the
+example, or an assignment. The types of the C variable and the Java
+expression must match: if the C variable has type
+@code{`}@var{E}@code{*}, the Java expression must have type
+@code{j}@var{E}@code{Array}.
+
+Changes to the C array are reflected back to the Java array when control
+leaves the @code{with} statement, unless the user decided to
+@code{cancel} the changes, or there was an exception. In those cases,
+the Java array remains unchanged. In the example, Line 10 leaves the
+@code{with}-statement and the method, at which time Jeannie makes any
+pending modifications to the Java array @code{chars}. Line 13 also
+leaves the @code{with}-statement, but Jeannie drops any changes that may
+have occurred in the array.
+
+So far, this section has focused on cases where C code wants to work
+directly with Java arrays. Jeannie supports that by simple nested Java
+expressions, and by the @code{with} statement for bulk accesses. But
+there are other cases where C code wants to copy just (parts of) an
+array between Java and C. Jeannie supports that with a pair of builtin
+functions @code{copyFromJava} and @code{copyToJava}. They have the
+following signatures:
+
+@example
+`int copyFromJava(`@var{E}* ca, `int ci, j@var{E}Array ja, `int ji, `int len)
+`int copyToJava(j@var{E}Array ja, `int ji, `@var{E}* ca, `int ci, `int len)
+@end example
+
+@noindent
+In both cases, the return value is the number of copied elements. In
+both cases, the parameter list starts with the destination array and
+start index, followed by the source array and start index, followed by
+the number of elements to be copied. The following example (integration test 045) reimplements
+our familiar @code{replace} method using the trans-lingual copy
+functions.
+
+@example
+`.C@{ @}                                                             // 1
+class Main @{                                                       // 2
+  static native int replace(char[] chars, char oldC, char newC) `@{ // 3
+    `char old = `oldC, new = `newC;                                // 4
+    `int len = `chars.length;                                      // 5
+    `char s[len];                                                  // 6
+    copyFromJava(s, 0, `chars, 0, len);                            // 7
+    for (int i=0; i<len; i++) @{                                    // 8
+      if (old == s[i]) @{                                           // 9
+        s[i] = new;                                                //10
+        copyToJava(`chars, 0, s, 0, len);                          //11
+        return (`int)i;                                            //12
+      @}                                                            //13
+    @}                                                              //14
+    return (`int)-1;                                               //15
+  @}                                                                //16
+  public static void main(String []args) @{                         //17
+    char[] a = @{ 'a', 'b', 'c' @};                                  //18
+    int r;                                                         //19
+    r = replace(a, 'b', 'd');                                      //20
+    System.out.println(r + "  " + new String(a));                  //21
+    r = replace(a, 'b', 'd');                                      //22
+    System.out.println(r + "  " + new String(a));                  //23
+  @}                                                                //24
+@}                                                                  //25
+@end example
+
+@noindent
+Again, the @code{main} method is unchanged, and the console output is
+the same as in the previous two examples. See @ref{copyFromJava} and
+@ref{copyToJava} for reference documentation on the two functions.
+
+@c ==================================================================
+@node Abrupt control flow
+@section Abrupt control flow
+@cindex abrupt control flow
+@cindex exceptions
+@cindex return
+@cindex cancel
+@cindex abort
+@cindex commit
+@cindex goto
+@cindex break
+@cindex continue
+
+Control flow is the order in which code executes. Normal control flow
+occurs when statements execute in the order in which they appear in the
+program, as well as when code has conditionals, loops, and calls. Abrupt
+control flow occurs when control jumps suddenly, for example because of
+a @code{return} statement in the middle of a function or method. Jeannie
+supports all the abrupt control flow constructs of Java and C
+(@code{return}, @code{break}, @code{continue}, @code{goto}, implicit
+exceptions, and explicit @code{throw}) and two new abrupt control flow
+constructs for bulk array manipulation (@code{commit}, @code{cancel}).
+
+You can use Jeannie to obtain Java exception handling for C code. To
+throw a Java exception from C, use a nested Java @code{throw}
+statement. To handle a Java exception from C, use nested C handlers in a
+Java @code{try}/@code{catch}/@code{finally} statement. Jeannie
+implements the expected abrupt control flow. It also takes care of
+releasing internal resources. For example, a Jeannie @code{with}
+statement can allocate a temporal C array to cache Java data; if there
+is an exception during the @code{with} statement, Jeannie releases the
+temporary array.
+
+The following example (integration test 046) illustrates abrupt control flow in Jeannie.
+
+@example
+`.C @{                                                   // 1
+#include <stdio.h>                                      // 2
+@}                                                       // 3
+class Main @{                                            // 4
+  public static void main(String[] args) @{              // 5
+    int[] ja = @{ 1, 2, 3, 0 @};                          // 6
+    `.C @{                                               // 7
+      FILE* out;                                        // 8
+      `try `@{                                           // 9
+        out = fopen("out.txt", "w");                    //10
+        with (`int* ca = `ja) @{                         //11
+          for (`int i=0; i<4; i++) @{                    //12
+            if (ca[i] == 0)                             //13
+              `throw new ArithmeticException("/ by 0"); //14
+            ca[i] = 10 / ca[i];                         //15
+            fprintf(out, "ca[%ld] == %ld\n", i, ca[i]); //16
+          @}                                             //17
+        @}                                               //18
+      @} catch (ArithmeticException e) `@{                //19
+        fprintf(out, "division by zero\n");             //20
+      @} finally `@{                                      //21
+        fclose(out);                                    //22
+      @}                                                 //23
+    @}                                                   //24
+    for (int i=0; i<4; i++)                             //25
+      System.out.println("ja[" + i + "] == " + ja[i]);  //26
+  @}                                                     //27
+@}                                                       //28
+@end example
+
+@noindent
+The C code divides 10 by every number in an array, and writes the
+results to a file @code{out.txt}. At the end, the Java code writes the
+array contents to the console. When you compile and run this program,
+you should see the following:
+
+@example
+(bash) jeannie.sh Main.jni
+(bash) java -cp . Main
+ja[0] == 1
+ja[1] == 2
+ja[2] == 3
+ja[3] == 0
+(bash) cat out.txt
+ca[0] == 10
+ca[1] == 5
+ca[2] == 3
+division by zero
+@end example
+
+@noindent
+The C code in Lines 7 thru 24 operates on a file @code{out}. Line 10
+opens the file for writing, and Line 22 closes it again. To guarantee
+that the file gets closed no matter what happens, Line 10 is in a
+@code{try}-block and Line 22 is in the associated @code{finally}-block.
+
+The C code in Lines 11 thru 18 operates on a C version @code{ca} of the
+Java array @code{ja}. Line 15 modifies the C array, and Line 16 prints
+the modification to the file. The original array from Line 6 is
+@code{@{1,2,3,0@}}, and Line 15 modifies it to
+@code{@{10/1,10/2,10/3,..@}}, yielding the result
+@code{@{10,5,3,..@}}. However, when the loop reaches the array element
+@code{0}, Line 14 throws an exception to prevent division by zero. In
+Jeannie, an exception in a @code{with} statement cancels the
+modifications to the Java array. Therefore, when Lines 25 and 26 print
+@code{ja}, they observe the original contents from Line 6, namely
+@code{@{1,2,3,0@}}.
+
+Jeannie does not permit @code{break}, @code{continue}, or @code{goto} to
+cross the language boundary or to leave a @code{with} statement, since
+that would yield to ill-defined behavior.
+
+@c ==================================================================
+@node Strings
+@section Strings
+@cindex strings
+
+Jeannie supports access from C code to Java strings similarly to its
+support for arrays, with three important differences:
+
+@itemize @bullet
+@item
+C code can not copy elements to Java strings, since they are immutable.
+@item
+C code can access either Java's UTF-16 encoding of strings, or a UTF-8
+encoding.
+@item
+The builtin functions @code{newJavaString} and @code{stringUTFLength}
+facilitate common string processing tasks.
+@end itemize
+
+@noindent
+The following example (integration test 047) demonstrates Jeannie's string manipulation
+features. Class @code{cstdlib.StdIO} is a simple wrapper for the
+functions @code{fputs} and @code{fflush} from the C @code{stdio}
+library, and class @code{cstdlib.TestDriver} exercises the code.
+
+@example
+package cstdlib;                                               // 1
+import java.io.IOException;                                    // 2
+`.C @{                                                          // 3
+#include <stdio.h>                                             // 4
+#include <errno.h>                                             // 5
+#include <string.h>                                            // 6
+@}                                                              // 7
+class StdIO @{                                                  // 8
+  public static native int stdOut() `@{                         // 9
+    return (`int)stdout;                                       //10
+  @}                                                            //11
+  public static native void                                    //12
+  fputs(String s, int stream) throws IOException `@{            //13
+    `int len = stringUTFLength(`s);                            //14
+    `byte cs[1 + len];                                         //15
+    int result;                                                //16
+    copyFromJava(cs, 0, `s, 0, `s.length());                   //17
+    cs[len] = '\0';                                            //18
+    result = fputs((char*)cs, (FILE*)`stream);                 //19
+    if (EOF == result)                                         //20
+      `throw new IOException(`newJavaString(strerror(errno))); //21
+  @}                                                            //22
+  public static native void                                    //23
+  fflush(int stream) throws IOException `@{                     //24
+    int result = fflush((FILE*)`stream);                       //25
+    if (EOF == result)                                         //26
+      `throw new IOException(`newJavaString(strerror(errno))); //27
+  @}                                                            //28
+@}                                                              //29
+public class Main @{                                            //30
+  public static void main(String[] args) throws IOException @{  //31
+    StdIO.fputs("Sch@"one Gr@"u@ss{}e!\n", StdIO.stdOut());            //32
+    StdIO.fflush(StdIO.stdOut());                              //33
+  @}                                                            //34
+@}                                                              //35
+@end example
+
+@noindent
+You can compile and run this program as follows:
+
+@example
+(bash) jeannie.sh cstdlib/Main.jni 
+(bash) java -cp . -Djava.library.path=cstdlib cstdlib.Main
+Sch\313\206ne Gr\302\270\357\254\202e!
+@end example
+
+@noindent
+Line 17 uses the builtin function @code{copyFromJava} to copy the Java
+string @code{s} to the C array @code{cs}. Here, this function behaves
+slightly differently from when we saw it in @ref{Arrays}. Since the
+target of the copy is an array not of @code{`char} but of @code{`byte},
+Line 17 performs a conversion from UTF-16 to UTF-8 encoding for
+unicode. In this example, the input string is @code{"Sch@"one
+Gr@"u@ss{}e!\n"} (``Nice greetings!'' in German), which has 14
+characters, including the Umlauts @"o, @"u, and @ss{}. These special
+symbols take only 1 UTF-16 character each, but multiple UTF-8 bytes,
+hence the length of the resulting string @code{"Sch\313\206ne
+Gr\302\270\357\254\202e!"} is 18. Jeannie provides a function
+@code{stringUTFLength} that you can use to find out the number of bytes
+that a UTF-8 string will need before you make the conversion from
+UTF-16. In the example, Line 14 calls @code{stringUTFLength}, and Line
+15 uses the result to stack-allocate a buffer for the C string. Note
+that the buffer has one more byte, used to zero-terminate the string in
+Line 18 as expected by the C language.
+
+Lines 20 and 21 perform error handling. If the call to the C function
+@code{fputs} in Line 19 failed, it returns @code{EOF} to indicate that
+something went wrong. In that case, @code{errno} contains a numerical
+error code, and @code{strerror(errno)} describes the error as a C
+string. Line 21 converts that C string to a Java string with the Jeannie
+builtin function @code{newJavaString}, and then throws an
+@code{IOException}.
+
+Besides the functions @code{copyFromJava}, @code{stringUTFLength}, and
+@code{newJavaString} illustrated in this example, Jeannie also supports
+strings in @code{with} statements. Since Java strings are immutable, you
+can not modify a Java string with a @code{with} statement either: it
+always implicitly cancels.
+
+@c ==================================================================
+@node Debugging
+@section Debugging
+@cindex trouble shooting
+@cindex debugging
+
+We are actively working on a Jeannie debugger. In the meantime, we
+recommend you use gdb, following these instructions by Matthew White:
+@uref{http://www.ibm.com/developerworks/java/library/j-jnidebug/index.html}.
+Here is a short summary of Matthew White's approach. Essentially, you
+need to run the compiler with @code{-g} and the Java virtual machine
+with @code{-Xrunjdwp}. Then, you need to attach @code{jdb} and
+@code{gdb} to the running Java virtual machine. Then, at any given
+point, the system is in one of three states:
+
+@table @r
+@item JVM active, and both @code{jdb} and @code{gdb} inert
+The Java virtual machine is active executing Java code, and both
+debuggers (@code{jdb} and @code{gdb}) are inert. This continues until
+either one of the debuggers hits a breakpoint, or there is a
+segmentation fault that activates @code{gdb}, or the program
+terminates.
+@item @code{gdb} active, and both JVM and @code{jdb} inert
+The C debugger is active, allowing you to interact with it using
+debugging commands such as single-stepping, inspecting the C stack
+backtrace, inspecting C variable values, or setting C breakpoints.  The
+JVM is suspended, and the Java debugger is inert. To get back into the
+first state (JVM active), ask the debugger to let the program continue.
+@item @code{jdb} active, and both JVM and @code{gdb} inert
+The Java debugger is active, allowing you to interact with it using
+debugging commands such as single-stepping, inspecting the Java stack
+backtrace, inspecting Java variable values, or setting Java breakpoints.
+The JVM is suspended, and the C debugger is inert. To get back into the
+first state (JVM active), ask the debugger to let the program continue.
+@end table
+
+@noindent
+Consider the following buggy Jeannie program (integration test 048):
+
+@example
+`.C @{                                      // 1
+int decr(int x) @{                          // 2
+  int y;                                   // 3
+  x--;                                     // 4
+  if (x != 0)                              // 5
+    y = x;                                 // 6
+  return y;                                // 7
+@}                                          // 8
+@}                                          // 9
+class Main @{                               //10
+  public static void main(String[] args) @{ //11
+    int z = 1;                             //12
+    z = `decr(`z);                         //13
+    System.err.println(z);                 //14
+  @}                                        //15
+@}                                          //16
+@end example
+
+@noindent
+Since function @code{f} is called with @code{x==1}, the variable
+@code{y} is not initialized when Line 7 returns it. Thus, the
+uninitialized value taints variable @code{z} on Line 13, and Line 14
+prints it. Below is an example debugging session, following Matthew
+White's approach. The session actually takes place in three different
+terminals, we interleave it here in chronological order for clarity.
+Lines marked with @code{*} contain user input.
+
+@example
+-------- JVM terminal --------
+* (bash) jeannie.sh -g Main.jni
+* (bash) java -cp . -Xdebug -Xnoagent -Djava.compiler=none \
+*   -Xrunjdwp:transport=dt_socket,server=y,suspend=y Main
+  Listening for transport dt_socket at address: 50067
+-------- jdb terminal --------
+* (bash) jdb -attach 50067
+  Set uncaught java.lang.Throwable
+  Set deferred uncaught java.lang.Throwable
+  Initializing jdb ...
+  VM Started: No frames on the current call stack
+* main[1] stop in Main.main
+  Deferring breakpoint Main.main.
+  It will be set after the class is loaded.
+* main[1] run
+  > Set deferred breakpoint Main.main
+  Breakpoint hit: "thread=main", Main.main(), line=11 bci=0
+  11      public static void main(String[] args) @{ //11
+-------- gdb terminal --------
+* (bash) ps -A | grep java | grep -v grep
+  5980  p1  S+  0:00.16 java -cp . -Xdebug -Xnoagent -Djava.compiler=...
+* (bash) gdb -quiet java 5980
+  Attaching to program: `/usr/bin/java', process 5980.
+  Reading symbols for shared libraries ............................ done
+  0x90009cd7 in mach_msg_trap ()
+* (gdb) break Main.jni:4
+  Breakpoint 1 at 0x25e0d5f: file /Users/hirzel/tmp/Main.jni, line 4.
+* (gdb) cont
+  Continuing.
+  [Switching to process 5980 thread 0xc07]
+-------- jdb terminal --------
+* main[1] cont
+-------- gdb terminal --------
+  Breakpoint 1, decr (x=1) at /Users/hirzel/tmp/Main.jni:4
+  4	  x--;                                     // 4
+* (gdb) print y
+  $1 = 39718276
+* (gdb) cont
+  Continuing.
+-------- JVM terminal --------
+  39718276
+-------- jdb terminal --------
+  The application exited
+-------- gdb terminal --------
+  Program exited normally.
+@end example
+
+@c EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+@node Reference
+@chapter Reference
+
+Use this section to look up descriptions of Jeannie features, builtin
+functions, and tools.
+
+@menu
+* Quick reference:: Summary of features, builtins, and tools.
+* Language features:: Syntax and semantics of Jeannie language.
+* Builtin functions:: Special C functions built into Jeannie.
+* Tools:: Scripts and programs for compiling Jeannie programs.
+@end menu
+
+@c ==================================================================
+@node Quick reference
+@section Quick reference
+
+@table @sc
+@item Features
+@table @r
+@item @var{File} = [ @var{Java.Package} ] @var{Java.Imports} @code{`.C @{} @var{C.Declarations} @code{@}} @var{Java.TypeDecls}
+A Jeannie file is a Java file starting with a block of C declarations.
+@item @var{Java.NT} += @dots{} / (@code{`} / @code{`.C}) @var{C.NT}
+C blocks or expressions can be nested in Java code using backticks.
+@item @var{C.NT} += @dots{} / (@code{`} / @code{`.Java}) @var{Java.NT}
+Java blocks or expressions can be nested in C code using backticks.
+@item @var{C.TypeSpecifier} += @dots{} / (@code{`} / @code{`.Java}) @var{Java.Type}
+A backticked Java type name can serve as a C type specifier.
+@item @var{C.Statement} += @dots{} / @code{_with (} ( @var{C.Assignment} / @var{C.Declaration} ) @code{)} @var{C.Block}
+A @code{with} statement provides bulk access to a Java string or array.
+@item @var{C.Statement} += @dots{} / @code{_cancel} @var{C.Identifier} @code{;} / @code{_commit} @var{C.Identifier} @code{;}
+Cancel or commit end the @code{with} statement for the C variable name.
+@end table
+@c ..................................................................
+@item Builtin functions
+@table @r
+@item @code{`int _copyFromJava(}@var{CT}@code{ ca, `int ci, }@var{JT}@code{ ja, `int ji, `int len)}
+  Copy string or array elements from Java to C.
+@item @code{`int _copyToJava(}@var{JT}@code{ ja, `int ji, }@var{CT}@code{ ca, `int ci, `int len)}
+  Copy array elements from C to Java.
+@item @code{`String _newJavaString(const }@var{CT}@code{ ca)}
+  Create a new Java string from C.
+@item @code{`int _stringUTFLength(`String js} [ @code{, `int ji, `int len} ] @code{)}
+  Count length of Java string in UTF-8 representation.
+@end table
+@c ..................................................................
+@item Tools
+@table @r
+@item @code{jeannie.sh} [ @var{options} ] @var{file} [ @var{c-files...} ]
+  Master script. Creates dynamically linked library and class files.
+@item @code{java xtc.lang.jeannie.Preprocessor} [ @var{options} ] @var{file}
+  Inject Jeannie-specific definitions. Output goes to @code{stdout}.
+@item @code{java xtc.lang.jeannie.Jeannie} [ @code{-analyze} | @code{-translate} | @dots{} ] @var{file}
+  Translate preprocessed Jeannie source code to Java and C source.
+@item @code{java xtc.lang.ClassfileSourceRemapper} [ @var{options} ] @var{source-file} @var{class-file}
+  Add debugging symbols to classes. Rewrites the @var{class-file}.
+@end table
+@end table
+
+@c ==================================================================
+@node Language features
+@section Language features
+
+This section discusses the syntax and semantics of Jeannie, first in
+summary and then individually by feature.
+
+@menu
+* Syntax:: Grammar overview.
+* Type equivalences:: Equivalences between Java and C types.
+* C in Java:: Features for nesting C code in Java code.
+* Java in C:: Features for nesting Java code in C code.
+* with:: Access entire Java array or string from C.
+* cancel and commit:: Release a Java array.
+@end menu
+
+@c ------------------------------------------------------------------
+@node Syntax
+@subsection Syntax
+@cindex syntax
+@cindex grammar
+
+Below is the Jeannie grammar. It has four groups of productions: the
+start symbol, modifications to the Java and C grammars, and additions to
+the C grammar. Each grammar production consists of a non-terminal,
+followed by ``='', ``+='', or ``:='', followed by a parsing expression.
+For example, the production for the start symbol
+
+@indent
+@var{File} = [ @var{Java.Package} ] @var{Java.Imports} @code{`.C @{} @var{C.Declarations} @code{@}} @var{Java.TypeDecls}
+
+@noindent
+specifies that the non-terminal @var{File} recognizes an optional
+package declaration, import declarations, some initial
+@var{C.Declarations} enclosed in a @code{`.C@{}@dots{}@code{@}} block,
+and finally top-level Java class and interface declarations. Each
+grammar production is followed by an example expansion. In the case of
+@var{File}, the example expansion is
+
+@indent
+  @expansion{} @code{`.C @{ #include <stdio.h> @} class A @{ @}}
+
+@noindent
+Productions with ``+='' modify the grammar of one of the two base
+languages with the grammar modification facilities of Rats!. For
+example,
+
+@indent
+@var{Java.Block} += @dots{} / @var{CInJava} @var{C.Block}
+
+@noindent
+modifies the Java grammar: the non-terminal @var{Java.Block}, in
+addition (+=) to recognizing Java blocks (@dots{}), now recognizes a
+backtick (@var{CInJava}) followed by a C block (@var{C.Block}). As
+another example the rule
+
+@indent
+@var{C.FunctionDeclarator} @code{:=} @var{C.DirectDeclarator} @code{(} @var{C.ParameterDeclaration} @code{)}@*
+@indent
+@w{ } @w{ } [ @var{JavaInC} @var{Java.ThrowsClause} ]
+
+@noindent
+modifies the C grammar: the non-terminal @var{C.FunctionDeclarator},
+instead of (:=) recognizing just a C function declarator, now recognizes
+a C function declarator followed by an optional backtick and Java
+@code{throws} clause.
+
+@table @sc
+@c ..................................................................
+@item Start symbol
+@table @r
+@item @var{File} = [ @var{Java.Package} ] @var{Java.Imports} @code{`.C @{} @var{C.Declarations} @code{@}} @var{Java.TypeDecls}
+  @expansion{} @code{`.C @{ #include <stdio.h> @} class A @{ @}}
+@end table
+@c ..................................................................
+@item Modifications to Java grammar
+@table @r
+@item @var{Java.Block} += @dots{} / @var{CInJava} @var{C.Block}
+  @expansion{} @code{`@{ int x = 42; printf("%d", x); @}}
+@item @var{Java.UnaryExpression} += @dots{} / @var{CInJava} @var{C.UnaryExpression}
+  @expansion{} @code{`((jboolean)feof(stdin))}
+@item @var{CInJava} = @code{`.C} / @code{`}
+  @expansion{} @code{`.C}
+@end table
+@c ..................................................................
+@item Modifications to C grammar
+@table @r
+@item @var{C.Block} += @dots{} / @var{JavaInC} @var{Java.Block}
+  @expansion{} @code{`@{ int x=42; System.out.println(x); @}}
+@item @var{C.UnaryExpression} += @dots{} / @var{JavaInC} @var{Java.UnaryExpression}
+  @expansion{} @code{`new HashMap();}
+@item @var{C.TypeSpecifier} += @dots{} / @var{JavaInC} @var{Java.Type}
+  @expansion{} @code{`java.util.Map}
+@item @var{C.FunctionDeclarator} @code{:=} @var{C.DirectDeclarator} @code{(} @var{C.ParameterDeclaration} @code{)}
+@table @r
+@item [ @var{JavaInC} @var{Java.ThrowsClause} ]
+  @expansion{} @code{f(char *s) `throws IOException}
+@end table
+@item @var{C.Statement} += @dots{}
+@table @r
+@item / @var{JavaInC} @var{Java.SynchronizedStatement}
+  @expansion{} @code{`synchronized(act) @{ act.deposit(); @} }
+@item / @var{JavaInC} @var{Java.TryStatement}
+  @expansion{} @code{`try @{ f(); @} catch (Exception e) @{ h(e); @} }
+@item / @var{JavaInC} @var{Java.ThrowStatement}
+  @expansion{} @code{`throw new Exception("boo");}
+@end table
+@item @var{JavaInC} = @code{`.Java} / @code{`}
+  @expansion{} @code{`.Java}
+@end table
+@c ..................................................................
+@item Additions to C grammar
+@table @r
+@item @var{C.Statement} += @dots{}
+@table @r
+@item / @code{_with (} @var{WithInitializer} @code{)} @var{C.Block}
+  @expansion{} @code{_with (`int* ca = `ja) @{ sendMsg(ca); @}}
+@item / @code{_cancel} @var{C.Identifier} @code{;}
+  @expansion{} @code{_cancel ca;}
+@item / @code{_commit} @var{C.Identifier} @code{;}
+  @expansion{} @code{_commit ca;}
+@end table
+@item @var{WithInitializer} =
+@table @r
+@item @var{C.AssignmentExpression}
+  @expansion{} @code{msg->data = `ja}
+@item / @var{C.Declaration}
+  @expansion{} @code{`int* ca = `v.toArray()}
+@end table
+@end table
+@end table
+
+@c ------------------------------------------------------------------
+@node Type equivalences
+@subsection Type equivalences
+@cindex types
+
+Jeannie introduces new C types for every Java primitive, class, or
+interface type. If @var{JT} is a Java type name, then @code{`}@var{JT}
+is a C type. For example, @code{`int} is a signed 32-bit C integer type,
+and @code{`java.io.IOException} is the type for opaque C references to
+Java IOException objects.
+
+Jeannie defines several type equivalences between Java and C types,
+denoted as @w{@var{JT} @equiv{} @var{CT}}. When a Java expression is
+nested in C code, Jeannie type-checks the C code as if the Java
+expression had the equivalent C type. Likewise, when a C expression is
+nested in Java code, Jeannie type-checks the Java code as if the C
+expression had the equivalent Java type. Of course, each Java primitive,
+class, or interface type is equivalent to the same type with backtick in
+C. For example:
+
+@multitable { } {@code{java.io.IOException}} {@equiv{} @code{`java.io.IOException}}
+@item @tab @code{int} @tab @equiv{} @code{`int}
+@item @tab @code{java.io.IOException} @tab @equiv{} @code{`java.io.IOException}
+@item @tab @code{java.util.Iterator} @tab @equiv{} @code{`java.util.Iterator}
+@end multitable
+
+@noindent
+Jeannie has the same rules for resolving simple type names to fully
+qualified names as Java. For example, C code in Jeannie can use
+@code{`IOException} for @code{`java.io.IOException} if the current file
+is part of package @code{java.io} or if it has the appropriate import
+declaration.
+
+In addition to backticked Java types in C, Jeannie also honors type
+equivalences between Java and C types from @code{jni.h}. The most
+important ones are arrays:
+
+@multitable { } {@code{java.io.IOException}} {@equiv{} @code{`java.io.IOException}}
+@item @tab @code{boolean[]} @tab @equiv{} @code{jbooleanArray}
+@item @tab @code{byte[]} @tab @equiv{} @code{jbyteArray}
+@item @tab @code{char[]} @tab @equiv{} @code{jcharArray}
+@item @tab @code{short[]} @tab @equiv{} @code{jshortArray}
+@item @tab @code{int[]} @tab @equiv{} @code{jintArray}
+@item @tab @code{long[]} @tab @equiv{} @code{jlongArray}
+@item @tab @code{float[]} @tab @equiv{} @code{jfloatArray}
+@item @tab @code{double[]} @tab @equiv{} @code{jdoubleArray}
+@item @tab @code{java.lang.Object[]} @tab @equiv{} @code{jobjectArray}
+@end multitable
+
+@noindent
+Other type equivalences from @code{jni.h} include primitive types and
+certain frequently used classes and interfaces:
+
+@multitable { } {@code{java.io.IOException}} {@equiv{} @code{`java.io.IOException}}
+@item @tab @code{boolean} @tab @equiv{} @code{jboolean}
+@item @tab @code{byte} @tab @equiv{} @code{jbyte}
+@item @tab @code{char} @tab @equiv{} @code{jchar}
+@item @tab @code{short} @tab @equiv{} @code{jshort}
+@item @tab @code{int} @tab @equiv{} @code{jint}
+@item @tab @code{long} @tab @equiv{} @code{jlong}
+@item @tab @code{float} @tab @equiv{} @code{jfloat}
+@item @tab @code{double} @tab @equiv{} @code{jdouble}
+@item @tab @code{java.lang.Object} @tab @equiv{} @code{jobject}
+@item @tab @code{java.lang.Class} @tab @equiv{} @code{jclass}
+@item @tab @code{java.lang.String} @tab @equiv{} @code{jstring}
+@item @tab @code{java.lang.Throwable} @tab @equiv{} @code{jthrowable}
+@end multitable
+
+@noindent
+C pointers, structs, and unions have no equivalent in Java, and the
+Jeannie compiler flags an error when a program attempts to use them in
+Java code.
+
+@c ------------------------------------------------------------------
+@node C in Java
+@subsection C in Java
+@cindex backtick
+
+@table @sc
+@c ..................................................................
+@item Name
+C in Java -- C block or C expression nested in Java code.
+
+@c ..................................................................
+@item Syntax rules
+@multitable {@var{Java.UnaryExpression}} {+=} {@dots{} / @var{CInJava} @var{C.UnaryExpression}}
+@item @var{Java.Block} @tab += @tab @dots{} / @var{CInJava} @var{C.Block}
+@item @var{Java.UnaryExpression} @tab += @tab @dots{} / @var{CInJava} @var{C.UnaryExpression}
+@item @var{CInJava} @tab = @tab @code{`.C} / @code{`}
+@end multitable
+
+@c ..................................................................
+@item Syntax notes
+An example for a C block in Java is
+@w{@code{`@{ int x = 42; printf("%d", x); @}}}.
+
+An example for a C expression in Java is 
+@w{@code{`((jboolean)feof(stdin))}}.
+
+When used in an expression, the backtick (@code{`} or @code{`.C}) has
+the same precedence as other unary prefix operators such as logical
+negation (@code{!}).
+
+@c ..................................................................
+@item Dynamic semantics
+The dynamic semantics of nested C code are mostly just the dynamic
+semantics of C. All C code in the same activation of a function or
+method observes the same state, so when nested blocks or expressions
+have side effects, those effects are visible to other code, as
+expected. It is a programmer mistake to keep a reference to a Java
+object into a C global variable or the C heap after the current function
+or method returns. If a Java exception occurs in the nested C code,
+control abruptly leaves the nested C code and propagates to the nearest
+Java exception handler, following the dynamic semantics of Java. Java
+code that contains a nested C expression uses the result of that C
+expression as an r-value of the corresponding Java type.
+
+@c ..................................................................
+@item Static semantics
+The static semantics of nested C code are mostly just the static
+semantics of C. For instance, Jeannie resolves C functions to their
+prototypes, which are typically declared in header files included at the
+beginning of a Jeannie file. If name lookup fails or the C code is
+incorrectly typed, the Jeannie compiler reports an error.
+
+When a C expression is nested in Java code, Jeannie type-checks the Java
+code as if the C expression had the equivalent Java type, as specified
+in @ref{Type equivalences}. It is a compile time error when a C
+expression nested in Java evaluates to a pointer, struct, or union,
+since those have no equivalent in Java. Jeannie also checks that the
+Java code treats the value of the C expression as an r-value, and in
+particular, does not assign to it. When a C @code{return} statement
+returns from a Java method, Jeannie type-checks the return value against
+the return type of the method as if it had the equivalent Java type.
+
+C assignments, variable initializers, function invocations, and
+@code{return} statements can implicitly widen opaque references to Java
+classes or interfaces. For example, C code can assign a reference of
+type @code{`java.util.HashMap} to a variable of type
+@code{`java.util.Map}, because class @code{HashMap} implements interface
+@code{Map}.
+
+Native methods of a Java class must have a body and that body must be a
+backticked C block. Native methods also declare an implicit C parameter
+@code{JNIEnv* env}, so that C code has access to JNI's API.
+Consequently, explicit parameters of native methods cannot have the name
+@code{env}. Jeannie provides this feature to facilitate incremental
+conversion of JNI code to Jeannie; other uses of this feature are
+discouraged.
+
+If nested C code contains any @code{break}, @code{continue}, or
+@code{goto} statements, those must not cross the language boundary, and
+they also must not cross the boundary of a @code{with} statement.
+@end table
+
+@c ------------------------------------------------------------------
+@node Java in C
+@subsection Java in C
+@cindex backtick
+
+@table @sc
+@c ..................................................................
+@item Name
+Java in C -- Java block, expression, or other code nested in C code.
+
+@c ..................................................................
+@item Syntax rules
+@multitable {@var{C.FunctionDeclarator}} {+=} {@var{JavaInC} @var{Java.SynchronizedStatement}}
+@item @var{C.Block} @tab += @tab @dots{} / @var{JavaInC} @var{Java.Block}
+@item @var{C.UnaryExpression} @tab += @tab @dots{} / @var{JavaInC} @var{Java.UnaryExpression}
+@item @var{C.TypeSpecifier} @tab += @tab @dots{} / @var{JavaInC} @var{Java.Type}
+@item @var{C.Statement} @tab += @tab @dots{}
+@item   @tab / @tab @var{JavaInC} @var{Java.SynchronizedStatement}
+@item   @tab / @tab @var{JavaInC} @var{Java.TryStatement}
+@item   @tab / @tab @var{JavaInC} @var{Java.ThrowStatement}
+@item @var{C.FunctionDeclarator} @tab @code{:=} @tab @var{C.DirectDeclarator}
+@item   @tab @tab @code{(} @var{C.ParameterDeclaration} @code{)}
+@item   @tab @tab [ @var{JavaInC} @var{Java.ThrowsClause} ]
+@item @var{JavaInC} @tab = @tab @code{`.Java} / @code{`}
+@end multitable
+
+@c ..................................................................
+@item Syntax notes
+An example for a Java block in C is
+@w{@code{`@{ int x=42; System.out.println(x); @}}}.
+
+An example for a Java expression in C is
+@w{@code{`new HashMap();}}.
+
+An example for a Java type name in C is @w{@code{`java.util.Map}}. It
+may be part of a C variable declaration such as @w{@code{const
+`java.util.Map m = ...;}}.
+
+An example for a Java statement in C is
+@w{@code{`throw new Exception("boo");}}.
+
+An example for a C function declarator with a Java throws clause is
+@w{@code{f(char *s) `throws IOException}}.
+
+When used in an expression, the backtick (@code{`} or @code{`.C}) has
+the same precedence as other unary prefix operators such as logical
+negation (@code{!}).
+
+@c ..................................................................
+@item Dynamic semantics
+The dynamic semantics of nested Java code are mostly just the dynamic
+semantics of Java. The semantics of exceptions and locks extend from
+Java across C code; for example, when an exception abruptly leaves a
+synchronized statement, the corresponding lock is released. All Java
+code in the same activation of a function or method observes the same
+state, so when nested Java code has side effects, those effects are
+visible to other code, as expected.
+
+C code that contains a nested Java expression uses the result of that
+Java expression as an r-value of the corresponding C type. As specified
+in @ref{Type equivalences}, the corresponding C type may be a backticked
+Java primitive, class, or interface type. If a nested Java expression
+yields a reference to a Java object, that object will not be garbage
+collected until at least the enclosing function or method returns. In
+the terminology of JNI, it constitutes a local reference.
+
+@c ..................................................................
+@item Static semantics
+The static semantics of nested Java code are mostly just the static
+semantics of Java. For instance, Jeannie resolves Java class names
+relative to imports. It also verifies that all checked exceptions are
+either caught locally or declared as thrown by the enclosing function or
+method. Furthermore, Jeannie checks that Java members are in fact
+accessible, i.e., that references to fields, methods, and member types
+obey their visibility (@code{private}, @code{protected}, @code{public},
+or default).
+
+When a Java expression is nested in C code, Jeannie type-checks the C
+code as if the Java expression had the equivalent C type, see @ref{Type
+equivalences}. Jeannie also checks that the C code treats the value of
+the Java expression as an r-value, and in particular, does not assign to
+it. When a Java @code{return} statement returns from a C function,
+Jeannie type-checks the return value against the return type of the
+function as if it had the equivalent C type.
+
+In order to contain nested Java code, the enclosing C code must be
+either part of a Java method, or must be in a C function that declares
+an explicit formal parameter @code{JNIEnv* env}. The @code{env}
+variable can also be used to facilitate incremental conversion of JNI
+code to Jeannie; other uses of this feature are discouraged.
+
+If nested Java code contains any @code{break} or @code{continue}
+statements, those must not cross the language boundary, neither must
+they cross the boundary of a @code{with} statement.
+@end table
+
+@c ------------------------------------------------------------------
+@node with
+@subsection with
+@cindex with
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_with} -- Access entire Java array or string from C.
+
+@c ..................................................................
+@item Syntax rules
+@multitable {@var{WithInitializer}} {+=} {@var{C.AssignmentExpression} / @var{C.Declaration}}
+@item @var{C.Statement} @tab += @tab @dots{} / @code{_with (} @var{WithInitializer} @code{)} @var{C.Block}
+@item @var{WithInitializer} @tab = @tab @var{C.AssignmentExpression} / @var{C.Declaration}
+@end multitable
+
+@c ..................................................................
+@item Syntax notes
+You can also write the keyword (@code{_with}) without a leading
+underscore (@code{with}). The leading underscore is mandatory only if
+you run the Jeannie compiler with the @code{-underscores} command line
+option.
+
+An example for a @code{with} statement is @w{@code{with (`int* ca = `ja) @{ sendMsg(ca); @}}}.
+
+An example for a C assignment expression is @w{@code{msg->data = `ja}}.
+
+An example for a C declaration is @w{@code{`int* ca = `v.toArray()}}.
+
+@c ..................................................................
+@item Dynamic semantics
+Jeannie's @code{with} statement accesses a Java string or array from C
+code like a C array in a well-defined scope. For example,
+@example
+_with (`int* ca = `ja) @{
+  for (`int i=0, n=`ja.length; i<n; i++)
+    s += ca[i];
+@}
+@end example
+@noindent
+acquires a copy of Java array @code{ja}'s contents, sums up its
+elements, and then releases the copy while also copying back the
+contents. In the example, array @code{ja} is released when control
+reaches the end of the block. In general, the Java string or array is
+released when control leaves the body of the @code{with} statement for
+any reason, including return statements and exceptions. In the case of
+an exception, all modifications to the array are canceled, in other
+words, the original Java array is unmodified. When there is no
+exception, any changes to the C array are copied back into the Java
+array.
+
+If the Java string or array is null, the @code{with} statement signals a
+@code{NullPointerException}. Otherwise, it initializes the C array to
+point to a copy of the Java array. Strings are UTF-8 encoded if the C
+array is of type @code{`byte*}, and UTF-16 encoded if the C array is of
+type @code{`char*}. Independent of encoding, modifying a string leads to
+undefined behavior.
+
+@c ..................................................................
+@item Static semantics
+The @var{WithInitializer} must be either a simple assignment to a C
+pointer variable, or a declaration of a C pointer variable. For the
+purpose of this discussion, let @var{ca} be the name of the C pointer
+variable, and let @var{ja} refer to the Java string or array on the
+right hand side of the @var{WithInitializer}. In the assignment case,
+@var{ca} must be modifiable, i.e., not @code{const}.
+
+Let @var{CT} be the type of @var{ca}, and @var{JT} the type of @var{ja}.
+If @var{ja} is an array, then @var{JT} is @code{j}@var{E}@code{Array}
+for some element type @var{E}, and @var{CT} must be
+@code{`}@var{E}@code{*}, for the same @var{E}. For example, if @var{JT}
+is @code{jintArray}, then @var{E} is @code{int}, and @var{CT} must be
+@code{`int*}. If @code{ja} is a string, then @var{JT} is @code{`String},
+and @var{CT} must be either @code{`byte*} or @code{`char*}.
+@end table
+
+@c ------------------------------------------------------------------
+@node cancel and commit
+@subsection cancel and commit
+@cindex abort
+@cindex cancel
+@cindex commit
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_cancel} / @code{_commit} -- Release a Java array and discard /
+preserve changes.
+
+@c ..................................................................
+@item Syntax rules
+@multitable {@var{C.Statement}} {+=} {@var{C.AssignmentExpression} / @var{C.Declaration}}
+@item @var{C.Statement} @tab += @tab @dots{}
+@item   @tab / @tab @code{_cancel} @var{C.Identifier} @code{;}
+@item   @tab / @tab @code{_commit} @var{C.Identifier} @code{;}
+@end multitable
+
+@c ..................................................................
+@item Syntax notes
+You can also write the keyword (@code{_cancel} or @code{_commit})
+without a leading underscore (@code{cancel} or @code{commit}). The
+leading underscore is mandatory only if you run the Jeannie compiler
+with the @code{-underscores} command line option.
+
+An example for a @code{cancel} statement is @code{_cancel ca;}.
+
+An example for a @code{commit} statement is @code{_commit ca;}.
+
+@c ..................................................................
+@item Dynamic semantics
+The @code{commit} and @code{cancel} statements initiate an abrupt
+control transfer to the code immediately following the @code{with}
+statement that initializes the named C pointer variable. A @code{commit}
+statement copies any changes back into the Java array, whereas
+@code{cancel} discards them. Both @code{commit} and @code{abort} release
+any resources necessary for implementing the @code{with} statement,
+notably the copy's memory.
+
+@c ..................................................................
+@item Static semantics
+The identifier must be the formal of a directly enclosing @code{with}
+statement.
+@end table
+
+@c ==================================================================
+@node Builtin functions
+@section Builtin functions
+@cindex builtins
+
+This section describes special C functions built into Jeannie. Builtin
+functions are recognized by the Jeannie compiler, which analyzes them
+and translates them specially. For example, the compiler enforces
+special constraints when it analyzes a builtin, such as matching a C
+buffer type to a Java array type.
+
+You can write all of these builtins either with or without a leading
+underscore (e.g., @code{copyFromJava} vs. @code{_copyFromJava}). The
+leading underscore is mandatory only if you run the Jeannie compiler
+with the @code{-underscores} command line option.
+
+@menu
+* copyFromJava:: Copy string or array elements from Java to C.
+* copyToJava:: Copy array elements from C to Java.
+* newJavaString:: Create a new Java string from C.
+* stringUTFLength:: Count length of Java string in UTF-8 representation.
+@end menu
+
+@c ------------------------------------------------------------------
+@node copyFromJava
+@subsection copyFromJava
+@cindex copyFromJava
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_copyFromJava} -- Copy string or array elements from Java to C.
+
+@c ..................................................................
+@item Signature
+@code{`int _copyFromJava(}@var{CT}@code{ ca, `int ci, }@var{JT}@code{ ja, `int ji, `int len)}
+
+@c ..................................................................
+@item Description
+Copy from @code{ja[ji}@dots{}@code{ji+len-1]} to
+@code{ca[ci}@dots{}@code{]}, and return the number of elements copied
+into @code{ca}.
+
+If @code{ja} is an array, then @var{JT} is @code{j}@var{E}@code{Array}
+for some element type @var{E}, and @var{CT} must be
+@code{`}@var{E}@code{*}, for the same @var{E}. For example, if @var{JT}
+is @code{jintArray}, then @var{E} is @code{int}, and @var{CT} must be
+@code{`int*}.
+
+If @code{ja} is a string, then @var{JT} is @code{`String}, and @var{CT}
+must be either @code{`byte*} or @code{`char*}. If @var{CT} is
+@code{`byte*}, then the copy involves a conversion from UTF-16 to UTF-8.
+This conversion may cause the return value (number of elements copied
+into @code{ca}) to differ from the @code{len} parameter (number of
+elements copied out of @code{ja}).
+
+@c ..................................................................
+@item Parameters
+@table @r
+@item @var{CT} @code{ca}
+C array that receives the copy.
+@item @code{`int ci}
+Index in the C array where the copy starts.
+@item @var{JT} @code{ja}
+Java string or array from which the copy originates.
+@item @code{`int ji}
+Index in the Java string or array where the copy starts.
+@item @code{`int len}
+Number of copied elements from the Java string or array.
+@end table
+
+@c ..................................................................
+@item Returns
+@code{`int} -- Number of elements copied into the C array @code{ca}.
+
+@c ..................................................................
+@item Exceptions
+If one of the indices in the Java string or array @code{ja} is invalid,
+@code{copyFromJava} raises a @code{StringIndexOutOfBoundsException} or
+@code{ArrayIndexOutOfBoundsException}. If one of the indices in the C
+array @code{ca} is invalid, @code{copyFromJava} exhibits undefined
+behavior. To avoid a buffer overrun related to unicode conversion (from
+a Java string to a C @code{`byte*}), you should call
+@code{stringUTFLength} before calling @code{copyFromJava}.
+
+@end table
+
+@c ------------------------------------------------------------------
+@node copyToJava
+@subsection copyToJava
+@cindex copyToJava
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_copyToJava} -- Copy array elements from C to Java.
+
+@c ..................................................................
+@item Signature
+@code{`int _copyToJava(}@var{JT}@code{ ja, `int ji, }@var{CT}@code{ ca, `int ci, `int len)}
+
+@c ..................................................................
+@item Description
+Copy from @code{ca[ci}@dots{}@code{ci+len-1]} to
+@code{ja[ji}@dots{}@code{]}, and return the number of elements copied.
+The type @var{JT} must be @code{j}@var{E}@code{Array} for some element
+type @var{E}, and @var{CT} must be @code{`}@var{E}@code{*}, for the same
+@var{E}. For example, if @var{JT} is @code{jintArray}, then @var{E} is
+@code{int}, and @var{CT} must be @code{`int*}. The type @var{JT} must
+not be @code{`String}, because strings are immutable in Java, and
+therefore, it does not make sense to copy elements into them.
+
+@c ..................................................................
+@item Parameters
+@table @r
+@item @var{JT} @code{ja}
+Java array that receives the copy.
+@item @code{`int ji}
+Index in the Java array where the copy starts.
+@item @var{CT} @code{ca}
+C array from which the copy originates.
+@item @code{`int ci}
+Index in the C array where the copy starts.
+@item @code{`int len}
+Number of copied elements from the Java string or array.
+@end table
+
+@c ..................................................................
+@item Returns
+@code{`int} -- Number of elements copied into the Java array @code{ja}.
+
+@c ..................................................................
+@item Exceptions
+If one of the indices in the Java array @code{ja} is invalid,
+@code{copyToJava} raises an @code{ArrayIndexOutOfBoundsException}. If
+one of the indices in the C array @code{ca} is invalid,
+@code{copyToJava} exhibits undefined behavior.
+
+@end table
+
+@c ------------------------------------------------------------------
+@node newJavaString
+@subsection newJavaString
+@cindex newJavaString
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_newJavaString} -- Create a new Java string from C.
+
+@c ..................................................................
+@item Signature
+@code{`String _newJavaString(const }@var{CT}@code{ ca)}
+
+@c ..................................................................
+@item Description
+Create a new Java string with the same contents as the C array
+@code{ca}. The type @var{CT} of the C array must be either @code{`byte*}
+or @code{`char*}. If @var{CT} is @code{`byte*}, then the string creation
+involves a conversion from UTF-8 to UTF-16. In either case
+(@code{`byte*} or @code{`char*}), the C array must be null-terminated.
+
+@c ..................................................................
+@item Parameters
+@table @r
+@item @var{CT} @code{ca}
+C array from which to copy characters into the newly allocated Java string.
+@end table
+
+@c ..................................................................
+@item Returns
+@code{`String} -- Newly created Java string with the same contents as @code{ca}.
+
+@c ..................................................................
+@item Exceptions
+If the Java virtual machine does not have enough memory available to
+allocate the Java string, then @code{newJavaString} raises an
+@code{OutOfMemoryError}.
+
+@end table
+
+@c ------------------------------------------------------------------
+@node stringUTFLength
+@subsection stringUTFLength
+@cindex stringUTFLength
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{_stringUTFLength} -- Count length of Java string in UTF-8 representation.
+
+@c ..................................................................
+@item Signature
+@code{`int _stringUTFLength(`String js} [ @code{, `int ji, `int len} ] @code{)}
+
+@c ..................................................................
+@item Description
+Count how long the UTF-8 representation of the UTF-16 string @code{js}
+is. If the optional parameters @code{ji} and @code{len} are specified,
+count how long the UTF-8 representation of the substring
+@code{js[ji}@dots{}@code{ji+len-1]} is. You should use this function to
+find out how large a C @code{`byte*} buffer you need when copying (parts
+of) Java strings to C.
+
+@c ..................................................................
+@item Parameters
+@table @code
+@item `String js
+Java string to measure.
+@item `int ji
+Start index of the region to measure.
+@item `int len
+Length in UTF-16 characters of the region to measure.
+@end table
+
+@c ..................................................................
+@item Returns
+@code{`int} -- Length in UTF-8 characters.
+
+@c ..................................................................
+@item Exceptions
+None.
+
+@end table
+
+@c ==================================================================
+@node Tools
+@section Tools
+
+This section describes the command line tools for compiling Jeannie
+programs. In the normal case, you should only need to use one of them:
+the ``master script''
+@code{jeannie.sh}. It orchestrates the other Jeannie tools
+(preprocessor, compiler, postprocessor) as well as external tools (C and
+Java compilers).
+
+@menu
+* jeannie.sh:: Orchestrates all other Jeannie tools.
+* Preprocessor:: Injects Jeannie-specific definitions.
+* Compiler:: Compiles from Jeannie source to Java and C source.
+* Postprocessor:: Augments class files with symbolic information.
+@end menu
+
+@c ------------------------------------------------------------------
+@node jeannie.sh
+@subsection jeannie.sh
+@cindex jeannie.sh
+@cindex master script
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{jeannie.sh} -- Jeannie compiler master script.
+
+@c ..................................................................
+@item Synopsis
+@code{jeannie.sh} [ @var{options} ] @var{file} [ @var{c-files...} ]
+
+@c ..................................................................
+@item Parameters
+
+@table @var
+@item options
+Options may be in any order. See @sc{Options} below.
+
+@item file
+Main source file to compile, usually with the extension @code{.jni}. The
+@var{file} name should include the package directory. For example, if
+you compile a class @code{a.b.C}, where @code{a.b} is the package name,
+the file name should be @code{a/b/C.}@var{ext}. See also the
+@code{-sourcepath} option below.
+
+@item c-files...
+Other files to compile and link with the C compiler (may be C sources or
+objects). These are added into the dynamically linked library created
+from the C part of the main source file.
+@end table
+
+@c ..................................................................
+@item Description
+The @code{jeannie.sh} master script compiles a Jeannie source file into
+Java class files and a dynamically linked library. It does this by
+calling other tools that transform the file through a number of stages.
+The following picture illustrates this:
+
+@c the source for the image is a powerpoint file
+@c to generate pdf for tex: open in powerpoint, then "print" to pdf
+@c to generate jpg for html: open pdf in Mac preview, then "save as" jpg
+@iftex
+@image{stages,4in,,,pdf}
+@end iftex
+@ifhtml
+@html
+<img src="stages.jpg" width="400" />
+@end html
+@end ifhtml
+
+@cindex stage
+
+The @code{jeannie.sh} script first splits @var{file} (the name of the
+main source file) into a @var{stem} and an extension. The extension
+specifies the start @dfn{stage} of the compilation. For example, if the
+command line is
+@example
+jeannie.sh Main.jni.pp
+@end example
+then @var{stem} is @code{Main} and the extension is @code{jni.pp}. 
+Hence, processing starts at stage @code{jni.pp}, and the first
+processing step runs the C preprocessor. By default, @code{jeannie.sh}
+follows all processing steps from the start stage to the end. The
+@code{-stopAfter} option overrides this default by specifying a stop
+stage. For example, if the command line is
+@example
+jeannie.sh -stopAfter i,class Main.jni
+@end example
+then processing stops after @code{Main.i} and @code{Main.class} have
+been generated. In other words, @code{jeannie.sh} does not run the C
+compiler to create a dynamically linked library.
+
+Here is a brief description of each processing step:
+
+@table @r
+@item Jeannie preprocessor
+  Inject Jeannie-specific definitions at the start of the file.
+@item C preprocessor
+  Resolve @code{#include} and other directives and expand macros.
+@item Jeannie compiler
+  Translate Jeannie code into separate C and Java code.
+@item C compiler
+  Typically @code{gcc}, compile C code to dynamically linked
+  library. The file name of the generated library depends on the
+  platform: @var{stem}@code{.dll} on Cygwin,
+  @code{lib}@var{stem}@code{.so} on Linux, and
+  @code{lib}@var{stem}@code{.jnilib} on Mac OS.
+@item Java compiler
+  Typically @code{javac}, compile Java code to class files.
+@item Postprocessor
+  Inject @code{//#line} directives from @code{.java} file into
+  @code{.class} files.
+@end table
+
+@c ..................................................................
+@item Options
+
+@table @r
+@item @code{-cc} @var{path}
+File name of your C compiler. Overrides the @env{CC} environment
+variable. If not specified, @code{jeannie.sh} uses the @code{gcc}
+executable it finds in your @env{PATH}.
+
+@item @code{-cp} | @code{-classpath} @var{paths}
+Search existing user class files in @var{paths}. Overrides the
+@env{CLASSPATH} environment variable. This is a list of directories or
+jar files, separated by colons (on Linux or Mac OS) or semicolons (on
+Windows). It must include the xtc root directory in order to find the
+classes that implement the Jeannie compiler.
+
+@item @code{-d} | @code{-destpath} @var{dir}
+Write output generated files to @var{dir}. Specifically, if you compile
+a class @code{a.b.C}, where @code{a.b} is the package name, the
+generated files will have names based on
+@var{dir}@code{/a/b/C.}@var{ext}.
+
+@item @code{-flattenSmap}
+Rewrite line numbers with SMAP, do not stratify. The Jeannie compiler
+changes the symbol information in generated class files to refer to the
+original @code{.jni} source file to enable source-level debugging. The
+@code{-flattenSmap} option determines whether this is accomplished by
+erasing the line number information or by adding an additional source
+map stratum as specified by JSR-45
+@uref{http://jcp.org/en/jsr/detail?id=45}. The difference becomes
+visible for tools that do not yet support JSR-45, such as Java virtual
+machines printing exception backtraces using the line numbers of the
+Java source file.
+
+@item @code{-g}
+Produce debugging symbols. Can not be used in conjunction with the
+@code{-pretty} option. The @code{-g} option is passed through to the C
+compiler as well as the Java compiler.
+
+@item @code{-h} | @code{-help}
+Print a short summary of the command line options of @code{jeannie.sh}.
+
+@item @code{-I}@var{dir}
+Search header files in @var{dir}. This option is passed through to the C
+preprocessor, which uses it to resolve @code{#include} directives.
+
+@item @code{-in} @var{dir}
+See the @code{-sourcepath} option below.
+
+@item @code{-javaHome} @var{dir}
+Use the JDK installed in @var{dir}. Overrides the @env{JAVA_HOME}
+environment variable. If not specified, @code{jeannie.sh} infers this
+directory based on where it finds the @code{java} executable in your
+@env{PATH}. The Jeannie compiler looks for @code{javac} and @code{java}
+in @var{dir}@code{/bin}.
+
+@item @code{-jniCall} @var{qualifier}
+Prepend generated C JNI functions with @var{qualifier}. Overrides the
+@env{JNI_CALL} environment variable. This is the expansion of the
+@code{JNICALL} macro defined in @code{jni.h}, which specifies the
+calling conventions on platforms where that matters. You should not need
+to specify this option, as @code{jeannie.sh} will infer it for you. It
+is typically the empty string on Linux or Mac OS, and the string
+``@code{__attribute__((__stdcall__))}'' on Cygwin.
+
+@item @code{-l}@var{library}
+Search @var{library} when linking with the C compiler. This option is
+passed through to the C linker, which uses it to resolve external
+symbols. For example, @code{-lm} specifies the math library (@code{m})
+to search for mathematical functions such as @code{sqrt} and @code{cos}.
+
+@item @code{-nowarn}
+Disable compiler warning messages. By default, @code{jeannie.sh} invokes
+the C compiler with @code{-Wall}; the @code{-nowarn} option overrides
+this default. Also, @code{-nowarn} gets passed through to the Java
+compiler.
+
+@item @code{-platform} @var{platform}
+Compile for @var{platform}. Must be one of @code{Cygwin}, @code{Linux},
+or @code{MacOS}. Usually, @code{jeannie.sh} will infer the platform for
+you, but if it can't, you need to specify it on the command line. Note
+that this option is not sufficient for cross-compiling, as the compilation
+also depends on the installed C compiler, header files, and libraries.
+
+@item @code{-pretty}
+Optimize generated code for human readability. Can not be used in
+conjunction with the @code{-g} option. By default, @code{jeannie.sh}
+intersperses generated Java code with line markers such as
+@example
+//#line 7 Main.jni
+@end example
+Line markers are then uses to support debugging at the level of the
+original source code, in this case, @code{Main.jni}. The @code{-pretty}
+option suppresses line markers and leads to more natural indentation.
+That is useful when you need to inspect generated source code by hand.
+
+@item @code{-underscores}
+Require leading underscore in keywords, e.g., @code{_with}. By default,
+the Jeannie preprocessor defines aliases for keywords and builtin
+functions that omit the leading underscore. But this can lead to name
+clashes with included header files. When that happens, you can resolve
+the name clash by specifying the @code{-underscores} option and writing
+all Jeannie keywords and builtins with underscores.
+
+@item @code{-sourcepath} @var{dir}
+Read input source files from @var{dir}. Specifically, when you compile a
+class @code{a.b.C}, where @code{a.b} is the package name, the source file
+should reside in @var{dir}@code{/a/b/C.jni}.
+
+@item @code{-stopAfter} @var{stage}
+Stop compiling after reaching @var{stage}. For example, if @var{stage}
+is @code{jni.i}, then @code{jeannie.sh} will run the Jeannie
+preprocessor and the C preprocessor, and then stop. See the
+@sc{Description} above for the full list of stages. By default, if
+@code{-stopAfter} is not specified, @code{jeannie.sh} will run all
+stages.
+
+@item @code{-v} | @code{-verbose}
+Print commands executed by @code{jeannie.sh}. Each command is prepended
+by the source location in @code{jeannie.sh} just before running it.
+Also, each command may print its own messages, such as a copyright
+notice.
+
+@item @code{-verboseSettings}
+Print internal settings of this bash script. This option is useful when
+options or environment variables (see @sc{Environment} below) do not
+have the desired effect.
+
+@item @code{--}
+Treat remainder of command line as file names. This option is useful
+when one of your file names starts with a dash (@code{-}), and might
+therefore be mistaken with a command line option otherwise.
+
+@end table
+
+@c ..................................................................
+@item Environment
+
+@table @env
+@item CC
+Name of your C compiler executable. See the @code{-cc} command line
+option above for details.
+
+@item CLASSPATH
+@cindex CLASSPATH
+Paths where to search existing user class files. See the
+@code{-classpath} command line option above for details.
+
+@item JAVA_HOME
+Path where the JDK is installed. See the @code{-javaHome} command line
+option above for details.
+
+@item JNI_CALL
+Qualifier to prepend in front of C JNI functions. See the
+@code{-jniCall} command line option above for details.
+
+@end table
+
+@end table
+
+@c ------------------------------------------------------------------
+@node Preprocessor
+@subsection Preprocessor
+@cindex preprocessor
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{xtc.lang.jeannie.Preprocessor} -- Inject Jeannie-specific
+definitions.
+
+@c ..................................................................
+@item Synopsis
+@code{java xtc.lang.jeannie.Preprocessor} [ @var{options} ] @var{file}
+
+@c ..................................................................
+@item Parameters
+
+@table @var
+@item options
+Options may be in any order. See @sc{Options} below.
+
+@item file
+Main source file to compile, usually with the extension @code{.jni}. If
+you omit the file name, the preprocessor prints a description of the
+command line options.
+@end table
+
+@c ..................................................................
+@item Description
+The Jeannie preprocessor injects Jeannie-specific definitions at the
+start of the input @var{file}, and writes the result to @code{stdout}.
+This usually gets invoked from the @code{jeannie.sh} master script, but
+you can also run it stand-alone. In the usual case, the input file would
+have extension @code{.jni}, and you would pipe the output to a file with
+the extension @code{.jni.pp}.  The injected definitions appear at the
+start of the initial @code{`.C@{...@}} block, which means they precede
+any other C declarations that you put there either directly or with
+@code{#include}.
+
+@c ..................................................................
+@item Options
+
+@table @r
+@item @code{-silent}
+Enable silent operation. This suppresses the boilerplate tool name and
+copyright notice that the preprocessor emits otherwise every time you
+run it.
+
+@item @code{-underscores}
+Require leading underscore in keywords, e.g., @code{_with}. By default,
+the Jeannie preprocessor defines aliases for keywords and builtin
+functions that omit the leading underscore. But this can lead to name
+clashes with included header files. When that happens, you can resolve
+the name clash by specifying the @code{-underscores} option and writing
+all Jeannie keywords and builtins with underscores.
+@end table
+
+@c ..................................................................
+@item Environment
+
+@table @env
+@item CLASSPATH
+@cindex CLASSPATH
+Paths where to search existing user class files. Must include the
+xtc root directory to find the preprocessor itself.
+@end table
+
+@end table
+
+@c ------------------------------------------------------------------
+@node Compiler
+@subsection Compiler
+@cindex compiler
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{xtc.lang.jeannie.Jeannie} -- Translate Jeannie to Java and C
+source.
+
+@c ..................................................................
+@item Synopsis
+@code{java xtc.lang.jeannie.Jeannie} [ @var{options} ] @var{file}
+
+@c ..................................................................
+@item Parameters
+
+@table @var
+@item options
+Options may be in any order. See @sc{Options} below. Usually, you would
+specify @code{-analyze -translate} to run both the semantic analyzer and
+the code generator.
+
+@item file
+Main source file to compile, usually with the extension @code{.jni.i}.
+In general, you must run the Jeannie preprocessor and the C preprocessor
+first, otherwise, many of the C identifiers in the file are undeclared
+and lead to errors from the C semantic analyzer.
+@end table
+
+@c ..................................................................
+@item Description
+The Jeannie compiler translates Jeannie source code into separate Java
+and C source code. This usually gets invoked from the @code{jeannie.sh}
+master script, but you can also run it stand-alone. In the usual case,
+the input would have extension @code{.jni.i}, and the compiler generates
+two files with the same stem and extensions @code{.i} (for preprocessed
+C code) and @code{.java} (for Java code). The options serve to run the
+compiler only partially and to print intermediate results. The following
+picture illustrates how the compiler works internally.
+
+@c the source for the image is a powerpoint file
+@c to generate pdf for tex: open in powerpoint, then "print" to pdf
+@c to generate jpg for html: open pdf in Mac preview, then "save as" jpg
+@iftex
+@image{compiler,4in,,,pdf}
+@end iftex
+@ifhtml
+@html
+<img src="compiler.jpg" width="400" />
+@end html
+@end ifhtml
+
+A detailed technical description of the Jeannie compiler internals is in
+the conference paper at
+@uref{http://cs.nyu.edu/rgrimm/papers/oopsla07.pdf}.
+
+@c ..................................................................
+@item Options
+
+@table @r
+@item @code{-analyze}
+Analyze the program's AST. Required for @code{-translate} or
+@code{-printSymbolTable}. Runs the Jeannie semantic analyzer on the
+abstract syntax tree, which includes both C and Java type analysis.
+
+@item @code{-in} @var{dir}
+Add the specified directory to the file search path. When the compiler
+encounters a reference to a class that is not defined in the current
+file, it searches for other files that define it. This search starts in
+source files of the form
+@var{dir}/@var{package}/@var{class}@code{.java}. If it fails to find the
+class this way, the compiler attempts to find a compiled version of the
+class based on reflection and the @env{CLASSPATH} environment variable.
+
+@item @code{-jniCall} @var{word}
+Prepend generated C JNI functions with @var{qualifier}. This is the
+expansion of the @code{JNICALL} macro defined in @code{jni.h}, which
+specifies the calling conventions on platforms where that matters.
+Defaults to the empty string, which is correct on Linux or Mac OS; on
+Cygwin, you should provide set it to
+``@code{__attribute__((__stdcall__))}''.
+
+@item @code{-out} @var{dir}
+Use the specified directory for output.
+
+@item @code{-pedantic}
+Enforce strict C99 compliance.
+
+@item @code{-pretty}
+Optimize output for human-readability. By default, the compiler
+intersperses generated Java code with line markers such as
+@example
+//#line 7 Main.jni
+@end example
+Line markers are then uses to support debugging at the level of the
+original source code, in this case, @code{Main.jni}. The @code{-pretty}
+option suppresses line markers and leads to more natural indentation.
+That is useful when you need to inspect generated source code by hand.
+
+@item @code{-printAST}
+Print the AST in generic form. This will usually create a lot of output
+on @code{stdout}. Looking at the abstract syntax tree helps compiler
+hackers validate their assumptions when crafting visitors.
+
+@item @code{-printSource}
+Print the AST in Jeannie source form. The result should be more or less
+the same as the input, with different indentation and without comments.
+
+@item @code{-printSymbolTable}
+Print the program's symbol table. Requires option @code{-analyze}.
+
+@item @code{-silent}
+Enable silent operation. This suppresses the boilerplate tool name and
+copyright notice that the compiler emits otherwise every time you run
+it.
+
+@item @code{-strict}
+Enforce strict C99 compliance.
+
+@item @code{-translate}
+Generate separate C and Java code. Requires option @code{-analyze}.
+@end table
+
+@c ..................................................................
+@item Environment
+
+@table @env
+@item CLASSPATH
+@cindex CLASSPATH
+Paths where to search existing user class files. Must include the
+xtc root directory to find the compiler itself.
+@end table
+
+@end table
+
+@c ------------------------------------------------------------------
+@node Postprocessor
+@subsection Postprocessor
+@cindex postprocessor
+
+@table @sc
+@c ..................................................................
+@item Name
+@code{xtc.lang.ClassfileSourceRemapper} -- Add debugging symbols to classes.
+
+@c ..................................................................
+@item Synopsis
+@code{java xtc.lang.ClassfileSourceRemapper} [ @var{options} ] @var{source-file} @var{class-file}
+
+@c ..................................................................
+@item Parameters
+
+@table @var
+@item options
+Options may be in any order. See @sc{Options} below.
+
+@item source-file
+Java source code file from which to extract line number information.
+This is typically automatically generated by the Jeannie compiler.
+
+@item class-file
+Java bytecode file to which to add line number information. This is
+typically generated by the Java compiler translating the
+@var{source-file}.
+@end table
+
+@c ..................................................................
+@item Description
+The Jeannie postprocessor augments class files with symbolic
+information. This usually gets invoked from the @code{jeannie.sh} master
+script, but you can also run it stand-alone. The postprocessor reads the
+input @var{source-file}, which contains line markers such as
+@example
+//#line 7 Main.jni
+@end example
+Line markers map lines in the generated Java source file back to the
+original Jeannie source file. The postprocessor injects this information
+into the @var{class-file}. That is useful for source-level debugging and
+for exception backtraces.
+
+@c ..................................................................
+@item Options
+
+@table @r
+@item @code{-flatten}
+Append an SMAP to the end of the class file as ``SourceDebugExtension''.
+This is the default. The SMAP (source map) format (specified in JSR-45
+@uref{http://jcp.org/en/jsr/detail?id=45}) is a general and powerful way
+to provide remapping information for source-to-source
+transformations. It works well with the current Java debuggers (SUN jdb
+1.6 and the eclipse 3.2 Java debugger). However, JVMs in the SUN JDK 1.6
+and IBM J9 1.5.0 do not use the SMAP when dumping stack traces for
+exceptions.
+
+@item @code{-stratify}
+Rewrite the ``LineNumberTable'' attribute for each method in the class
+file, and modify the ``SourceFile'' attribute. This has an advantage of
+working well with both the current Java VMs and debuggers. However, this
+does not work if the number of the original source files is more than
+one.
+@end table
+
+@c ..................................................................
+@item Environment
+
+@table @env
+@item CLASSPATH
+@cindex CLASSPATH
+Paths where to search existing user class files. Must include the
+xtc root directory to find the postprocessor itself.
+@end table
+
+@end table
+
+@c EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+@c Part 6: The End of the Document
+@node Index
+@unnumbered Index
+
+@printindex cp
+
+@bye

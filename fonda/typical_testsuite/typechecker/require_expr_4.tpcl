@@ -1,0 +1,9 @@
+module require_expr_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo = require false error 4.5 in true; (* {{ dg-error "expected string, found 64-bit float" }} *)

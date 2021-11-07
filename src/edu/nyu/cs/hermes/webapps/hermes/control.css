@@ -1,0 +1,86 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+td {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+form {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	}
+
+input {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+textarea {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+select {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+}
+
+.small {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 9px;
+}
+
+.big {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 18px;
+}
+
+.formDiv{
+	position: relative;
+	left: 25px;
+}
+.backButton{
+	position: relative;
+	left: 25px;
+
+}				
+
+.paddedDiv {
+	position: relative;
+	left: 25px;
+}
+
+A:visited{
+	font-weight: bold;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: none
+}
+
+A:link{
+	font-weight: bold;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: none;
+}
+
+A:active{
+	font-weight: bold;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: underline}
+
+A:hover{
+	font-weight: bold;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: underline
+}
+div.header{
+	text-align:left;
+	border-bottom: 2px solid #000;
+	background: #FFF;			
+}

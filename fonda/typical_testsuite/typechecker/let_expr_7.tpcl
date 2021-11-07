@@ -1,0 +1,11 @@
+module let_expr_7;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo x = let n : int = 4.5  in x + n ; {{ dg-error "do not match" }}

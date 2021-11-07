@@ -1,0 +1,5 @@
+output ;
+input logRecord;
+(q1) <- Map (logRecord);
+($v1) <- Reduce (q1, $v1);
+

@@ -1,0 +1,17 @@
+module option_type_1;
+
+mltype node = 
+    Module of node opt
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+   Module(ScopeDefinition _) -> true
+  | _ -> false ;
+
+
+

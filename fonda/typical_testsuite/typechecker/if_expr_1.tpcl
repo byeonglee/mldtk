@@ -1,0 +1,15 @@
+module if_expr_1;
+
+mltype node = 
+    Module of node 
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo n = if n < 3 then true; 
+

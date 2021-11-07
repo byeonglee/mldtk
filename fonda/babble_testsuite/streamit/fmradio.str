@@ -1,0 +1,39 @@
+pipeline {     
+  filter { work {tf <- float_one_source(peek(1), peek(2)); push(tf); pop();}}
+  pipeline {     
+    filter { work {tf <- low_pass_filter(peek(1), peek(2)); push(tf); pop();}}
+    filter { work {tf <- fm_demodulator(peek(1), peek(2)); push(tf); pop();}}
+    pipeline {      
+      splitjoin {    
+        split duplicate;
+        pipeline {    
+          pipeline {               
+            splitjoin {           
+              split duplicate;
+              filter { work {tf <- low_pass_filter(peek(1), peek(2)); push(tf); pop();}}
+              filter { work {tm <- low_pass_filter(peek(1)); push(tm); pop();}}
+              join roundrobin;
+            }
+            filter{s; work {s,tc <- subtractor(s,peek(1)); push(tc); pop(); }}
+          }
+          filter{s; work {s,tc <- amplify(s,peek(1)); push(tc); pop(); }}
+        }       
+        pipeline {    
+          pipeline {               
+            splitjoin {           
+              split duplicate;
+              filter { work {tf <- low_pass_filter(peek(1), peek(2)); push(tf); pop();}}
+              filter { work {tm <- low_pass_filter(peek(1)); push(tm); pop();}}
+              join roundrobin;
+            }
+            filter{s; work {s,tc <- subtractor(s,peek(1)); push(tc); pop(); }}
+          }
+          filter{s; work {s,tc <- amplify(s,peek(1)); push(tc); pop(); }}
+        }       
+        join roundrobin;
+      }
+      filter{s; work {s,tc <- eq_filter(s,peek(1)); push(tc); pop(); }}
+    }
+  }
+  filter { work {tf <- float_printer(peek(1), peek(2)); push(tf); pop();}}
+}

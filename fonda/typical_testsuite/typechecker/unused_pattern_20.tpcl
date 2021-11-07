@@ -1,0 +1,21 @@
+module analyze_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDeclaration of node
+  | Foo of int
+  | Bar of bool
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Module _ -> true
+  | _ -> false
+  ;
+
+mlvalue foo n = match n with
+    [] -> true
+  | x::xs -> List.length [x] = List.length xs
+  | _::_ -> true ; {{ dg-error "unused pattern" }}
+

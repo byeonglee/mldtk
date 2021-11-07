@@ -1,0 +1,5 @@
+output q2 ;
+input someFile;
+@Parallel() (q1) <- operatorX (someFile) ;
+@Parallel() (q2) <- operatorY (q1) ;
+

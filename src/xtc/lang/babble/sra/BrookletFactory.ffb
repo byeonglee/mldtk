@@ -1,0 +1,7 @@
+factory xtc.lang.babble.sra.BrookletFactory {
+
+opInvoke        {
+                   (q3) <- Op (q1);
+                }
+}
+

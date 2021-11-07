@@ -1,0 +1,19 @@
+module record_type_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+mltype foo = M of int * bool;
+
+attribute d: foo; 
+
+mltype bar = {
+  a: int,
+  b: float64,
+  c: string,
+  d: bool   {{ dg-error "previously defined" }}
+};

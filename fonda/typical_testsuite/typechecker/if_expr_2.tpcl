@@ -1,0 +1,16 @@
+module if_expr_2;
+
+mltype node = 
+    Module of node 
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo n = {{ dg-warning "unused var" }}
+            if 3 then true; {{ dg-error "expected boolean, found integer" }} 
+

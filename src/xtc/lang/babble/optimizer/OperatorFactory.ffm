@@ -1,0 +1,80 @@
+factory xtc.lang.babble.optimizer.OperatorFactory {
+
+maybeSource     {
+                   let #maybe:in_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       Some (open_in #file)
+                     else None;;
+                }
+
+source          {
+                   let #name ptr port =
+                     assert (port = 0);
+                     match
+                       #maybe 
+                     with
+                        | Some ic -> 
+                            (try 
+                              while true do 
+                                let tup:#module.#type = Marshal.from_channel ic in
+                                  (ocaml_wrap_output ptr 0 tup )
+                              done
+                            with End_of_file ->
+                              close_in ic)
+                        | None -> ();;
+                }
+
+maybeSink       {
+                   let #maybe:out_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       let pidstr = sprintf "-%d.data" (Unix.getpid ()) in
+                       let filename = #file ^ pidstr in
+                       Some (open_out filename)
+                     else None;;
+                }
+
+sink            {
+                   let #name ptr buffer = 
+                       match #maybe with
+                       | Some oc ->
+                         let tup = 
+                           Marshal.from_string buffer 0 in
+                             (Marshal.to_channel oc tup [Marshal.No_sharing])
+                       | None -> ()
+                }
+
+
+sinkShutdown    {
+                   let #name ptr = 
+                       match #maybe with
+                       | Some oc -> flush oc; close_out oc
+                       | None -> ()
+                }
+
+
+register        {
+                  let () = #func
+                }
+
+callback        {
+                  let _ = Callback.register #str #name 
+                }
+
+callbackException {
+                  Callback.register_exception #str #name 
+                }
+
+
+shutdown        {
+                  let #name ptr = ();;
+                }
+
+
+mrHashSplit     {
+                  let #name ptr data =
+                    let n = 1 in 
+                      #expr
+                }
+
+}
+

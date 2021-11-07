@@ -1,0 +1,18 @@
+module exhaustive_3;
+
+mltype node = 
+    Module of node list
+  | Foo of int
+  | Bar of bool * bool
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Module _ -> true
+  | _ -> true ;
+
+mlvalue foo f  =  match f with
+    1.5 -> true  {{ dg-error "non-exhaustive match" }} 
+  | 2.6 -> false
+;

@@ -1,0 +1,19 @@
+module record_expr_2;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mltype foo = {
+  a: int,
+  b: bool
+ };
+
+mltype bar = {c: string};
+
+mlvalue rec = {} ; {{ dg-error "empty record" }} 

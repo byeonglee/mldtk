@@ -1,0 +1,17 @@
+module record_pattern_3;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  | PatternMatching of node list
+  | Foo 
+  ;
+mltype raw_type = N of int;
+
+mltype foo = {a: int};
+mltype bar = {b: string};
+
+mlvalue analyze n = match n with
+   {a = 2, b = "2"} -> true {{ dg-error "foo does not contain the field b" }}
+  | _ -> false
+;

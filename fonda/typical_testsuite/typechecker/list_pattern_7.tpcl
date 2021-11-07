@@ -1,0 +1,16 @@
+module list_pattern_7;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue analyzeList l = match l with
+    [1,"2"] -> true {{ dg-error "types do not match" }} 
+  | [_,bottom] -> true
+  | _ ->  false
+  ;

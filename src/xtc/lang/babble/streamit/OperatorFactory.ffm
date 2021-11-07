@@ -1,0 +1,103 @@
+factory xtc.lang.babble.streamit.OperatorFactory {
+
+declarePut      {
+                   external put : int -> int -> string -> unit = "put";;
+                }
+
+outputWrap      {
+                   let #name ptr port data =
+                     put ptr port (Marshal.to_string data [Marshal.No_sharing]) ;;
+                }
+
+inputWrap       {
+                   let #name ptr port buffer  =
+                     let data = Marshal.from_string buffer 0 in        
+                      #func ptr port data ;;        
+                }
+
+joinroundrobinWrap {
+                   let #name ptr port buffer  =
+                     (put ptr 0 buffer) ;;      
+                }
+
+splitduplicateWrap {
+                   let #name ptr port buffer =
+                     for i = 0 to #num do
+                       (put ptr i buffer)
+                     done;;                     
+               }
+
+register        {
+                  let () = #func
+                }
+
+callback        {
+                  Callback.register #str #name 
+                }
+
+openPrintf      {
+                  open Printf;;
+                }
+
+maybeSource     {
+                   let #maybe:in_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       Some (open_in #file)
+                     else None;;
+                }
+
+source          {
+                   let #name ptr port =
+                     assert (port = 0);
+                     match
+                       #maybe 
+                     with
+                        | Some ic -> 
+                            (try 
+                              while true do 
+                                let tup:float = Marshal.from_channel ic in
+                                (put ptr 0 (Marshal.to_string tup [Marshal.No_sharing]) )           
+                              done
+                            with End_of_file ->
+                              close_in ic)
+                        | None -> ();;
+                }
+
+maybeSink       {
+                   let #maybe:out_channel option =
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       let pidstr = sprintf "-%d.data" (Unix.getpid ()) in
+                       let filename = #file ^ pidstr in
+                       Some (open_out filename)
+                     else None;;
+                }
+
+
+
+sink            {
+                   let #name ptr buffer = 
+                       match #maybe with
+                       | Some oc ->
+                         let tup = 
+                           Marshal.from_string buffer 0 in                        
+                             Printf.printf "%f\n" tup;
+                             Marshal.to_channel oc tup [Marshal.No_sharing];
+                             flush oc
+                       | None -> ()
+                }
+
+sinkShutdown    {
+                   let #name ptr =
+                       match #maybe with
+                       | Some oc -> flush oc; close_out oc
+                       | None -> ()
+                }
+
+
+
+shutdown        {
+                  let #name ptr = ();;
+                }
+
+}
+

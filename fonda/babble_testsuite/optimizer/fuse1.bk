@@ -1,0 +1,5 @@
+output ;
+input logRecord;
+@Fuse(one) (q1)  <- map0 (logRecord) ;
+@Fuse(one) ($v1) <- reduce1 (q1, $v1) ;
+

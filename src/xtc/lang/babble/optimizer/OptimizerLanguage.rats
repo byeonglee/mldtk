@@ -1,0 +1,51 @@
+module xtc.lang.babble.optimizer.OptimizerLanguage;
+
+import xtc.util.Spacing;
+import xtc.lang.JavaConstant(xtc.lang.babble.optimizer.OptimizerLanguage, xtc.util.Spacing);
+
+body {
+  static {
+    add(OPTIMIZER_KEYWORDS, new String[] {
+      "opt",
+      "ord"
+    });
+  }
+}
+
+option withLocation, constant, flatten, setOfString(OPTIMIZER_KEYWORDS);
+
+public generic Program  = OptDecls Ordering EndOfFile;
+
+generic OptDecls        = OptDeclList;
+Pair<Node> OptDeclList  = OptDecl+;
+generic OptDecl         = void:"opt":Keyword Identifier void:"=":Symbol Identifier  void:"(":Symbol OptParams? void:")":Symbol void:";":Symbol;
+
+generic OptParams       = ParamList;
+Pair<Node> ParamList    = Param (void:",":Symbol Param)* ;
+generic Param           = Literal ;
+
+generic Ordering        = void:"ord":Keyword OrderingList void:";":Symbol ;
+Pair<Node> OrderingList = Order (void:"<":Symbol Order)* ;
+generic Order           = Identifier ;
+
+String Identifier         = yyValue:Word &{ ! contains(OPTIMIZER_KEYWORDS, toText(yyValue)) } Spacing ;
+String Keyword            = yyValue:Word &{ contains(OPTIMIZER_KEYWORDS, toText(yyValue))   } Spacing ;
+String Word               = WordCharacters Spacing ;
+
+transient String WordCharacters = [a-zA-Z_0-9]+ ;
+
+inline generic IntegerType = void:"int"    Spacing ;
+inline generic StringType  = void:"string" Spacing ;
+inline generic BooleanType = void:"boolean" Spacing ;
+
+String Symbol = SymbolCharacters Spacing ;
+
+transient String SymbolCharacters =
+    <OpenParenthesis>     "("
+  / <CloseParenthesis>    ")"
+  / <Comma>               ","
+  / <Semicolon>           ";"
+  / <Equals>              "="
+  / <Less>                "<"
+  ;
+

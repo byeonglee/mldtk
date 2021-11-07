@@ -1,0 +1,4 @@
+opt fission = FissionOptimizer();
+opt rep     = ReplicationOptimizer(64);
+ord fission < rep ;
+

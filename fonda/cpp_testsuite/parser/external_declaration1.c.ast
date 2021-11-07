@@ -1,0 +1,57 @@
+#superc_args -printAST
+ExternalDeclarationList(
+  Conditional(
+    1,
+    Conditional(
+      (defined A),
+      Declaration(
+        DeclaringList(
+          BasicDeclarationSpecifier(
+            DeclarationQualifierList(
+              Conditional(
+                (defined A),
+                StorageClass(
+                  xtc.lang.cpp.Syntax$Language(
+                    "extern"
+                  )
+                )
+              )
+            ),
+            BasicTypeName(
+              xtc.lang.cpp.Syntax$Language(
+                "int"
+              )
+            )
+          ),
+          PostfixIdentifierDeclarator(
+            SimpleDeclarator(
+              xtc.lang.cpp.Syntax$Text(
+                "main"
+              )
+            )
+          )
+        )
+      ),
+      !(defined A),
+      FunctionDefinition(
+        FunctionDeclarator(
+          BasicTypeSpecifier(
+            BasicTypeName(
+              xtc.lang.cpp.Syntax$Language(
+                "int"
+              )
+            )
+          ),
+          PostfixIdentifierDeclarator(
+            SimpleDeclarator(
+              xtc.lang.cpp.Syntax$Text(
+                "main"
+              )
+            )
+          )
+        ),
+        DeclarationOrStatementList()
+      )
+    )
+  )
+)

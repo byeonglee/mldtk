@@ -1,0 +1,70 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for the relational algebra
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.8 $
+ */
+module xtc.lang.babble.ra.Core(Boat, Spacing, Symbol, Reserved, Identifier);
+
+import Boat;
+import Spacing;
+import Symbol;
+import Reserved;
+import Identifier;
+
+option withLocation, constant, flatten;
+
+public generic RAProgram    = Decl+ EndOfFile;
+generic Decl                = Identifier void:":":Symbol RelType (void:"=":Symbol RelQuery)? void:";":Symbol ;
+generic RelType             = RecordDeclaration void:"relation":Keyword ;
+Node RelQuery               = <R2ROp> R2ROp
+                            / <Relation> Relation ;
+Node R2ROp                  = <Union> Union
+                            / <Project> Project
+                            / <Select> Select
+                            / <Join> Join
+                            / <Distinct> Distinct
+                            / <Aggregate> Aggregate ;                            
+generic Union               = void:"union":Keyword void:"(":Symbol RelQueryList void:")":Symbol void:"as":Keyword Identifier ;
+generic Project             = void:"project":Keyword void:"[":Symbol AliasList void:"]":Symbol void:"(":Symbol RelQueryList void:")":Symbol ;
+generic Select              = void:"select":Keyword void:"[":Symbol LogicalOrExpression void:"]":Symbol void:"(":Symbol RelQueryList void:")":Symbol ;
+generic Join                = void:"join":Keyword void:"[":Symbol LogicalOrExpression void:"]":Symbol void:"(":Symbol RelQueryList void:")":Symbol void:"as":Keyword Identifier ;
+generic Distinct            = void:"distinct":Keyword void:"(":Symbol RelQueryList void:")":Symbol ;
+generic Aggregate           = void:"aggregate":Keyword void:"[":Symbol IdentifierList void:";":Symbol AggregateExpList void:"]":Symbol void:"(":Symbol RelQueryList void:")":Symbol ;
+generic Relation            = Identifier ;
+generic RelQueryList        = RelQuery_pc ;
+generic Alias               = LogicalOrExpression void:"as":Keyword Identifier ;
+generic AliasList           = Alias_pc;
+generic AggregateExpList    = AggregateExp_pc;
+generic IdentifierList      = Identifier_pc ;
+
+
+generic AggregateExp         = AggregateFunc void:"(":Symbol Identifier void:")":Symbol void:"as":Keyword Identifier  ;
+
+String AggregateFunc         = <Avg> "avg":Keyword
+                             / <Count> "count":Keyword 
+                             / <Sum> "sum":Keyword  ;
+
+Pair<Node> RelQuery_pc        = RelQuery (void:",":Symbol RelQuery)*;
+Pair<Node> Alias_pc           = Alias (void:",":Symbol Alias)*;
+Pair<String> Identifier_pc    = Identifier (void:",":Symbol Identifier)*;
+Pair<Node> AggregateExp_pc    = AggregateExp (void:",":Symbol AggregateExp)*;

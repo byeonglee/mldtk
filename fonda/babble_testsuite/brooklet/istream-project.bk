@@ -1,0 +1,5 @@
+output q2;
+input history;
+(q1, $v1) <- Project (history, $v1);
+(q2, $v2) <- IStream (q1, $v2);
+

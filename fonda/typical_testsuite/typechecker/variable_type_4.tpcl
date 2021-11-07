@@ -1,0 +1,12 @@
+module var_type_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype 'a btree = Empty | Btree of 'a * 'a btree * 'b btree ; {{ dg-error "b is undefined" }}
+
+mlvalue analyze n = n;
+
+

@@ -1,0 +1,17 @@
+module constraint_type_4;
+
+mltype node = 
+    Module of node list
+  | FirstNode of string
+  | SecondNode of node
+  | ThirdNode of string * node
+  | ForthNode of node * node
+  ;
+  
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue extractType = reduce to singleton "type" with 
+    [FirstNode _ as me]  -> lookup me 
+  | [SecondNode _ as me] -> lookup me ;
+  

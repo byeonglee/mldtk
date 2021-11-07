@@ -1,0 +1,9 @@
+pipeline {               
+  splitjoin {           
+    split duplicate;
+    filter { work {tf <- low_pass_filter(peek(1), peek(2)); push(tf); pop();}}
+    filter { work {tf <- low_pass_filter(peek(1), peek(2)); push(tf); pop();}}
+    join roundrobin;
+  }
+  filter{s; work {s,tc <- subtractor(s,peek(1)); push(tc); pop(); }}
+}

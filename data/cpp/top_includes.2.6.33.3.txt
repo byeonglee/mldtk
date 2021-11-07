@@ -1,0 +1,36 @@
+Current directory: linux-2.6.33.3
+top includes in .c and .h
+5079 0.238261<linux/module.h>
+3941 0.184876<linux/init.h>
+3598 0.168785<linux/kernel.h>
+2598 0.121875<linux/types.h>
+2323 0.108974<linux/slab.h>
+2199 0.103157<linux/delay.h>
+1697 0.0796078<linux/interrupt.h>
+1667 0.0782005<linux/errno.h>
+1401 0.0657222<linux/string.h>
+1204 0.0564807<linux/pci.h>
+
+top includes in .c
+4955 0.498943 <linux/module.h>
+3839 0.386567 <linux/init.h>
+3409 0.343269 <linux/kernel.h>
+2218 0.223341 <linux/slab.h>
+2106 0.212063 <linux/delay.h>
+1586 0.159702 <linux/errno.h>
+1550 0.156077 <linux/interrupt.h>
+1465 0.147518 <linux/types.h>
+1329 0.133823 <linux/string.h>
+1087 0.109455 <asm/io.h>
+
+top includes in .h
+1133 0.0995082 <linux/types.h>
+307 0.0269629 <linux/list.h>
+215 0.0188828 <linux/spinlock.h>
+204 0.0179167 <linux/mutex.h>
+189 0.0165993 <linux/kernel.h>
+148 0.0129984 <linux/skbuff.h>
+147 0.0129106 <linux/interrupt.h>
+138 0.0121201 <linux/fs.h>
+134 0.0117688 <linux/sched.h>
+134 0.0117688 <linux/device.h>

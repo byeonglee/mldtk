@@ -1,0 +1,23 @@
+module constraint_type_4;
+
+mltype node = 
+    Module of node list
+  | SomeNode of ben
+  ;
+  
+mltype ben = 
+    FirstNode of string
+  | SecondNode of node ;
+  
+mltype raw_type = N of int;
+mltype bor = M of Node 'a | P of ben;
+
+mlvalue analyze n = n;
+
+mlvalue foo n: Node 'a = if (is_defined n) then 1
+                         else 2 ;
+                         
+mlvalue bar t = match t with
+    M(m) -> lookup m
+  | P(p) -> lookup p
+  | _ -> bottom ;  

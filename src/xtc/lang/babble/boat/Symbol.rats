@@ -1,0 +1,109 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Definition of OCaml symbols.
+ *
+ * @author Robert Symbols
+ * @version $Revision: 1.4 $
+ */
+module xtc.lang.babble.boat.Symbol(Spacing);
+
+import Spacing;
+
+String Symbol = SymbolCharacters Spacing ;
+
+transient String SymbolCharacters =
+    <BangEqual>           "!="
+  / <Pound>               "#"
+  / <AmpersandAmpersand>  "&&"
+  / <Ampersand>           "&"
+  / <OpenParenthesis>     "("
+  / <CloseParenthesis>    ")"
+  / <FloatStar>           "*."
+  / <Star>                "*"
+  / <FloatPlus>           "+."
+  / <Plus>                "+"
+  / <Comma>               ","
+  / <FloatMinus>          "-."
+  / <RightArrow>          "->"
+  / <Minus>               "-"
+  / <DotDot>              ".."
+  / <Dot>                 "."
+  / <ColonColon>          "::"
+  / <ColonEquals>         ":="
+  / <ColonGreater>        ":>"
+  / <Colon>               ":"
+  / <SemicolonSemicolon>  ";;"
+  / <Semicolon>           ";"
+  / <EqualEqual>          "=="
+  / <LessEqual>           "<="
+  / <LeftArrow>           "<-"
+  / <NotEqual>            "<>"
+  / <Less>                "<"
+  / <Equal>               "="
+  / <GreaterBracket>      ">]"
+  / <GreaterBrace>        ">}"
+  / <GreaterEqual>        ">="
+  / <Greater>             ">"
+  / <QuestionQuestion>    "??"
+  / <Question>            "?"
+  / <BracketLess>         "[<"
+  / <BracketGreater>      "[>"
+  / <BracketBar>          "[|"
+  / <OpenBracket>         "["
+  / <CloseBracket>        "]"
+  / <Underscore>          "_"
+  / <SingleQuote>         "'"
+  / <PolyFlag>            "`"
+  / <BraceLess>           "{<"
+  / <BarBracket>          "|]"
+  / <Bar>                 "|"
+  / <OpenBrace>           "{"
+  / <CloseBrace>          "}"
+  / <Tilde>               "~"
+  / <FloatDiv>            "/."
+  / <Div>                 "/"
+  / <At>                  "@"
+  / <Carrot>              "^"
+  / <Modulo>              "%"
+  / <Bang>                "!"
+  ;
+
+
+String InfixSymbol  = InfixChar  OperatorChar?;
+String PrefixSymbol = PrefixChar OperatorChar?;
+
+String InfixChar = 
+  "=":Symbol    / "<":Symbol    / ">":Symbol    / "@":Symbol
+/ "^":Symbol    / "|":Symbol    / "&":Symbol    / "+":Symbol
+/ "-":Symbol    / "*":Symbol    / "/":Symbol    / "$":Symbol
+/ "%":Symbol ;
+
+String PrefixChar = 
+  "!":Symbol    / "?":Symbol    / "~":Symbol ;
+
+String OperatorChar = 
+  "!":Symbol    / "$":Symbol    / "%":Symbol    / "&":Symbol
+/ "*":Symbol    / "+":Symbol    / "-":Symbol    / ".":Symbol
+/ "/":Symbol    / ":":Symbol    / "<":Symbol    / "=":Symbol
+/ ">":Symbol    / "?":Symbol    / "@":Symbol    / "|":Symbol
+/ "~":Symbol ;
+
+

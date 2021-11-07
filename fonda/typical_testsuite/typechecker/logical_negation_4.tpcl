@@ -1,0 +1,9 @@
+module logical_negation_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue baz = ! "abc" ; (* {{ dg-error "expected boolean, found string" }} *)

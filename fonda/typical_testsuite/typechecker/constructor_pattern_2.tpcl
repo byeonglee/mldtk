@@ -1,0 +1,15 @@
+module constructor_pattern_2;
+
+mltype node = 
+    Module of node list
+  | M of int * string
+  ;
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Err _ -> true {{ dg-error "Err is undefined" }}
+  | M(3,"s") -> true
+  | _ -> false
+;
+
+

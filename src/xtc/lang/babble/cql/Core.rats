@@ -1,0 +1,54 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for CQL
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.10 $
+ */
+module xtc.lang.babble.cql.Core(Core, Constant);
+
+modify Core;
+import Constant;
+
+option withLocation, constant;
+
+public generic CQLProgram    = Decl+ EndOfFile ;
+generic Decl                 := Identifier void:":":Symbol RelType (void:"=":Symbol Union)? void:";":Symbol 
+                             /  Identifier void:":":Symbol StrType (void:"=":Symbol StrQuery)? void:";":Symbol ; 
+generic StrType              = RecordDeclaration void:"stream":Keyword ;
+generic StrQuery             = StrSelect From Where? Group? ; 
+Node StrSelect               = <SelectR2S> SelectR2S
+                             / <SelectStr> SelectStr ;
+generic SelectStr            = void:"select":Keyword ("distinct":Keyword)? SelectList ;
+generic SelectR2S            = void:"select":Keyword ("distinct":Keyword)? R2SOp void:"(":Symbol SelectList void:")":Symbol ;
+String  R2SOp                = "istream":Keyword / "dstream":Keyword / "rstream":Keyword ;
+generic FromItem             := Identifier Window? void:"as":Keyword Identifier 
+                             / Identifier Window? ;
+generic Window               = void:"[":Symbol S2ROp void:"]":Symbol ;
+Node S2ROp                   = <Now> Now
+                             / <Range> Range
+                             / <Rows> Rows
+                             / <Partition> Partition ;
+generic Now                  = "now":Keyword ;
+generic Range                = "range":Keyword Constant ;
+generic Rows                 = "rows":Keyword Constant ;
+generic Partition            = "partition":Keyword void:"by":Keyword Identifier void:"rows":Keyword Constant;
+

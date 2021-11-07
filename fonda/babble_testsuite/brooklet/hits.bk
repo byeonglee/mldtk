@@ -1,0 +1,5 @@
+output hits;
+input logs;
+(q1, $v1) <- range2 (logs, $v1);
+(q2, $v2) <- aggregate1 (q1, $v2);
+(hits, $v3) <- istream0 (q2, $v3);

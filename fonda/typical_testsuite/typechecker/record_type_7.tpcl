@@ -1,0 +1,14 @@
+module record_type_7;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+mltype ('a, 'b) bar = {
+  a: 'a,
+  b: 'b list ,
+  c: 'a opt 
+};

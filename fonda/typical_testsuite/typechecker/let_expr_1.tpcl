@@ -1,0 +1,12 @@
+module let_expr_1;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  |  M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n ;
+
+mlvalue foo = let n = 2 and
+                  m = 3 in n + m;

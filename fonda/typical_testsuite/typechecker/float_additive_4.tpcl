@@ -1,0 +1,9 @@
+module float_additive_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo3 = 4.5 +. "abc" ; (* {{ dg-error "expected 64-bit float, found string" }} *)

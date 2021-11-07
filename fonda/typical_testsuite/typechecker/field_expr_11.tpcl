@@ -1,0 +1,15 @@
+module field_expr_11;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue baz nl = if (List.is_empty nl) then false
+                 else List.exists Prelude.err nl ;  {{ dg-error "err is undefined" }}

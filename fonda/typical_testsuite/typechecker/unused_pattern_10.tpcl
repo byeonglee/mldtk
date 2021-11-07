@@ -1,0 +1,20 @@
+module analyze_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDeclaration of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Module(nl) -> true {{ dg-warning "unused var" }}
+  | _ -> false
+  ;
+
+mlvalue foo n = match n with
+    1 -> true
+  | t when t > 3 -> true
+  | t when t < 5 -> false
+  | _ -> false ;
+

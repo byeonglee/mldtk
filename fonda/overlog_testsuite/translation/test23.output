@@ -1,0 +1,8 @@
+Starting olg
+Watch::1209094397313::out(localhost:5000,4,4)
+Watch::1209094397314::out(localhost:5000,4,3)
+Watch::1209094397314::out(localhost:5000,3,3)
+Watch::1209094397315::out(localhost:5000,5,4)
+Watch::1209094397315::out(localhost:5000,5,3)
+Watch::1209094397315::out(localhost:5000,5,5)
+*** Shutdown Called *****

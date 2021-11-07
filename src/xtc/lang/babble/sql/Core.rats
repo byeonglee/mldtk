@@ -1,0 +1,73 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for SQL.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.15 $
+ */
+
+module xtc.lang.babble.sql.Core(Boat, Spacing, Symbol, Reserved, Identifier);
+
+import Boat;
+import Spacing;
+import Symbol;
+import Reserved;
+import Identifier;
+
+option withLocation, constant;
+
+public generic SQLProgram    = Decl+ EndOfFile;
+generic Decl                 = Identifier void:":":Symbol RelType (void:"=":Symbol Union)? void:";":Symbol ; 
+generic RelType              = RecordDeclaration void:"relation":Keyword ;
+transient generic Union      = <Union> Union void:"union":Keyword RelQuery 
+                             / <RelQuery> yyValue:RelQuery ;
+generic RelQuery             = Select From Where? Group? ; 
+Node    Select               = <SelectRel> SelectRel ;
+generic SelectRel            = void:"select":Keyword ("distinct":Keyword)? SelectList ;
+Node SelectList              = <Star> Star
+                             / <SelectItems> SelectItems ;
+generic Star                 = "*":Symbol ;
+generic SelectItems          = SelectItem_pc;
+Pair<Node> SelectItem_pc     = SelectItem (void:",":Symbol SelectItem)* ;
+Node SelectItem              = <Alias> Alias 
+                             / <Attribute> Attribute 
+                             / <Aggregate> Aggregate ;
+
+generic Attribute            = Identifier (void:".":Symbol Identifier)? ;
+Node Aggregate               = <Avg> Avg
+                             / <Count> Count
+                             / <Sum> Sum ;
+generic Avg                  = void:"avg":Keyword void:"(":Symbol Identifier void:")":Symbol ;
+generic Count                = void:"count":Keyword void:"(":Symbol Identifier void:")":Symbol void:"as":Keyword Identifier ;
+generic Sum                  = void:"sum":Keyword void:"(":Symbol Identifier void:")":Symbol ;
+generic Alias                = LogicalOrExpression void:"as":Keyword Identifier ;
+generic From                 = void:"from":Keyword FromItems;
+generic FromItems            = FromItem_pc ;
+Pair<Node> FromItem_pc       = FromItem (void:",":Symbol FromItem)* ;
+generic FromItem             = Identifier void:"as":Keyword Identifier 
+                             / Identifier ;
+generic Where                = void:"where":Keyword LogicalOrExpression ;
+generic Group                = void:"group":Keyword void:"by":Keyword GroupByItems ;
+generic GroupByItems         = GroupByItem_pc ;
+Pair<Node> GroupByItem_pc    = GroupByItem (void:",":Symbol GroupByItem)* ;
+generic GroupByItem          = Identifier void:".":Symbol Identifier 
+                             / Identifier ;
+

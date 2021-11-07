@@ -1,0 +1,11 @@
+module poly_variant_1;
+
+mltype node = 
+   M of string 
+ | N of string * node 
+;
+
+mltype foo = [ `Foo of node ]; {{ dg-error "polymorphic variant is not allowed" }}
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

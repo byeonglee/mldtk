@@ -1,0 +1,1996 @@
+// JeannieBuDDyFactory.jni, based on BuDDyFactory.java, but modified
+// by Martin Hirzel to use Jeannie instead of JNI.
+// BuDDyFactory.java, created Jan 29, 2003 9:50:57 PM by jwhaley
+// Copyright (C) 2003 John Whaley
+// Licensed under the terms of the GNU LGPL; see COPYING for details.
+package net.sf.javabdd;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+
+`.C{
+#include <jni.h>
+#include <bdd.h>
+#include <fdd.h>
+#include <stdlib.h>
+#include <time.h>
+
+/*
+** When casting from `int' to a pointer type, you should
+** first cast to `intptr_cast_type'.  This is a type
+** that is (a) the same size as a pointer, on most platforms,
+** to avoid compiler warnings about casts from pointer to int of
+** different size; and (b) guaranteed to be at least as big as
+** `int'.
+*/
+#if __STDC_VERSION__ >= 199901
+  #include <inttypes.h>
+  #if INTPTR_MAX >= INT_MAX
+    typedef intptr_t intptr_cast_type;
+  #else /* no intptr_t, or intptr_t smaller than `int' */
+    typedef intmax_t intptr_cast_type;
+  #endif
+#else
+  #include <stddef.h>
+  #include <limits.h>
+  #if PTRDIFF_MAX >= INT_MAX
+    typedef ptrdiff_t intptr_cast_type;
+  #else
+    typedef int intptr_cast_type;
+  #endif
+#endif
+
+#define INVALID_BDD -1
+
+#undef TRACE_BUDDYLIB
+
+static int bdd_error;
+
+static void bdd_errhandler(int errcode)
+{
+#if defined(TRACE_BUDDYLIB)
+  printf("bdd_errstring(%d)\n", errcode);
+#endif
+  //printf("BuDDy error: %s\n", bdd_errstring(errcode));
+  bdd_error = errcode;
+#if defined(TRACE_BUDDYLIB)
+  printf("bdd_clear_error()\n");
+#endif
+  bdd_clear_error();
+}
+
+static JNIEnv *jnienv;
+
+static void bdd_gbchandlerJeannie(JNIEnv* env, int code, bddGbcStat *s)
+{
+  `{
+    net.sf.javabdd.JeannieBuDDyFactory factory_obj =
+      net.sf.javabdd.JeannieBuDDyFactory.INSTANCE;
+    if (null == factory_obj) `{
+      return;
+    }
+    net.sf.javabdd.BDDFactory.GCStats gc_obj = factory_obj.gcstats;
+    if (null == gc_obj) `{
+      printf("Error: gcstats is null\n");
+      return;
+    }
+    gc_obj.nodes = `((`int)s->nodes);
+    gc_obj.freenodes = `((`int)s->freenodes);
+    `{
+      `long time = s->time;
+      if (CLOCKS_PER_SEC < 1000) time = time * 1000 / CLOCKS_PER_SEC;
+      else time /= (CLOCKS_PER_SEC/1000);
+      `(gc_obj.time = `time);
+    }
+    `{
+      `long t = s->sumtime;
+      if (CLOCKS_PER_SEC < 1000) t = t * 1000 / CLOCKS_PER_SEC;
+      else t /= (CLOCKS_PER_SEC/1000);
+      `(gc_obj.sumtime = `t);
+    }
+    gc_obj.num = `((`int)s->num);
+    net.sf.javabdd.JeannieBuDDyFactory.gc_callback(`((`int)code));
+  }
+}
+
+static void bdd_gbchandler(int code, bddGbcStat *s)
+{
+  bdd_gbchandlerJeannie(jnienv, code, s);
+}
+
+static void bdd_resizehandlerJeannie(JNIEnv* env, int a, int b)
+{
+  `net.sf.javabdd.JeannieBuDDyFactory.resize_callback(`((`int)a), `((`int)b));
+}
+static void bdd_resizehandler(int a, int b)
+{
+  bdd_resizehandlerJeannie(jnienv, a, b);
+}
+
+static void bdd_reorderhandlerJeannie(JNIEnv* env, int a)
+{
+  `net.sf.javabdd.JeannieBuDDyFactory.reorder_callback(`((`int)a));
+}
+static void bdd_reorderhandler(int a)
+{
+  bdd_reorderhandlerJeannie(jnienv, a);
+}
+
+extern int bdderrorcond;
+
+static JNIEnv *allsat_env;
+static void allsatHandlerJeannie(JNIEnv* env, char* varset, int size)
+{
+  `.Java {
+    byte[] result = new byte[`((`int)size)];
+    `.C { _copyToJava(`result, 0, (`byte*)varset, 0, size); }
+    byte[][] arr = net.sf.javabdd.JeannieBuDDyFactory.allsat_result;
+    arr[net.sf.javabdd.JeannieBuDDyFactory.allsat_index] = result;
+    net.sf.javabdd.JeannieBuDDyFactory.allsat_index++;
+  }
+}
+static void allsatHandler(char* varset, int size)
+{
+  allsatHandlerJeannie(allsat_env, varset, size);
+}
+} // ---------------- end of initial `.C block
+
+/**
+ * <p>An implementation of BDDFactory that relies on the BuDDy library through a
+ * native interface.  You can use this by calling the "BuDDyFactory.init()"
+ * method with the desired arguments.  This will return you an instance of the
+ * BDDFactory class that you can use.  Call "done()" on that instance when you
+ * are finished.</p>
+ *
+ * <p>This class (and the BuDDy library) do NOT support multithreading.
+ * Furthermore, there can be only one instance active at a time.  You can only
+ * call "init()" again after you have called "done()" on the original instance.
+ * It is not recommended to call "init()" again after calling "done()" unless
+ * you are _completely_ sure that all BDD objects that reference the old
+ * factory have been freed.</p>
+ *
+ * <p>If you really need multiple BDD factories, consider using the JavaFactory
+ * class for the additional BDD factories --- JavaFactory can have multiple
+ * factory instances active at a time.</p>
+ *
+ * @see net.sf.javabdd.BDDFactory
+ *
+ * @author John Whaley
+ * @version $Id: JeannieBuDDyFactory.jni,v 1.11 2008/02/15 20:11:03 pervasiv Exp $
+ */
+public class JeannieBuDDyFactory extends BDDFactory {
+    public static byte[][] allsat_result;
+    public static int allsat_index;
+
+    public static BDDFactory init(int nodenum, int cachesize) {
+        JeannieBuDDyFactory f;
+        if (USE_FINALIZER)
+            f = new JeannieBuDDyFactoryWithFinalizer();
+        else
+            f = new JeannieBuDDyFactory();
+        f.initialize(nodenum, cachesize);
+        return f;
+    }
+
+    /**
+     * Single factory instance.  Only one factory object is enabled at a time.
+     */
+    public static JeannieBuDDyFactory INSTANCE;
+
+//     static {
+//         String libname = getProperty("buddylib", "buddy");
+//         try {
+//             System.loadLibrary(libname);
+//         } catch (java.lang.UnsatisfiedLinkError x) {
+//             // Cannot find library, try loading it from the current directory...
+//             libname = System.mapLibraryName(libname);
+//             String currentdir = getProperty("user.dir", ".");
+//             String sep = getProperty("file.separator", "/");
+//             String filename = currentdir+sep+libname;
+//             try {
+//                 System.load(filename);
+//             } catch (java.lang.UnsatisfiedLinkError y) {
+//                 File f = new File(filename);
+//                 if (!f.exists()) throw y;
+//                 // Try to make a copy and use that.
+//                 try {
+//                     File f2 = File.createTempFile("buddy", ".dll");
+//                     copyFile(f, f2);
+//                     f2.deleteOnExit();
+//                     System.out.println("buddy.dll is in use, linking temporary copy "+f2);
+//                     System.load(f2.getAbsolutePath());
+//                 } catch (IOException z) {
+//                     throw y;
+//                 }
+//             }
+//         }
+//         registerNatives();
+//     }
+
+    private static void copyFile(File in, File out) throws IOException {
+        FileInputStream fis = new FileInputStream(in);
+        FileOutputStream fos = new FileOutputStream(out);
+        byte[] buf = new byte[1024];
+        int i = 0;
+        while ((i = fis.read(buf)) != -1) {
+            fos.write(buf, 0, i);
+        }
+        fis.close();
+        fos.close();
+    }
+
+    private static native void registerNatives() `{ }
+
+    private JeannieBuDDyFactory() {}
+
+    private static final boolean USE_FINALIZER = false;
+
+    private static class JeannieBuDDyFactoryWithFinalizer extends JeannieBuDDyFactory {
+
+        /**
+         * @see java.lang.Object#finalize()
+         */
+        protected void finalize() throws Throwable {
+            super.finalize();
+            this.done();
+        }
+
+    }
+
+    private static BuDDyBDD makeBDD(int id) {
+        BuDDyBDD b;
+        if (USE_FINALIZER) {
+            b = new BuDDyBDDWithFinalizer(id);
+            if (false) { // can check for specific id's here.
+                System.out.println("Created "+System.identityHashCode(b)+" id "+id);
+                new Exception().printStackTrace(System.out);
+            }
+        } else {
+            b = new BuDDyBDD(id);
+        }
+        return b;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#zero()
+     */
+    public BDD zero() { return makeBDD(0); }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#one()
+     */
+    public BDD one() { return makeBDD(1); }
+
+    /**
+     * Converts collection of BuDDyBDD's into an int array, for passing to
+     * native code.
+     *
+     * @param c  collection of BuDDyBDD's
+     * @return  int array of indices
+     */
+    private static int[] toBuDDyArray(Collection c) {
+        int[] a = new int[c.size()];
+        int k = 0;
+        for (Iterator i = c.iterator(); k < a.length; ++k) {
+            BuDDyBDD b = (BuDDyBDD) i.next();
+            a[k] = b._id;
+        }
+        return a;
+    }
+
+    private static native int checkError() `{
+      `int err = bdd_error;
+      `String msg;
+      if (!err) return (`int)0; // fast path
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_errstring(%d)\n", err);
+#endif
+      msg = _newJavaString(bdd_errstring(err));
+      bdd_error = 0;
+      switch (err) {
+        case BDD_MEMORY:   /* Out of memory */
+          `throw new OutOfMemoryError(`msg);
+        case BDD_VAR:      /* Unknown variable */
+        case BDD_RANGE:    /* Variable value out of range (not in domain) */
+        case BDD_DEREF:    /* Removing external reference to unknown node */
+        case BDD_RUNNING:  /* Called bdd_init() twice whithout bdd_done() */
+        case BDD_ORDER:    /* Vars. not in order for vector based functions */
+        case BDD_BREAK:    /* User called break */
+        case BDD_VARNUM:   /* Different number of vars. for vector pair */
+        case BDD_OP:       /* Unknown operator */
+        case BDD_VARSET:   /* Illegal variable set */
+        case BDD_VARBLK:   /* Bad variable block operation */
+        case BDD_DECVNUM:  /* Trying to decrease the number of variables */
+        case BDD_REPLACE:  /* Replacing to already existing variables */
+        case BDD_NODENUM:  /* Number of nodes reached user defined maximum */
+        case BVEC_SIZE:    /* Mismatch in bitvector size */
+        case BVEC_DIVZERO: /* Division by zero */
+          `throw new BDDException(`msg);
+        case BDD_FILE:     /* Some file operation failed */
+        case BDD_FORMAT:   /* Incorrect file format */
+          `throw new RuntimeException(`msg);
+          // was IOException, but that's too cumbersome to declare everywhere
+        case BDD_NODES:    /* Tried to set max. number of nodes to be fewer */
+                           /* than there already has been allocated */
+        case BDD_ILLBDD:   /* Illegal bdd argument */
+        case BDD_SIZE:     /* Illegal size argument */
+        case BVEC_SHIFT:   /* Illegal shift-left/right parameter */
+          `throw new BDDException(`msg);
+        default:
+          `throw new InternalError(`msg);
+      }
+      return err;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#buildCube(int, java.util.List)
+     */
+    public native BDD buildCube(int value, List var) `{
+      `int* ca, id;
+      with(ca = `toBuDDyArray(var)) {
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_buildcube(%d, %d, %p)\n", `value, `var.size(), ca);
+#endif
+        id = bdd_buildcube(`value, `var.size(), (int*)ca);
+      }
+      `checkError();
+      return `makeBDD(`id);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#buildCube(int, int[])
+     */
+    public native BDD buildCube(int value, int[] var) `{
+      `int* ca, id;
+      with(ca = `var) {
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_ibuildcube(%d, %d, %p)\n", `value, `var.length, ca);
+#endif
+        id = bdd_ibuildcube(`value, `var.length, (int*)ca);
+      }
+      `checkError();
+      return `makeBDD(`id);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#makeSet(int[])
+     */
+    public native BDD makeSet(int[] v) `{
+      `int* ca, id;
+      with(ca = `v) {
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_makeset(%p, %d)\n", ca, `v.length);
+#endif
+        id = bdd_makeset((int*)ca, `v.length);
+      }
+      `checkError();
+      return `makeBDD(`id);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#initialize(int, int)
+     */
+    protected void initialize(int nodenum, int cachesize) {
+      if (INSTANCE != null)
+        throw new InternalError("Error: BDDFactory already initialized.");
+      INSTANCE = this;
+      `{
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_init(%d, %d)\n", `nodenum, `cachesize);
+#endif
+        bdd_init(`nodenum, `cachesize);
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_error_hook(%p)\n", bdd_errhandler);
+#endif
+        bdd_error_hook(bdd_errhandler);
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_resize_hook(%p)\n", bdd_resizehandler);
+#endif
+        bdd_resize_hook(bdd_resizehandler);
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_gbc_hook(%p)\n", bdd_gbchandler);
+#endif
+        bdd_gbc_hook(bdd_gbchandler);
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_reorder_hook(%p)\n", bdd_reorderhandler);
+#endif
+        bdd_reorder_hook(bdd_reorderhandler);
+      }
+      checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#isInitialized()
+     */
+    public native boolean isInitialized() `{
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_isrunning()\n");
+#endif
+      return (`boolean)bdd_isrunning();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#done()
+     */
+    public void done() {
+      if (USE_FINALIZER) {
+        System.gc();
+        System.runFinalization();
+      }
+      INSTANCE = null;
+      `{
+        jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_done()\n");
+#endif
+        bdd_done();
+      }
+      checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#reset()
+     */
+    public void reset() {
+        if (USE_FINALIZER) {
+            System.gc();
+            System.runFinalization();
+        }
+        super.reset();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setError(int)
+     */
+    public native void setError(int code) `{
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setError(%d)\n", code);
+#endif
+      bdderrorcond = `code;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#clearError()
+     */
+    public native void clearError() `{
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_clearError()\n");
+#endif
+      bdderrorcond = 0;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setMaxNodeNum(int)
+     */
+    public native int setMaxNodeNum(int size) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setmaxnodenum(%d)\n", `size);
+#endif
+      result = bdd_setmaxnodenum(`size);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setMinFreeNodes(double)
+     */
+    public native double setMinFreeNodes(double x) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setminfreenodes(%d)\n", n);
+#endif
+      result = bdd_setminfreenodes(`((int)(x * 100.)));
+      `checkError();
+      return `(`result / 100.);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setMaxIncrease(int)
+     */
+    public native int setMaxIncrease(int x) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setmaxincrease(%d)\n", `x);
+#endif
+      result = bdd_setmaxincrease(`x);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setIncreaseFactor(double)
+     */
+    public native double setIncreaseFactor(double x) `{
+      `double result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setincreasefactor(%lf)\n", `x);
+#endif
+      result = bdd_setincreasefactor(`x);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setCacheRatio(int)
+     */
+    public native double setCacheRatio(double x) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setcacheratio(%d)\n", `((int)(x * 100.)));
+#endif
+      result = bdd_setcacheratio(`((int)(x * 100.)));
+      `checkError();
+      return `(`result / 100.);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setNodeTableSize(int)
+     */
+    public native int setNodeTableSize(int x) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setallocnum(%d)\n", `x);
+#endif
+      result = bdd_setallocnum(`x);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setCacheSize(int)
+     */
+    public int setCacheSize(int x) {
+        return setCacheSize0(x);
+    }
+    //this was originally a native method declaration:
+    //    private static native int setCacheSize0(int x);
+    //but the definition in C code is missing, so I kept a Java stub only:
+    private static int setCacheSize0(int x) { return 0; }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#varNum()
+     */
+    public native int varNum() `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_varnum()\n");
+#endif
+      result = bdd_varnum();
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setVarNum(int)
+     */
+    public native int setVarNum(int num) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_setvarnum(%d)\n", `num);
+#endif
+      result = bdd_setvarnum(`num);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#duplicateVar(int)
+     */
+    public native int duplicateVar(int var) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_duplicatevar(%d)\n", `var);
+#endif
+      result = bdd_duplicatevar(`var);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#extVarNum(int)
+     */
+    public native int extVarNum(int num) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_extvarnum(%d)\n", `num);
+#endif
+      result = bdd_extvarnum(`num);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#ithVar(int)
+     */
+    public native BDD ithVar(int var) `{
+      `int id;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_ithvar(%d)\n", `var);
+#endif
+      id = bdd_ithvar(`var);
+      `checkError();
+      return `makeBDD(`id);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#nithVar(int)
+     */
+    public native BDD nithVar(int var) `{
+      `int id;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_nithvar(%d)\n", `var);
+#endif
+      id = bdd_nithvar(`var);
+      `checkError();
+      return `makeBDD(`id);
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#swapVar(int, int)
+     */
+    public native void swapVar(int v1, int v2) `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_swapvar(%d, %d)\n", `v1, `v2);
+#endif
+      bdd_swapvar(`v1, `v2);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#makePair()
+     */
+    public native BDDPairing makePair() `{
+      bddPair* pair;
+      `long r;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_newpair()\n");
+#endif
+      pair = bdd_newpair();
+      r = (`long) (intptr_cast_type) pair;
+      if (`USE_FINALIZER) {
+        return `new BuDDyBDDPairingWithFinalizer(`r);
+      } else {
+        return `new BuDDyBDDPairing(`r);
+      }
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#printAll()
+     */
+    public native void printAll() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_printall()\n");
+#endif
+      bdd_printall();
+      fflush(stdout);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#printTable(net.sf.javabdd.BDD)
+     */
+    public native void printTable(BDD b) `{
+      `int bdd = `(((BuDDyBDD)b)._id);
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_printtable(%d)\n", bdd);
+#endif
+      bdd_printtable(bdd);
+      fflush(stdout);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#load(java.lang.String)
+     */
+    public native BDD load(String filename) `{
+      BDD r;
+      jnienv = env;
+      with(`byte *str = `filename) {
+        if (str == NULL) return `makeBDD(-1);
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_fnload(%s, %p)\n", str, &r);
+#endif
+        bdd_fnload(str, &r);
+      }
+      `checkError();
+      return `makeBDD(`((`int)r));
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#save(java.lang.String, net.sf.javabdd.BDD)
+     */
+    public native void save(String filename, BDD b) `{
+      `int r = `(((BuDDyBDD)b)._id);
+      jnienv = env;
+      with(`byte *str = `filename) {
+        if (str == NULL) return;
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_fnsave(%s, %d)\n", str, r);
+#endif
+        bdd_fnsave(str, r);
+      }
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#level2Var(int)
+     */
+    public native int level2Var(int level) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_level2var(%d)\n", `level);
+#endif
+      result = bdd_level2var(`level);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#var2Level(int)
+     */
+    public native int var2Level(int var) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_var2level(%d)\n", `var);
+#endif
+      result = bdd_var2level(`var);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#reorder(net.sf.javabdd.BDDFactory.ReorderMethod)
+     */
+    public native void reorder(BDDFactory.ReorderMethod method) `{
+      //reorder0(method.id);
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_reorder(%d)\n", `(medhod.id));
+#endif
+      bdd_reorder(`(method.id));
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#autoReorder(net.sf.javabdd.BDDFactory.ReorderMethod)
+     */
+    public native void autoReorder(BDDFactory.ReorderMethod method) `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_autoreorder(%d)\n", `(method.id));
+#endif
+      bdd_autoreorder(`(method.id));
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#autoReorder(net.sf.javabdd.BDDFactory.ReorderMethod, int)
+     */
+    public native void autoReorder(BDDFactory.ReorderMethod method, int max) `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_autoreorder(%d)\n", `(method.id));
+#endif
+      bdd_autoreorder(`(method.id));
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getReorderMethod()
+     */
+    public BDDFactory.ReorderMethod getReorderMethod() {
+      int method;
+      `{
+        `int m;
+        jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_getreorder_method()\n");
+#endif
+        m = bdd_getreorder_method();
+        `(method = `m);
+        `checkError();
+      }
+      switch (method) {
+        case 0: return REORDER_NONE;
+        case 1: return REORDER_WIN2;
+        case 2: return REORDER_WIN2ITE;
+        case 3: return REORDER_WIN3;
+        case 4: return REORDER_WIN3ITE;
+        case 5: return REORDER_SIFT;
+        case 6: return REORDER_SIFTITE;
+        case 7: return REORDER_RANDOM;
+        default: throw new BDDException();
+      }
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getReorderTimes()
+     */
+    public native int getReorderTimes() `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_getreorder_times()\n");
+#endif
+      result = bdd_getreorder_times();
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#disableReorder()
+     */
+    public native void disableReorder() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_disable_reorder()\n");
+#endif
+      bdd_disable_reorder();
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#enableReorder()
+     */
+    public native void enableReorder() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_enable_reorder()\n");
+#endif
+      bdd_enable_reorder();
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#reorderVerbose(int)
+     */
+    public native int reorderVerbose(int v) `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_reorder_verbose(%d)\n", `v);
+#endif
+      result = bdd_reorder_verbose(`v);
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#setVarOrder(int[])
+     */
+    public native void setVarOrder(int[] neworder) `{
+      `int size = `neworder.length, varnum;
+      jnienv = env;
+      varnum = bdd_varnum();
+      if (size != varnum)
+        `throw new IllegalArgumentException("array size != number of vars");
+      with(`int *a = `neworder) {
+#if defined(TRACE_BUDDYLIB)
+         printf("bdd_setvarorder(%p)\n", a);
+#endif
+         bdd_setvarorder((int*)a);
+      }
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#addVarBlock(net.sf.javabdd.BDD, boolean)
+     */
+    public native void addVarBlock(BDD var, boolean fixed) `{
+      //BuDDyBDD bb = (BuDDyBDD) var;
+      //addVarBlock0(bb._id, fixed);
+      `int id = `(((BuDDyBDD)var)._id);
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_addvarblock(%d, %d)\n", id, `fixed);
+#endif
+      bdd_addvarblock(id, `fixed);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#addVarBlock(int, int, boolean)
+     */
+    public native void addVarBlock(int first, int last, boolean fixed) `{
+      //addVarBlock1(first, last, fixed);
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_intaddvarblock(%d, %d, %d)\n", `first, `last, `fixed);
+#endif
+      bdd_intaddvarblock(`first, `last, `fixed);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#varBlockAll()
+     */
+    public native void varBlockAll() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_varblockall()\n");
+#endif
+      bdd_varblockall();
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#clearVarBlocks()
+     */
+    public native void clearVarBlocks() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_clrvarblocks()\n");
+#endif
+      bdd_clrvarblocks();
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#printOrder()
+     */
+    public native void printOrder() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_printorder()\n");
+#endif
+      bdd_printorder();
+      fflush(stdout);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#nodeCount(java.util.Collection)
+     */
+    public int nodeCount(Collection r) {
+      int[] ja = toBuDDyArray(r);
+      `{
+        `int result;
+        jnienv = env;
+        with(`int *ca = `ja) {
+          `int size = `ja.length;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_anodecount(%p, %d)\n", ca, size);
+#endif
+          result = bdd_anodecount((int*)ca, size);
+        }
+        return result;
+      }
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getNodeTableSize()
+     */
+    public native int getNodeTableSize() `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_getallocnum()\n");
+#endif
+      result = bdd_getallocnum();
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getCacheSize()
+     */
+    public native int getCacheSize() `{
+      `int result;
+      bddStat stats;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_stats(%p)\n", &stats);
+#endif
+      bdd_stats(&stats);
+      result = stats.cachesize;
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getNodeNum()
+     */
+    public native int getNodeNum() `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_getnodenum()\n");
+#endif
+      result = bdd_getnodenum();
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#reorderGain()
+     */
+    public native int reorderGain() `{
+      `int result;
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_reorder_gain()\n");
+#endif
+      result = bdd_reorder_gain();
+      `checkError();
+      return result;
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#printStat()
+     */
+    public native void printStat() `{
+      jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+      printf("bdd_printstat()\n");
+#endif
+      bdd_printstat();
+      fflush(stdout);
+      `checkError();
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#createDomain(int, java.math.BigInteger)
+     */
+    protected BDDDomain createDomain(int a, BigInteger b) {
+        return new BuDDyBDDDomain(a, b);
+    }
+
+    /* (non-Javadoc)
+     * An implementation of a BDD class, used by the BuDDy interface.
+     */
+    private static class BuDDyBDD extends BDD {
+
+        /** The value used by the BDD library. */
+        protected int _id;
+
+        protected BuDDyBDD(int id) {
+            _id = id;
+            addRef(_id);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#getFactory()
+         */
+        public BDDFactory getFactory() {
+            return INSTANCE;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#isZero()
+         */
+        public boolean isZero() {
+            return _id == 0;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#isOne()
+         */
+        public boolean isOne() {
+            return _id == 1;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#var()
+         */
+        public native int var() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_var(%d)\n", `_id);
+#endif
+          result = bdd_var(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#high()
+         */
+        public native BDD high() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_high(%d)\n", `_id);
+#endif
+          result = bdd_high(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#low()
+         */
+        public native BDD low() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_low(%d)\n", `_id);
+#endif
+          result = bdd_low(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#id()
+         */
+        public BDD id() {
+            return makeBDD(_id);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#not()
+         */
+        public native BDD not() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_not(%d)\n", b);
+#endif
+          result = bdd_not(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#ite(net.sf.javabdd.BDD, net.sf.javabdd.BDD)
+         */
+        public native BDD ite(BDD thenBDD, BDD elseBDD) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD) thenBDD)._id);
+          `int d = `(((BuDDyBDD) elseBDD)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_ite(%d, %d, %d)\n", b, c, d);
+#endif
+          result = bdd_ite(b, c, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#relprod(net.sf.javabdd.BDD, net.sf.javabdd.BDD)
+         */
+        public native BDD relprod(BDD that, BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD) that)._id);
+          `int d = `(((BuDDyBDD) var )._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_relprod(%d, %d, %d)\n", b, c, d);
+#endif
+          result = bdd_relprod(b, c, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#compose(net.sf.javabdd.BDD, int)
+         */
+        public native BDD compose(BDD that, int var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD) that)._id);
+          `int v = `var;
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_compose(%d, %d, %d)\n", b, c, v);
+#endif
+          result = bdd_compose(b, c, v);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#constrain(net.sf.javabdd.BDD)
+         */
+        public native BDD constrain(BDD that) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)that)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_constrain(%d, %d)\n", b, c);
+#endif
+          result = bdd_constrain(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#exist(net.sf.javabdd.BDD)
+         */
+        public native BDD exist(BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)var)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_exist(%d, %d)\n", b, c);
+#endif
+          result = bdd_exist(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#forAll(net.sf.javabdd.BDD)
+         */
+        public native BDD forAll(BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)var)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_forall(%d, %d)\n", b, c);
+#endif
+          result = bdd_forall(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#unique(net.sf.javabdd.BDD)
+         */
+        public native BDD unique(BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)var)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_unique(%d, %d)\n", b, c);
+#endif
+          result = bdd_unique(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#restrict(net.sf.javabdd.BDD)
+         */
+        public native BDD restrict(BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)var)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_restrict(%d, %d)\n", b, c);
+#endif
+          result = bdd_restrict(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#restrictWith(net.sf.javabdd.BDD)
+         */
+        public BDD restrictWith(BDD var) {
+          BuDDyBDD cBdd = (BuDDyBDD) var;
+          int newId;
+          `{
+            `int b = `_id;
+            `int c = `(cBdd._id);
+            `int result;
+            jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+            printf("bdd_restrict(%d, %d)\n", b, c);
+#endif
+            result = bdd_restrict(b, c);
+            `(newId = `result);
+          }
+          checkError();
+          addRef(newId);
+          delRef(_id);
+          if (this != cBdd) {
+            delRef(cBdd._id);
+            cBdd._id = INVALID_BDD;
+          }
+          _id = newId;
+          return this;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#simplify(net.sf.javabdd.BDD)
+         */
+        public native BDD simplify(BDD d) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)d)._id);
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_simplify(%d, %d)\n", b, c);
+#endif
+          result = bdd_simplify(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#support()
+         */
+        public native BDD support() `{
+          `int b = `_id;
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_support(%d)\n", b);
+#endif
+          result = bdd_support(b);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#apply(net.sf.javabdd.BDD, net.sf.javabdd.BDDFactory.BDDOp)
+         */
+        public native BDD apply(BDD that, BDDFactory.BDDOp opr) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)that)._id);
+	  `int operation = `(opr.id);
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_apply(%d, %d, %d)\n", b, c, operation);
+#endif
+          result = bdd_apply(b, c, operation);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#applyWith(net.sf.javabdd.BDD, net.sf.javabdd.BDDFactory.BDDOp)
+         */
+        public BDD applyWith(BDD that, BDDFactory.BDDOp opr) {
+          BuDDyBDD cBdd = (BuDDyBDD) that;
+          int newId;
+          `{
+            `int b = `_id;
+            `int c = `(cBdd._id);
+            `int operation = `(opr.id);
+	    `int result;
+            jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+            printf("bdd_apply(%d, %d, %d)\n", b, c, operation);
+#endif
+            result = bdd_apply(b, c, operation);
+            `(newId = `result);
+          }
+          checkError();
+          addRef(newId);
+          delRef(_id);
+          if (this != cBdd) {
+            delRef(cBdd._id);
+            cBdd._id = INVALID_BDD;
+          }
+          _id = newId;
+          return this;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#applyAll(net.sf.javabdd.BDD, net.sf.javabdd.BDDFactory.BDDOp, net.sf.javabdd.BDD)
+         */
+        public native BDD applyAll(BDD that, BDDFactory.BDDOp opr, BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)that)._id);
+          `int operation = `(opr.id);
+          `int d = `(((BuDDyBDD)var)._id);
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_appall(%d, %d, %d, %d)\n", b, c, operation, d);
+#endif
+          result = bdd_appall(b, c, operation, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#applyEx(net.sf.javabdd.BDD, net.sf.javabdd.BDDFactory.BDDOp, net.sf.javabdd.BDD)
+         */
+        public native BDD applyEx(BDD that, BDDFactory.BDDOp opr, BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)that)._id);
+          `int operation = `(opr.id);
+          `int d = `(((BuDDyBDD)var)._id);
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_appex(%d, %d, %d, %d)\n", b, c, operation, d);
+#endif
+          result = bdd_appex(b, c, operation, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#applyUni(net.sf.javabdd.BDD, net.sf.javabdd.BDDFactory.BDDOp, net.sf.javabdd.BDD)
+         */
+        public native BDD applyUni(BDD that, BDDFactory.BDDOp opr, BDD var) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)that)._id);
+          `int operation = `(opr.id);
+          `int d = `(((BuDDyBDD)var)._id);
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_appuni(%d, %d, %d, %d)\n", b, c, operation, d);
+#endif
+          result = bdd_appuni(b, c, operation, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#satOne()
+         */
+        public native BDD satOne() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satone(%d)\n", `_id);
+#endif
+          result = bdd_satone(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#fullSatOne()
+         */
+        public native BDD fullSatOne() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_fullsatone(%d)\n", `_id);
+#endif
+          result = bdd_fullsatone(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#satOne(net.sf.javabdd.BDD, boolean)
+         */
+        public native BDD satOne(BDD var, boolean pol) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)var)._id);
+          `int d = `(pol ? 1 : 0);
+	  `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satoneset(%d, %d, %d)\n", b, c, d);
+#endif
+          result = bdd_satoneset(b, c, d);
+          `JeannieBuDDyFactory.checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#allsat()
+         */
+        public native List allsat() `{
+          jobjectArray result;
+          `int size;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_varnum()\n");
+#endif
+          size = bdd_varnum();
+          `{
+            checkError();
+            allsat_result = new byte[`size][];
+            allsat_index = 0;
+          }
+          allsat_env = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_allsat(%d, %p)\n", `_id, allsatHandler);
+#endif
+          bdd_allsat(`_id, allsatHandler);
+          allsat_env = NULL;
+          result = `allsat_result;
+          `{ allsat_result = null; }
+          `checkError();
+          return `Arrays.asList(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#printSet()
+         */
+        public native void printSet() `{
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_printset(%d)\n", `_id);
+#endif
+          bdd_printset(`_id);
+          fflush(stdout);
+          `JeannieBuDDyFactory.checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#printDot()
+         */
+        public native void printDot() `{
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_printdot(%d)\n", `_id);
+#endif
+          bdd_printdot(`_id);
+          fflush(stdout);
+          `JeannieBuDDyFactory.checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#nodeCount()
+         */
+        public native int nodeCount() `{
+          `int result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_nodecount(%d)\n", `_id);
+#endif
+          result = bdd_nodecount(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#pathCount()
+         */
+        public native double pathCount() `{
+          `double result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_pathcount(%d)\n", `_id);
+#endif
+          result = bdd_pathcount(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#satCount()
+         */
+        public native double satCount() `{
+          `double result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satcount(%d)\n", `_id);
+#endif
+          result = bdd_satcount(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#satCount(net.sf.javabdd.BDD)
+         */
+        public native double satCount(BDD varset) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)varset)._id);
+          `double result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satcountset(%d, %d)\n", b, c);
+#endif
+          result = bdd_satcountset(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#logSatCount()
+         */
+        public native double logSatCount() `{
+          `double result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satcountln(%d)\n", `_id);
+#endif
+          result = bdd_satcountln(`_id);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#logSatCount(net.sf.javabdd.BDD)
+         */
+        public native double logSatCount(BDD varset) `{
+          `int b = `_id;
+          `int c = `(((BuDDyBDD)varset)._id);
+          `double result;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_satcountlnset(%d, %d)\n", b, c);
+#endif
+          result = bdd_satcountlnset(b, c);
+          `JeannieBuDDyFactory.checkError();
+          return result;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#varProfile()
+         */
+        public native int[] varProfile() `{
+          jintArray result;
+          `int size;
+          `int* arr;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_varnum()\n");
+#endif
+          size = bdd_varnum();
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_varprofile(%d)\n", `_id);
+#endif
+          arr = (`int*)bdd_varprofile(`_id);
+          `JeannieBuDDyFactory.checkError();
+          result = `new int[`size];
+          _copyToJava(result, 0, arr, 0, size);
+          free(arr);
+          return result;
+        }
+
+        private static native void addRef(int b) `{
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_addref(%d)\n", `b);
+#endif
+          bdd_addref(`b);
+          `checkError();
+        }
+
+        private native static void delRef(int b) `{
+          jnienv = env;
+          if (`b != INVALID_BDD) {
+#if defined(TRACE_BUDDYLIB)
+            printf("bdd_delref(%d)\n", `b);
+#endif
+            bdd_delref(`b);
+            `checkError();
+          }
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#free()
+         */
+        public void free() {
+            if (INSTANCE != null) {
+                delRef(_id);
+            }
+            _id = INVALID_BDD;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#veccompose(net.sf.javabdd.BDDPairing)
+         */
+        public native BDD veccompose(BDDPairing pair) `{
+          `int result;
+          bddPair* p;
+          jnienv = env;
+          p = (bddPair*) (intptr_cast_type) `(((BuDDyBDDPairing)pair)._ptr);
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_veccompose(%d, %p)\n", `_id, p);
+#endif
+          result = bdd_veccompose(`_id, p);
+          `checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#replace(net.sf.javabdd.BDDPairing)
+         */
+        public native BDD replace(BDDPairing pair) `{
+          `int result;
+          bddPair* p;
+          jnienv = env;
+          p = (bddPair*) (intptr_cast_type) `(((BuDDyBDDPairing)pair)._ptr);
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_replace(%d, %p)\n", `_id, p);
+#endif
+          result = bdd_replace(`_id, p);
+          `checkError();
+          return `makeBDD(`result);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#replaceWith(net.sf.javabdd.BDDPairing)
+         */
+        public BDD replaceWith(BDDPairing pair) {
+          int newId;
+          `{
+            `int result;
+            bddPair* p;
+            jnienv = env;
+            p = (bddPair*) (intptr_cast_type) `(((BuDDyBDDPairing)pair)._ptr);
+#if defined(TRACE_BUDDYLIB)
+            printf("bdd_replace(%d, %p)\n", `_id, p);
+#endif
+            result = bdd_replace(`_id, p);
+            `(newId = `result);
+          }
+          checkError();
+          addRef(newId);
+          delRef(_id);
+          _id = newId;
+          return this;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#equals(net.sf.javabdd.BDD)
+         */
+        public boolean equals(BDD that) {
+            return this._id == ((BuDDyBDD) that)._id;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDD#hashCode()
+         */
+        public int hashCode() {
+            return this._id;
+        }
+
+    }
+
+    private static class BuDDyBDDWithFinalizer extends BuDDyBDD {
+
+        protected BuDDyBDDWithFinalizer(int id) {
+            super(id);
+        }
+
+        /* Finalizer runs in different thread, and BuDDy is not thread-safe.
+         * Also, the existence of any finalize() method hurts performance
+         * considerably.
+         */
+        /* (non-Javadoc)
+         * @see java.lang.Object#finalize()
+         */
+        protected void finalize() throws Throwable {
+            super.finalize();
+            if (_id >= 0) {
+                System.out.println("BDD not freed! "+System.identityHashCode(this)+" _id "+_id+" nodes: "+nodeCount());
+            }
+            //this.free();
+        }
+        static {
+            //System.runFinalizersOnExit(true);
+        }
+    }
+
+    /* (non-Javadoc)
+     * An implementation of a BDDDomain, used by the BuDDy interface.
+     */
+    private static class BuDDyBDDDomain extends BDDDomain {
+
+        private BuDDyBDDDomain(int a, BigInteger b) {
+            super(a, b);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDDomain#getFactory()
+         */
+        public BDDFactory getFactory() { return INSTANCE; }
+
+    }
+
+    /* (non-Javadoc)
+     * An implementation of a BDDPairing, used by the BuDDy interface.
+     */
+    private static class BuDDyBDDPairing extends BDDPairing {
+
+        private long _ptr;
+
+        private BuDDyBDDPairing(long ptr) {
+                this._ptr = ptr;
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDPairing#set(int, int)
+         */
+        public native void set(int oldvar, int newvar) `{
+          bddPair* p;
+          jnienv = env;
+          p = (bddPair*) (intptr_cast_type) `_ptr;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_setpair(%p, %d, %d)\n", p, `oldvar, `newvar);
+#endif
+          bdd_setpair(p, `oldvar, `newvar);
+          `checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDPairing#set(int[], int[])
+         */
+        public native void set(int[] oldvar, int[] newvar) `{
+          //set1(_ptr, oldvar, newvar);
+          `int size1 = `oldvar.length, size2 = `newvar.length;
+          bddPair* p;
+          jnienv = env;
+          p = (bddPair*) (intptr_cast_type) `_ptr;
+          if (size1 != size2)
+            `throw new IllegalArgumentException("array sizes do not match");
+          with(`int *a1 = `oldvar) {
+            with(`int *a2 = `newvar) {
+#if defined(TRACE_BUDDYLIB)
+              printf("bdd_setpairs(%p, %p, %p, %d)\n", p, a1, a2, size1);
+#endif
+              bdd_setpairs(p, (int*)a1, (int*)a2, size1);
+              cancel a2;
+            }
+            cancel a1;
+          }
+          `checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDPairing#set(int, net.sf.javabdd.BDD)
+         */
+        public native void set(int oldvar, BDD newvar) `{
+          bddPair* p = (bddPair*) (intptr_cast_type) `_ptr;
+          `int b = `oldvar;
+	  `int c = `(((BuDDyBDD)newvar)._id);
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_setbddpair(%p, %d, %d)\n", p, b, c);
+#endif
+          bdd_setbddpair(p, b, c);
+          `checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDPairing#set(int[], net.sf.javabdd.BDD[])
+         */
+        public void set(int[] oldvar, BDD[] newvar) {
+          int[] a = toBuDDyArray(Arrays.asList(newvar));
+          `{
+            jintArray arr1 = `oldvar, arr2 = `a;
+            `int size1 = `oldvar.length, size2 = `a.length;
+            bddPair* p = (bddPair*) (intptr_cast_type) `_ptr;
+            jnienv = env;
+            if (size1 != size2)
+              `throw new IllegalArgumentException("array sizes do not match");
+            with(`int *a1 = arr1) {
+              with(`int *a2 = arr2) {
+#if defined(TRACE_BUDDYLIB)
+                printf("bdd_setbddpairs(%p, %p, %p, %d)\n", p, a1, a2, size1);
+#endif
+                bdd_setbddpairs(p, (int*)a1, (int*)a2, size1);
+                cancel a2;
+              }
+              cancel a1;
+            }
+          }
+          checkError();
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDPairing#reset()
+         */
+        public native void reset() `{
+          //reset0(_ptr);
+          bddPair* p = (bddPair*) (intptr_cast_type) `_ptr;
+          jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+          printf("bdd_resetpair(%p)\n", p);
+#endif
+          bdd_resetpair(p);
+          `checkError();
+        }
+
+        /**
+         * Free the memory allocated for this pair.
+         */
+        public void free() {
+          if (_ptr != 0) `{
+            bddPair* p = (bddPair*) (intptr_cast_type) `_ptr;
+            jnienv = env;
+            if (p) {
+#if defined(TRACE_BUDDYLIB)
+              printf("bdd_freepair(%p)\n", p);
+#endif
+              bdd_freepair(p);
+            }
+          }
+          _ptr = 0;
+        }
+
+    }
+
+    private static class BuDDyBDDPairingWithFinalizer extends BuDDyBDDPairing {
+
+        private BuDDyBDDPairingWithFinalizer(long ptr) {
+            super(ptr);
+        }
+
+        /* (non-Javadoc)
+         * @see java.lang.Object#finalize()
+         */
+        protected void finalize() throws Throwable {
+            super.finalize();
+            free();
+        }
+
+    }
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#createBitVector(int)
+     */
+    protected BDDBitVector createBitVector(int a) {
+        return new BuDDyBDDBitVector(a);
+    }
+
+    /* (non-Javadoc)
+     * An implementation of a BDDBitVector, used by the BuDDy interface.
+     */
+    private static class BuDDyBDDBitVector extends BDDBitVector {
+
+        private BuDDyBDDBitVector(int a) {
+            super(a);
+        }
+
+        /* (non-Javadoc)
+         * @see net.sf.javabdd.BDDBitVector#getFactory()
+         */
+        public BDDFactory getFactory() { return INSTANCE; }
+
+    }
+
+    public static final String REVISION = "$Revision: 1.11 $";
+
+    /* (non-Javadoc)
+     * @see net.sf.javabdd.BDDFactory#getVersion()
+     */
+    public String getVersion() {
+      String s;
+      `{
+        char *buf;
+        `String result;
+        jnienv = env;
+#if defined(TRACE_BUDDYLIB)
+        printf("bdd_versionstr()\n");
+#endif
+        buf = bdd_versionstr();
+        result = _newJavaString(buf);
+        `(s = `result);
+      }
+      checkError();
+      return s+" rev"+REVISION.substring(11, REVISION.length()-2);
+    }
+
+    public static void gc_callback(int i) {
+        INSTANCE.gbc_handler(i!=0, INSTANCE.gcstats);
+    }
+
+    public static void reorder_callback(int i) {
+        INSTANCE.reorder_handler(i!=0, INSTANCE.reorderstats);
+    }
+
+    public static void resize_callback(int i, int j) {
+        INSTANCE.resize_handler(i, j);
+    }
+}

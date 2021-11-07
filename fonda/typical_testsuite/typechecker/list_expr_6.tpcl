@@ -1,0 +1,12 @@
+module list_expr_6;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo =[3.4, "abc"] ; {{ dg-error "types do not match" }} 

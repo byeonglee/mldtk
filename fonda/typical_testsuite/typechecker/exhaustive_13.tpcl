@@ -1,0 +1,16 @@
+module exhaustive_13;
+
+mltype node = 
+    Module of node list
+  | Foo of int
+  | Bar of bool * bool
+  ;
+
+mltype raw_type = N of int;
+mltype rec = {a: int, b: bool} ;
+
+mlvalue analyze n = match n with
+    Module(nl) -> true  {{ dg-warning "unused var" }}
+  | Foo _ -> true 
+  | Bar(_,_) -> false;
+

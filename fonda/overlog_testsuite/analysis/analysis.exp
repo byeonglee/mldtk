@@ -1,0 +1,14 @@
+load_lib olg-analysis-run.exp
+global check_what ""
+#global SUBTOOL
+#if {[info exists SUBTOOL] == 1} {
+#  if [string match $SUBTOOL "translation"] {
+#    return
+#  }
+#}
+dg-init
+#
+# run test for every file .tpcl in this directory
+#
+dg-runtest [lsort [glob -nocomplain $srcdir/$subdir/*.olg]] 
+dg-finish

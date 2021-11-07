@@ -1,0 +1,9 @@
+module int_additive_3;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo2 = true + 123; (* {{ dg-error "expected integer, found boolean" }} *)

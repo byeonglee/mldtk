@@ -1,0 +1,18 @@
+module unused_var_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDeclaration of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Module _ -> true
+  | _ -> false
+  ;
+
+mlvalue foo n = let a = 1 and         {{ dg-warning "c is an unused var" }}
+                    b = 2 and
+                    c = 3 in n + a + b; 
+

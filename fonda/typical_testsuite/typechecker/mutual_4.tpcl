@@ -1,0 +1,21 @@
+module mutual_4;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = VoidT | N of int;
+
+mlvalue analyzeList nl = match nl with
+   [] -> []
+  | x::xs -> (analyze x)::(analyzeList xs)
+;
+
+mlvalue analyze n = match n with
+    Module(nl) -> let _ = analyzeList nl in true
+  | ScopeDefinition(no) -> let _ = analyzeList no in true {{ dg-error "found node" }}
+  | _ -> false
+;

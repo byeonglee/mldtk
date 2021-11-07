@@ -1,0 +1,20 @@
+module lookup_5;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | NodeName of string
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace default: type = LowerID(s) -> SimpleName(s) and 
+          node: node = NodeName(s) -> SimpleName(s) ;
+
+mlvalue analyze n = n;
+
+mlvalue bar n = lookup n nod error "undefined" at n; {{ dg-error "tag nod is undefined" }}
+

@@ -1,0 +1,18 @@
+module any_type_1;
+
+mltype node = 
+    Module of any
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+   Module("string") -> true
+  |Module(ScopeDefinition _) -> true
+  | _ -> false ;
+
+
+

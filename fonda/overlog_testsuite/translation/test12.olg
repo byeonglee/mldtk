@@ -1,0 +1,19 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+
+r1 pEvent1(@X, S) :- periodic(@X, 1, 1), S:= 3.
+r2 pEvent2(@X, P) :- periodic(@X, 2, 1), P:= 1000.
+
+r3 table1(@X, S) :- pEvent1(@X, S). 
+r4 pEvent1a(@X) :- pEvent1(@X, _).
+r5 pEvent1b(@X, P) :- pEvent1(@X, _), P:=10.
+
+r6 pEvent2a(@X, P):- pEvent2(@X, P).
+r7 pEvent2b(@X, P, S):- pEvent2(@X, P), table1(@X, S).
+
+watch(pEvent1a).
+watch(pEvent1b).
+watch(table1).
+watch(pEvent2a).
+watch(pEvent2b).
+
+r8 exit(@X) :- pEvent2b(@X, A, B), A == 1000, B == 3.

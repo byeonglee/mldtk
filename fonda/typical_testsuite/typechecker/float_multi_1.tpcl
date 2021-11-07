@@ -1,0 +1,11 @@
+module float_multi_1;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo1 = 123.2 *. 45.6;
+
+mlvalue foo2 = 123.3 /. 4.56;

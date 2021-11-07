@@ -1,0 +1,15 @@
+module record_type_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+mltype bar = {
+  a: int,
+  b: float64,
+  c: string,
+  d: err    {{ dg-error "err is undefined" }}
+};

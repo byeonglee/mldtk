@@ -1,0 +1,22 @@
+module pattern_2;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | NodeName of string * node
+  | TypeName of string * node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace default: type = LowerID(s) -> SimpleName(s) ;
+
+mlvalue analyze n = n;
+
+mlvalue bar = function
+    N(n) -> let _ = trace n in true 
+  | _ -> false; 
+

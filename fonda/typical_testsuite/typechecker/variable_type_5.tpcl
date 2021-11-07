@@ -1,0 +1,12 @@
+module var_type_5;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype 'a btree = Empty | Btree of 'a * 'a btree * 'a raw_type ; {{ dg-error "not a constructed type" }}
+
+mlvalue analyze n = n;
+
+

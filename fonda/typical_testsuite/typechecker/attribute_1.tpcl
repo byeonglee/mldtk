@@ -1,0 +1,12 @@
+module attribute_1;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+attribute a: int;
+attribute b: bool;
+attribute c: string;
+

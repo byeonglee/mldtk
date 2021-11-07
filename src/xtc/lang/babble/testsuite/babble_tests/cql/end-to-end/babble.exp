@@ -1,0 +1,111 @@
+set test "Simple test"
+
+set testcases [lsort [glob -nocomplain $srcdir/$subdir/*.cql]]
+
+set basepath "$srcdir/$subdir"
+
+foreach testcase $testcases {
+
+    verbose "testing $testcase"
+    regsub {\.cql} $testcase {.sra} sra_file
+    regsub {\.cql} $testcase {.bk} bklt_file
+    regsub {\.cql} $testcase {.ml} ml_file
+    regsub {\.cql} $testcase {.expected_out} expected_file
+    regsub {\.cql} $testcase {.human_out} human_file
+    regsub {\.cql} $testcase {.data} out_name
+    set data [file tail $out_name]
+    set out_file "/tmp/$data"
+    set app_dir "$basepath/MyApp"
+    set func_dir "$basepath/FunctionEnv"
+
+
+    if { [file exists $out_file]} {
+      file delete $out_file
+    }
+
+    if { [file exists $app_dir]} {
+      file delete -force $app_dir
+    }
+
+    if { [file exists $func_dir]} {
+      file delete -force $func_dir
+    }
+
+    # CQL -> SRA
+
+
+    set command "java xtc.lang.babble.cql.CQL -analyze -output $sra_file -toSRA $testcase"
+    spawn java xtc.lang.babble.cql.CQL -output $sra_file -toSRA $testcase
+    eval exec $command
+    if { ![file exists $sra_file]} {
+       fail $testcase
+       continue
+    }
+
+    # SRA -> BROOKLET
+
+    set outdir "$basepath/FunctionEnv"
+    set command "java xtc.lang.babble.sra.SRA -analyze -output $bklt_file -outputDir $outdir -toBrooklet $sra_file"
+
+    eval exec $command
+    if { ![file exists $func_dir/operators.ml]} {
+       fail $testcase
+       continue
+    }
+
+    set hostname [info hostname]
+
+    set username $env(USER)
+
+    set templatePath "$basepath/../../../../watson/templates"
+    set outPath "$basepath"
+
+    set command "java xtc.lang.babble.watson.Watson -host $hostname -user $username -templatePath $templatePath -outputPath $outPath -toSystemS $bklt_file"
+    eval exec $command
+    if { ![file exists $app_dir]} {
+       fail $testcase
+       continue
+    }
+
+    file copy -force $outdir/operators.ml $outPath/MyApp/src
+    file copy -force $outdir/m2h.ml $outPath/MyApp/src
+
+    cd $outPath/MyApp/src
+ 
+    exec make
+
+    # streamtool lsinstance
+
+   
+    cd $outPath/MyApp/
+    exec "./start.sh"
+
+    set command "ocaml $ml_file"
+    eval exec $command
+
+    set command "streamtool submitjob config/app.jdl"
+    eval exec $command
+
+    # wait for the app to run
+    sleep 10
+ 
+    set command "$outPath/MyApp/bin/m2h $out_file $human_file"
+    eval exec $command
+
+    set command "diff $expected_file $human_file"
+    eval exec $command
+
+    cd $outPath/MyApp/
+    exec "./stop.sh"
+
+    pass $testcase
+    # fail $testcase
+
+
+
+}
+
+#send "echo Hello World"
+#expect {
+#  -re "Hello World" {send "exit\r"; pass $test"}
+#}

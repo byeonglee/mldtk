@@ -1,0 +1,6 @@
+opt fission = FissionOptimizer();
+opt apply   = FuseAnnotationOptimizer();
+opt fuse   = FusionOptimizer();
+opt rep     = ReplicationOptimizer(2);
+ord fission < apply < rep < fuse ;
+

@@ -1,0 +1,17 @@
+module scope_def_6;
+
+mltype node = 
+  A of node * node list |
+  B of string * node |
+  C of node opt list |
+  D of string * node list
+;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+scope
+    A(_,l) -> Scope(Named(SimpleName("bname")),l) 
+  | B(_, n) -> Scope(SimpleName("bname"),[n]) (* {{ dg-error "expected scope_kind, found name" }} *)
+;

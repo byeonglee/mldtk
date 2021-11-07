@@ -1,0 +1,14 @@
+module function_app_4;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = n + 1;
+
+mlvalue bar x = let y = 2.5 in  (* {{ dg-warning "unused var" }} *)
+                  foo y; {{ dg-error "expected integer, found 64-bit float" }}

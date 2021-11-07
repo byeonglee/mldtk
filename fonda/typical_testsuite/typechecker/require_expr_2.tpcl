@@ -1,0 +1,10 @@
+module require_expr_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = require true error "Error message" and  {{ dg-warning "unused var" }}
+                        false warning "Warning message" in true;

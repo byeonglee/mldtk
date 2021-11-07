@@ -1,0 +1,5 @@
+r1 pEvent1(@X, S) :- periodic(@X, 1, 5), S:= 3.
+
+watch(pEvent1).
+r2 exit(@X) :- pEvent1(@X, Y), Y == 3.
+

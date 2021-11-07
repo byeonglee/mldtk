@@ -1,0 +1,57 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for the stream relational algebra
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.4 $
+ */
+module xtc.lang.babble.sra.SRA;
+
+instantiate xtc.lang.babble.boat.Pattern(xtc.lang.babble.boat.Core);
+instantiate xtc.util.Spacing;
+instantiate xtc.lang.babble.boat.Reserved;
+instantiate xtc.lang.babble.boat.Symbol(xtc.lang.babble.boat.Spacing);
+instantiate xtc.lang.babble.boat.Identifier(xtc.lang.babble.boat.Spacing,
+                                            xtc.lang.babble.boat.Reserved);
+instantiate xtc.lang.babble.boat.Constant(xtc.lang.babble.boat.Spacing);
+instantiate xtc.lang.babble.boat.Spacing(xtc.util.Spacing);
+
+instantiate xtc.lang.babble.sra.SRAIdentifier(xtc.lang.babble.boat.Spacing,
+                                              xtc.lang.babble.boat.Reserved,
+                                              xtc.lang.babble.boat.Identifier);
+
+instantiate xtc.lang.babble.boat.Core(xtc.lang.babble.boat.Constant,
+                                      xtc.lang.babble.sra.SRAIdentifier,
+                                      xtc.lang.babble.boat.Symbol,
+                                      xtc.lang.babble.boat.Spacing);
+
+instantiate xtc.lang.babble.ra.Core(xtc.lang.babble.boat.Core,
+                                xtc.lang.babble.boat.Spacing,
+                                xtc.lang.babble.boat.Symbol,
+                                xtc.lang.babble.boat.Reserved,
+                                xtc.lang.babble.sra.SRAIdentifier);
+
+modify xtc.lang.babble.sra.Core(xtc.lang.babble.ra.Core, xtc.lang.babble.boat.Constant);
+
+option withLocation, constant, flatten;
+
+
+

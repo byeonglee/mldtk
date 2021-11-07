@@ -1,0 +1,17 @@
+module constructor_pattern_8;
+
+mltype node = 
+    Module of node list
+  | NodeName of string
+  | Test of string * node * node list
+  | M of int * string
+  | N of bool * float64
+  ;
+mltype raw_type = P of int;
+
+mlvalue analyze n = match n with
+    Test(s,NodeName(s),nl) -> true {{ dg-error "bindings in different nodes" }}
+  | _ -> false
+;
+
+

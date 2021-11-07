@@ -1,0 +1,21 @@
+module poly_variant_10;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [| `Foo of bar
+         | `Bar of bor ]
+ | K of foo 
+;
+
+mltype bar = Bar of string;
+
+mltype bor = Bor of node;
+
+mltype foo = [| `Foo of bar
+              | `Bor of bor];
+
+mltype raw_type = P of int | TypeName of string;
+
+mlvalue analyze n = n
+;

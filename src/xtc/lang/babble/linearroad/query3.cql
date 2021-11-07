@@ -1,0 +1,1 @@
+Select Istream(*) From ActiveVehicleSegRel

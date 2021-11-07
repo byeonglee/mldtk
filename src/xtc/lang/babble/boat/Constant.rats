@@ -1,0 +1,111 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Definition of OCaml constants.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.5 $
+ */
+module xtc.lang.babble.boat.Constant(Spacing);
+
+import Spacing;
+
+Node Constant =
+    <FloatingConstant>  FloatingConstant      Spacing
+  / <IntegerConstant>   IntegerConstant       Spacing
+  / <CharacterConstant> CharacterConstant
+  / <StringConstant>    StringConstant
+  / <BooleanConstant>   BooleanConstant       Spacing
+  / <UnitConstant>      UnitConstant          Spacing
+  / <EmptyListConstant> EmptyListConstant     Spacing
+  / <VoidConstant>      VoidConstant          Spacing
+  ;
+
+
+// --------------------------------------------------------- Integer constants
+
+generic IntegerConstant =
+    <Hex>     HexConstant
+  / <Octal>   OctalConstant
+  / <Binary>  BinaryConstant
+  / <Decimal> DecimalConstant
+  ;
+
+transient String DecimalConstant     = '-'? Digit OptionalDigit* ;
+transient String Digit               = [0-9] ;
+transient String OptionalDigit       = [0-9_] ;
+
+transient String HexConstant         = '-'? HexPrefix HexDigit OptionalHexDigit* ;
+transient String HexPrefix           = '0' [xX] ;
+transient String HexDigit            = [0-9a-fA-F] ;
+transient String OptionalHexDigit    = [0-9a-fA-F_] ;
+
+transient String OctalConstant       = '-'? OctalPrefix OctalDigit OptionalOctalDigit* ;
+transient String OctalPrefix         = '0' [oO] ;
+transient String OctalDigit          = [0-7] ;
+transient String OptionalOctalDigit  = [0-7_] ;
+
+transient String BinaryConstant      = '-'? BinaryPrefix BinaryDigit OptionalBinaryDigit* ;
+transient String BinaryPrefix        = '0' [bB] ;
+transient String BinaryDigit         = [0-1] ;
+transient String OptionalBinaryDigit = [0-1_] ;
+
+// -------------------------------------------------------- Floating constants
+
+generic FloatingConstant =
+    <Decimal> DecimalFloatingConstant
+    ;
+
+String DecimalFloatingConstant =
+   '-'? Digit OptionalDigit* '.' OptionalDigit* Exponent? 
+ / '-'?                      '.' OptionalDigit+ Exponent? 
+    ;
+
+String Exponent                 = [eE] [+\-]? Digit OptionalDigit* ;
+
+// -------------------------------------------- Character and string constants
+
+generic CharacterConstant = CharacterLiteral Spacing ;
+
+String CharacterLiteral       = ['] CharacterContents ['] ;
+String CharacterContents      = ( EscapeCharacter / !['\\\n\r] _ )+ ;
+
+generic StringConstant = (StringLiteral Spacing)+ ;
+
+String StringLiteral     = ["] StringContents ["] ;
+String StringContents    = ( EscapeCharacter / !["\\\n\r] _ )* ;
+
+transient String EscapeCharacter = '\\' EscapeCode ;
+
+transient String EscapeCode =
+  CharacterEscapeCode / DecimalEscapeCode / HexEscapeCode ;
+
+transient String CharacterEscapeCode = [ntbr\\'"] ;
+
+transient String DecimalEscapeCode = Digit Digit Digit ;
+transient String HexEscapeCode     = 'x' HexDigit HexDigit ;
+
+// -------------------------------------------- List and Unit constants
+
+generic UnitConstant           = "()" ;
+generic EmptyListConstant      = "[]" ;
+generic BooleanConstant        = "true" / "false" ;
+generic VoidConstant           = "void" ;
+

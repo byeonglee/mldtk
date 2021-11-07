@@ -1,0 +1,4 @@
+output q3;
+input q1;
+(q2, $v1) <- f1(q1, $v1);
+(q3, $v1) <- f2(q2, $v1);

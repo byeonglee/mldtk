@@ -1,0 +1,9 @@
+Implement remaining CQL operator:
+  join        x
+  select      x
+  aggregate 
+  union       x
+  range       x
+  rows
+  partition
+  unbounded  x

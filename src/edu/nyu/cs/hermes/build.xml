@@ -1,0 +1,211 @@
+
+<project default="all">
+
+<property name="tmp-dir" location="build" />
+
+<property name="install-dir" location="/usr/local/" />
+
+<property name="tomcat-dir" location="/usr/local/tomcat" />
+
+	<target name="init">
+	
+		<mkdir dir="${tmp-dir}/edu/nyu/cs/hermes" />
+		<mkdir dir="${tmp-dir}/edu/nyu/cs/hermes/aim" />
+		<mkdir dir="${tmp-dir}/edu/nyu/cs/hermes/phone" />
+		
+  	</target>
+  	
+	<target name="all" depends="clean,init,compile,move,jar" />
+	
+	<target name="install_all" depends="install,deploy_web" />
+  	
+  	<target name="clean" depends="clean_base,clean_aim,clean_phone"/>
+
+	<target name="compile" depends="init,compile_base,compile_aim,compile_phone"/>
+	
+	<target name="move" depends="compile,move_base, move_aim, move_phone" />
+
+	<target name="jar" depends="move" >
+	
+		<echo message="Creating jar file" />
+		
+    	<jar destfile="Hermes.jar"
+    	     basedir="${tmp-dir}"
+         	 includes="**/*.class" />
+    
+    </target>
+    
+    <target name="install" >
+    
+    	<copy file="Hermes.jar" todir="${install-dir}" />
+    
+    </target>
+    
+    <target name="init_deploy_web" >
+    
+    	
+    
+    	<mkdir dir="${tomcat-dir}/webapps/ROOT/hermes/images" />
+    	
+    </target>
+    
+    <target name="deploy_web" depends="init_deploy_web" >
+    
+    	<echo message="Moving webapp" />
+    
+    	<copy todir="${tomcat-dir}/webapps/ROOT/hermes">
+  
+  			<fileset dir="webapps/hermes">
+        	
+        		<include name="*.html"/>
+        		<include name="*.jsp"/>
+        	
+        	</fileset>
+        	
+ 		</copy>
+
+    	<copy todir="${tomcat-dir}/webapps/ROOT/hermes/images">
+        	
+        	<fileset dir="webapps/hermes/images">
+        	
+        		<include name="**/*.png"/>
+        		<include name="**/*.gif"/>
+        		<include name="**/*.jpg"/>
+        		
+	       		<exclude name="**/*.psd"/>	
+	       		
+      		</fileset>
+ 		</copy>
+    
+    </target>
+    
+  	<target name="compile_base" description="Compiling base files" >
+ 
+
+    	<javac srcdir="." />
+
+  	</target>
+
+	<target name="compile_phone" description="Compiling phone support" >
+
+    		<javac srcdir="phone/" />
+
+  	</target>
+	
+	<target name="compile_aim" description="Compiling AIM support">
+
+    		<javac srcdir="aim/" />
+
+  	</target>
+
+	<target name="move_base" depends="init">
+	
+		<echo message="Moving base classes" />
+	
+		<move todir="${tmp-dir}/edu/nyu/cs/hermes" >
+			
+			<fileset dir="." >
+				
+				<include name="*.class"/>
+				<exclude name="Hermes.class" />
+			
+			</fileset>
+		
+		</move>
+		<move file="Hermes.class" toDir="${tmp-dir}" />
+		
+	</target>
+
+	<target name="move_aim" depends="init">
+	
+		<echo message="Moving AIM classes" />
+		
+		<move todir="${tmp-dir}/edu/nyu/cs/hermes/aim" >
+			
+			<fileset dir="./aim" >
+				
+				<include name="*.class"/>
+			
+			</fileset>
+		
+		</move>
+	
+	</target>
+	
+	<target name="move_phone" depends="init">
+	
+		<echo message="Moving phone classes" />
+		
+		<move todir="${tmp-dir}/edu/nyu/cs/hermes/phone" >
+			
+			<fileset dir="./phone" >
+				
+				<include name="*.class"/>
+			
+			</fileset>
+		
+		</move>
+	
+	</target>
+	
+	<target name="deploy" >
+		
+		<mkdir dir="${tomcat-dir}/hermes" />
+	
+		<move dir="webapps/hermes" toDir="${tomcat-dir}/hermes" />
+	
+	</target>
+	
+	<target name="clean_base" >
+	
+		<delete file="Hermes.jar" />
+		
+		<delete file="CommandProcessor.class" />
+		
+		<delete file="HermesD.class" />
+		
+		<delete file="HermesDataBaseUtility.class"  />
+		
+		<delete file="mailDaemon.class" />
+	
+		<delete file="vCard.class"  />
+		
+		<delete file="vCardField.class" />
+		
+		<delete file="vCardParser.class"  />
+		
+		<delete dir="${tmp-dir}" />
+	
+	</target>
+
+	<target name="clean_aim" >
+		
+		<delete file="aim/Buddy.class" />
+		
+		<delete file="aim/Errors.class" />
+		
+		<delete file="aim/HelpMessages.class" />
+		
+		<delete file="aim/InHandler.class" />
+		
+		<delete file="aim/OutHandler.class" />
+		
+		<delete file="aim/Operations.class" />
+		
+		<delete dir="${tmp-dir}/edu/nyu/cs/hermes/aim" />
+	
+	</target>
+
+	<target name="clean_phone" >
+		
+		<delete file="phone/PhoneUtility.class" />
+		
+		<delete file="phone/PhoneStatusDaemon.class"  />
+		
+		<delete file="phone/CTPort.class"  />
+		
+		<delete dir="${tmp-dir}/edu/nyu/cs/hermes/phone" />
+	
+	</target>
+	
+</project>

@@ -1,0 +1,709 @@
+factory xtc.lang.babble.sra.OperatorFactory {
+
+typedef         {
+                   module #modename = 
+                   struct
+                     type #name = {
+                         #fields
+                     }
+                   end;;
+                }
+
+declarePut      {
+                   external put : int -> int -> string -> unit = "put";;
+                }
+
+
+outputWrap      {
+                   let ocaml_wrap_output ptr port data =
+                     put ptr port (Marshal.to_string data [Marshal.No_sharing])  ;;
+                }
+
+
+avgCall         {
+                   (avg #v1 #v2)
+                }
+
+neg             {
+                   -#v1 
+                }
+
+incr            {
+                   incr #v1 
+                }
+
+decr            {
+                   decr #v1 
+                }
+
+sum             {
+                   sum #v1 #v2
+                }
+
+sub             {
+                   sub #v1 #v2
+                }
+
+lambdaExpr      {
+                   function (#name:#module.#type) -> #expr 
+                }
+
+
+hashExpr        {
+                   let #name : (#type1, #type2 ) Hashtbl.t ref = ref (Hashtbl.create 1);; 
+                }
+
+
+stateExpr       {
+                   let #name : (int * #module.#type list * #module.#type list) list ref  = ref [] ;;
+                }
+
+exception       {
+                   exception #name;;
+                }
+
+istream         {
+                   let #name ptr port (tau, inserts, deletes)  =
+                      (ocaml_wrap_output ptr 0 (tau, inserts, []))
+                }
+
+istreamWrap     {
+                   let #name ptr port buffer =
+                     let ((tau:int), inserts, deletes) = Marshal.from_string buffer 0 in
+                      #func ptr port (tau, inserts, deletes)
+                }
+
+rstream         {
+                   let #name ptr port (tau, inserts, deletes) =
+                      (ocaml_wrap_output ptr 0 (tau, inserts, deletes))
+                }
+
+rstreamWrap     {
+                   let #name ptr port buffer  =
+                     let ((tau:int), inserts, deletes) = Marshal.from_string buffer 0 in
+                      #func ptr port (tau, inserts, deletes)
+                }
+
+dstream         {
+                   let #name ptr port (tau, inserts, deletes) =
+                      (ocaml_wrap_output ptr 0 (tau, [], deletes))
+                }
+
+dstreamWrap     {
+                   let #name ptr port buffer  =
+                     let ((tau:int), inserts, deletes) = Marshal.from_string buffer 0 in
+                      #func ptr port (tau, inserts, deletes)
+                }
+
+
+projection      {
+                   let #name ptr port (tau, inserts, deletes) =
+                      (ocaml_wrap_output ptr 0 
+                      (tau,
+                       List.map (#expr) inserts,
+                       List.map (#expr) deletes));;
+                }
+
+projectWrap     {
+                   let #name ptr port buffer  =
+                     let ((tau:int), inserts, deletes) = Marshal.from_string buffer 0 in
+                      #func ptr port (tau, inserts, deletes)
+                }
+
+
+joinTypes      {
+                 type #name = #constrList ;;
+               }
+
+
+
+joinExp         {
+
+let #name ptr port data   =
+  let get_tau (tau, _, _) = tau in
+    match data with 
+      | #type0(tup) -> (try #port0 := !#port0@[tup] with x -> ()) 
+      | #type1(tup) -> (try #port1 := !#port1@[tup] with x -> ()) ;         
+         try
+            let port0_tup = List.hd !#port0
+            and port1_tup = List.hd !#port1 
+            in
+               let inner accum port1_inserts tup4 = 
+               List.append 
+                         (List.map ( #expr ) 
+                            (List.filter ( #cond ) port1_inserts)) accum in
+              let rec outer accum port1_inserts = function
+                  h::t ->  outer (inner accum port1_inserts h) port1_inserts t
+                | [] -> accum in                    
+              if (get_tau port0_tup = get_tau port1_tup)
+              then
+                try 
+                #port0 := List.tl !#port0 ; 
+                #port1 := List.tl !#port1  ;
+              let (port0_tau, port0_inserts, port0_deletes) = port0_tup and
+                  (port1_tau, port1_inserts, port1_deletes) = port1_tup in
+                (ocaml_wrap_output ptr 0
+                   ( port0_tau, outer [] port1_inserts port0_inserts, outer [] port1_deletes port0_deletes ))
+              with e -> ()
+          with x -> ();;
+                }
+
+join            {
+let #name ptr port data =
+  let get_tau (tau, _, _) = tau in
+    (match data with 
+      | #type0(tup) -> Queue.add tup !#port0 
+      | #type1(tup) -> Queue.add tup !#port1 );
+          if (((Queue.length !#port0) > 0) && ((Queue.length !#port1) > 0)) then
+          let port0_tup = Queue.peek !#port0
+          and port1_tup = Queue.peek !#port1 
+          in
+          let inner accum port1_inserts tup4 = 
+               List.append 
+                         (List.map ( #expr ) 
+                            (List.filter ( #cond ) port1_inserts)) accum in
+ 
+          let rec outer accum port1_inserts = function
+              h::t ->  outer (inner accum port1_inserts h) port1_inserts t
+            | [] -> accum in                    
+            if (get_tau port0_tup = get_tau port1_tup)
+            then              
+              let _ = Queue.pop !#port0 
+              and _ = Queue.pop !#port1 in
+              let (port0_tau, port0_inserts, port0_deletes) = port0_tup and
+                  (port1_tau, port1_inserts, port1_deletes) = port1_tup in
+                (ocaml_wrap_output ptr 0
+                   ( port0_tau, outer [] port1_inserts port0_inserts, outer [] port1_deletes port0_deletes ))  
+                }
+
+
+joinWrap     {
+                let #name ptr port buffer  =      
+                  let tup = Marshal.from_string buffer 0 in
+                    if port = 0 then
+                      #funcname ptr port (#type0 tup)  
+                    else
+                      #funcname ptr port (#type1 tup)  ;;
+                }
+    
+    
+
+union           {
+                   let #name ptr port (port0_tup, port1_tup) =
+                       let (port0_tau, port0_inserts, port0_deletes) = port0_tup and
+                           (port1_tau, port1_inserts, port1_deletes) = port1_tup in     
+                         (ocaml_wrap_output ptr 0 (port0_tau, port0_inserts@port1_inserts, port0_deletes@port1_deletes));;
+                }
+
+
+unionWrap       {
+                   let #name ptr port buffer  = 
+                     let _ = 
+                       if port = 0 then
+                         try 
+                           let tup = Marshal.from_string buffer 0 in        
+                             #port0 := !#port0@[tup] 
+                         with x -> ()
+                       else
+                         try 
+                           let tup = Marshal.from_string buffer 0 in        
+                             #port1 := !#port1@[tup]           
+                         with x -> ()
+                     in
+                     try
+                       let port0_tup = List.hd !#port0
+                       and port1_tup = List.hd !#port1 
+                       in
+                         let get_tau (tau, _, _) = tau in
+                         if (get_tau port0_tup = get_tau port1_tup)
+                         then
+                           try        
+                             #port0 := List.tl !#port0 ; 
+                             #port1 := List.tl !#port1  ;
+                             (#funcname ptr port (port0_tup, port1_tup) )
+                           with x -> ()
+                     with e -> ();;
+                }
+
+
+select         {
+                   let #name ptr port (tau, inserts, deletes)  =
+                     (ocaml_wrap_output ptr 0 
+                     (tau, 
+                      List.filter ( #expr ) inserts, 
+                      List.filter ( #expr ) deletes) );;
+               }
+
+selectWrap     {
+                   let #name ptr port buffer =
+                     let ((tau:int), inserts, deletes) =
+                       Marshal.from_string buffer 0 in
+                       #funcname ptr port (tau, inserts, deletes) ;;
+               }
+
+now            {
+                 let #name ptr port port0_tup  =
+                   Queue.add port0_tup !#port;
+                   let (in_tau, in_inserts, in_deletes) = port0_tup in
+                     if ((Queue.length !#port) = 1) then
+                       (ocaml_wrap_output ptr 0 (in_tau, in_inserts, []) ) 
+                     else
+                       let (old_tau, old_inserts, old_deletes) = Queue.pop !#port in
+                         (ocaml_wrap_output ptr 0 (in_tau, in_inserts, old_inserts) );;      
+               }
+
+
+
+
+nowWrap        {
+                 let #name ptr port buffer  = 
+                   let tup = Marshal.from_string buffer 0 in
+                     (#funcname ptr port tup ) ;;      
+               }
+
+
+rows           {
+                   let #name ptr port port0_tup =
+                     let get_inserts (_,inserts,_) = inserts in
+                     let window_size = #size in 
+                     let (in_tau, in_inserts, in_deletes) = port0_tup in
+                     let _ = 
+                       try 
+                         #port0 := !#port0@[port0_tup] 
+                       with x -> ()
+                     in
+                       if (List.length !#port0) <= window_size then
+                          (ocaml_wrap_output ptr 0 (in_tau, in_inserts, []) )
+                       else 
+                         let port0_head = List.hd !#port0 in
+                           try 
+                             #port0 := List.tl !#port0 ;
+                             (ocaml_wrap_output ptr 0 (in_tau, in_inserts, get_inserts port0_head))
+                           with x -> ();;
+               }
+
+
+rowsWrap       {
+                   let #name ptr port buffer  = 
+                     let tup = Marshal.from_string buffer 0 in
+                       #funcname ptr port tup ;; 
+               }
+
+oldRange          {
+                   let #name ptr port port0_tup =
+                     let get_tau (tau, _, _) = tau and
+                     get_inserts (_, inserts, _) = inserts in
+                     let delta = #delta in 
+                     let (in_tau, in_inserts, in_deletes) = port0_tup in
+                     let _ = 
+                       try 
+                         #port0 := !#port0@[port0_tup] 
+                       with x -> ()
+                     in
+                     let rec get_all_inserts accum = function 
+                       |  h::t -> (get_all_inserts (accum@(get_inserts h)) t)
+                       | [] -> accum in     
+                     let out_of_range_tuples = List.filter (function (x) -> in_tau - (get_tau x) >= delta ) !#port0 in    
+                     let out_deletes = get_all_inserts [] out_of_range_tuples in
+                       List.iter (function (x) ->  #port0 := (List.filter (function (y) -> y <> x) !#port0)) out_of_range_tuples;
+                       (ocaml_wrap_output ptr 0 (in_tau, in_inserts, out_deletes) ) ;;  
+               }
+
+queueState     {
+                   let #name :(int * #module.#type list * #module.#type list) Queue.t ref = ref ( 
+                     Queue.create ()) ;;
+               }
+
+range       {
+                   let #name ptr port port0_tup =
+                     let get_inserts (_, inserts, _) = inserts and
+                         get_tau (tau, _, _) = tau in
+                     let delta = #delta in 
+                     let (in_tau, in_inserts, in_deletes) = port0_tup in
+                       (Queue.add port0_tup !#port0);
+                       let deletes_ref = ref [] in
+                         let out_tau = (get_tau (Queue.peek !#port0)) in
+                           while (in_tau - (get_tau (Queue.peek !#port0)) >= delta)
+                           do 
+                             List.iter (fun i -> deletes_ref := i::!deletes_ref) (get_inserts (Queue.pop !#port0))
+                           done ;
+                           if ((List.length !deletes_ref) > 0) then 
+                             ocaml_wrap_output ptr 0 (out_tau, in_inserts, !deletes_ref)
+               }
+
+rangeWrap      {
+                   let #name ptr port buffer  = 
+                     let tup = Marshal.from_string buffer 0 in
+                      #funcname ptr port tup  ;;
+               }
+
+partitionWrap  {
+                   let #name ptr port buffer  = 
+                     let tup = Marshal.from_string buffer 0 in
+                      #funcname ptr port tup ;;
+               }
+
+
+partition      {
+                   let #name ptr port port0_tup =
+                     let window_size = #size in
+                     let (tau, inserts, _) = port0_tup in 
+                     let add_to_state = 
+                       (function (item) ->       
+                          let key = #expr in
+                          let newValue = if Hashtbl.mem !#port0 key then
+                            (Hashtbl.find !#port0 key)@[item]
+                          else
+                            [item]
+                          in
+                          let (newList, deletes) = 
+                            if (List.length newValue) > window_size then           
+                              let remove_tup = List.hd newValue in
+                                ((List.tl newValue), [remove_tup])
+                            else
+                              (newValue, [])
+                          in
+                            Hashtbl.replace !#port0 key newList;
+                            deletes
+                       )    
+                     in
+                     let delete_list = List.map (add_to_state) inserts in    
+                        (ocaml_wrap_output ptr 0 
+                       (tau, inserts, (List.flatten delete_list)) ) ;;               
+               }
+
+aggregateWrap  {
+                   let #name ptr port buffer  =
+                     let tup = Marshal.from_string buffer 0 in
+                       #funcname ptr port tup ;;
+               }
+
+
+aggregate      {
+                   let #name ptr port port0_tup =
+                     let incr x = x + 1 and
+                         decr x = x - 1 and
+                         sum x y = x + y and 
+                         sub x y = x - y and 
+                         avg x y = if y = 0 then 1 else x / y in
+                     let (tau, inserts, deletes) = port0_tup in 
+                     let compute_inserts =
+                       (function (item)  ->
+                          let key = #key_tuple in
+                          let newValue = if Hashtbl.mem !#port0 key then
+                            let #value_tuple = Hashtbl.find !#port0 key in
+                              #insert_func_tuple
+                          else
+                              #insert_init_tuple
+                          in
+                            Hashtbl.replace !#port0 key newValue;
+                            let #value_tuple = newValue in 
+                              #assgn_expr
+                       ) and
+                         compute_deletes =
+                       (function (item)  ->
+                          let key = #key_tuple in
+                          let newValue = if Hashtbl.mem !#port0 key then
+                            let #value_tuple = Hashtbl.find !#port0 key in
+                              #delete_func_tuple
+                          else
+                              #delete_init_tuple
+                          in
+                            Hashtbl.replace !#port0 key newValue;
+                            let #value_tuple = newValue in 
+                              #assgn_expr
+                       )
+                     in
+                     let all_inserts = List.map compute_inserts inserts and
+                         all_deletes = List.map compute_deletes deletes in
+                     (ocaml_wrap_output ptr 0 (tau, all_inserts, all_deletes)) ;;
+               }
+
+distinct      {
+                   let #name ptr port data =
+                     let uniq lst =
+                       let unique_set = Hashtbl.create (List.length lst) in
+                         List.iter (fun x -> Hashtbl.replace unique_set x ()) lst;
+                         Hashtbl.fold (fun x () xs -> x :: xs) unique_set [] in
+                     let (tau, inserts, deletes) = data in
+                     let t = (tau, (uniq inserts), (uniq deletes)) in
+                       (ocaml_wrap_output ptr 0 t ) ;;
+               }
+
+distinctWrap  {
+                   let #name ptr port buffer  =
+                     let data = Marshal.from_string buffer 0 in
+                       #funcname ptr port data ;;
+               }
+
+dupSplit      {
+                   let #name ptr port data =
+                     for i = 0 to #num do
+                       (ocaml_wrap_output ptr i data)
+                     done;;
+                     
+               }
+
+
+dupSplitWrap   {
+                   let #name ptr port buffer =
+                     let data = Marshal.from_string buffer 0 in   
+                       #funcname ptr port data ;;
+               }
+
+maybeSource     {
+                   let #maybe:in_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       Some (open_in #file)
+                     else None;;
+                }
+
+maybeSink       {
+                   let #maybe:out_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       let pidstr = sprintf "-%d.data" (Unix.getpid ()) in
+                       let filename = #file ^ pidstr in
+                       Some (open_out filename)
+                     else None;;
+                }
+
+source          {
+                   let #name ptr port =
+                     match
+                       #maybe 
+                     with
+                        | Some ic -> 
+                            (try 
+                              while true do 
+                                let tup:#module.#type = Marshal.from_channel ic in
+                                  (ocaml_wrap_output ptr 0 tup )
+                              done
+                            with End_of_file ->
+                              close_in ic)
+                        | None -> ();;
+                }
+
+
+sink            {
+                   let #name ptr buffer = 
+                      match #maybe with
+                      | Some oc ->
+                        let tup = 
+                          Marshal.from_string buffer 0 in
+                            (Marshal.to_channel oc tup [Marshal.No_sharing])
+                      | None -> ()
+                }
+
+sinkShutdown    {
+                   let #name ptr = 
+                       match #maybe with
+                       | Some oc -> flush oc; close_out oc
+                       | None -> ()
+                }
+
+
+debugPrint      {
+                  let #name tuple =
+                    let (tau, inserts, deletes) = tuple in
+                      Printf.printf "(%d, [" tau;
+                      List.iter (function (x:#module.#type) -> #expr) inserts;
+                      Printf.printf "],[";
+                      List.iter (function (x:#module.#type) -> #expr) deletes;  
+                      Printf.printf "])\n";
+                      flush stdout;;
+                }
+
+
+sinkPrint       {
+                  Printf.printf #args
+                }
+
+
+sinkSprint      {
+                  sprintf #args
+                }
+
+register        {
+                  let () = #func
+                }
+
+callback        {
+                  Callback.register #str #name 
+                }
+
+callbackException {
+                  Callback.register_exception #str #name 
+                }
+
+
+typeList        {
+                  let #name list =
+                    let str_list = 
+                      List.map (function (x:#module.#type) -> #expr) list in
+                        "[" ^ (String.concat "; " str_list) ^ "]";;
+                }
+
+humanReadable   {
+                  let human_readable tup =
+                    let (tau, inserts, deletes) = tup in
+                      sprintf "(%d, %s, %s)" tau (#name inserts) (#name deletes) ;; 
+                }
+
+readArgv        {
+                  let #name = Sys.argv.(#number) 
+                }
+
+readMarsh       {
+                  let marshalFile = Sys.argv.(1) 
+                }
+
+readHum         {
+                  let humanReadableFile = Sys.argv.(2) 
+                }
+
+
+openPrintf      {
+                  open Printf;;
+                }
+
+m2hMain         {
+                  let () = 
+                    let ic = 
+                      open_in marshalFile in
+                      let oc = 
+                        open_out humanReadableFile in
+                        try
+                          while true do
+                            let tup = Marshal.from_channel ic in
+                            let str = human_readable tup in
+                              fprintf oc "%s\n" str;
+                              flush oc
+                             done
+                        with
+                          End_of_file -> close_in_noerr ic;
+                          close_out_noerr oc
+                }
+
+
+shutdown        {
+                  let #name ptr = ();;
+                }
+
+unionMergeArray {
+                   let #name = ref 8
+                }
+
+unionMergeTime  {
+                   let #name = ref 9
+                }
+
+
+parallelism     {
+                   let parallelism = ref 1
+                }
+
+unionMergeStateOld {
+                  let #name : (int * #module.#type list * #module.#type list) Queue.t  array ref =
+                    let n = 1 in
+                    ref ( Array.init n  (fun x -> Queue.create ())) ;;
+                }
+
+unionMergeState {
+                  let #name : (int * (int * #module.#type list * #module.#type list)) array ref =
+                    ref ( Array.init !#size (fun x -> (0, (0, [], [])))) ;;
+                }
+
+unionMergeOld   {
+
+                  let #name ptr port tup =
+                    let get_tau (tau, _, _) = tau in
+                    let tau = get_tau (tup) in
+                      (Queue.add tup  (Array.get !#state port) );
+                      let tetris = ref true in
+                        Array.iter (fun x -> 
+                                      if (0 = (Queue.length x)) then
+                                        tetris := false
+                                      else 
+                                        if (tau != (get_tau (Queue.peek x))) then
+                                          tetris := false                        
+                                        ) !#state ;  
+                        if (!tetris) then
+                          let heads = Array.to_list (
+                            Array.map (fun x -> (Queue.pop x)) !#state)
+                          in 
+                          let unioned = 
+                            List.fold_left (fun lhs rhs -> 
+                                              let (t1, i1, d1) = lhs 
+                                              and (t2, i2, d2) = rhs in
+                                                (t1, i1@i2, d1@d2)) (get_tau tup, [], []) heads in     
+                            (ocaml_wrap_output ptr 0 unioned)
+                }
+
+unionMergeResize {
+                  let #name array = 
+                    #size := !#size * 2;
+                    let bigger_array = (Array.init !#size (fun x -> (0, (0, [], [])))) in
+                      Array.iteri (fun i elem -> 
+                                     let (_, (time, _, _)) = elem in
+                                       (Array.set bigger_array (time mod !#size) elem )) array;
+                      #state := bigger_array  
+                }
+
+
+unionMerge      {
+                  let #name ptr port data_item  =  
+                    let (tau, inserts, deletes) = data_item in
+                      if (tau < !#time) then #time := tau;
+                      if (tau - (!#time) >= !#size) then 
+                          (#resize !#state) ;
+                      let (count, (time, old_inserts, old_deletes)) = (Array.get !#state (tau mod !#size)) in
+                      let inserts_ref = ref old_inserts
+                      and deletes_ref = ref old_deletes in
+                        List.iter (fun i -> inserts_ref := i::!inserts_ref) inserts; 
+                        List.iter (fun d -> deletes_ref := d::!deletes_ref) deletes;
+                        let di = (count+1, (tau, !inserts_ref, !deletes_ref)) in
+                          if (!parallelism = count+1) then
+                            begin
+                              if (tau = !#time) then incr #time; 
+                              (Array.set !#state (tau mod !#size) (0, (0, [], []) ) );
+                              (ocaml_wrap_output ptr 0  (tau, !inserts_ref, !deletes_ref) )
+                            end
+                          else
+                            (Array.set !#state (tau mod !#size) di)            
+                }
+
+
+unionMergeWrap  {
+                  let #name ptr port buffer = 
+                    let tup = Marshal.from_string buffer 0 in        
+                      #func ptr port tup ;;
+                }
+
+hashSplit       {
+
+                  let #name ptr port tup =
+                    let (tau, inserts, deletes) = tup in
+                    let get_inserts (_,inserts,_) = inserts in
+                    let get_deletes (_,_,deletes) = deletes in
+                    let deref (tau,inserts,deletes) =  (tau, !inserts, !deletes) in
+                    let outputs =  Array.init !parallelism  (fun x -> (tau, ref [], ref [])) in
+                    let filter list f = 
+                      List.iter (fun item -> 
+                                   let ir = (f (Array.get outputs ((Hashtbl.hash #key) mod !parallelism))) in 
+                                     ir := item::!ir ) list 
+                    in
+                      filter inserts get_inserts;
+                      filter deletes get_deletes;
+                      for i = 0 to !parallelism-1 do
+                        ocaml_wrap_output ptr i (deref (Array.get outputs i))
+                      done
+                }
+
+hashSplitWrap   {
+                  let #name ptr port buffer =
+                    let data =
+                      Marshal.from_string buffer 0 in
+                      #func ptr port data;;
+                }
+}
+

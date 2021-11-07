@@ -1,0 +1,18 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+materialize(table2, infinity, infinity, keys(1, 2)).
+
+
+table1(localhost:5000, 1.1).
+table1(localhost:5000, 2.1).
+table2(localhost:5000, 100.1).
+table2(localhost:5000, 200.1).
+
+
+r1 table1(@X, P) :- periodic(@X, 2, 1), P:= 3.1.
+r2 table2(@X, S) :- periodic(@X, 3, 1), S:= 300.1.
+
+r3 pEvent1(@X, P, S) :-table1(@X, P), table2(@X, S).
+
+watch(pEvent1).
+
+r4 exit(@X) :- pEvent1(@X, A, B), A == 3.1, B == 300.1 . 

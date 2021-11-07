@@ -1,0 +1,23 @@
+module field_expr_8;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mltype foo = {
+  a: re,
+  b: bool
+ };
+
+mltype re = {
+  e: string
+};
+
+mlvalue bar = {a = {e = 3}, b = true}; {{ dg-error "must be string, found integer" }}

@@ -1,0 +1,23 @@
+module record_expr_8;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mltype foo = {
+  a: int,
+  b: bool
+ };
+
+mltype bee = {c: int};
+
+mlvalue bar = {a = 1, b = true};
+
+(*mlvalue baz = {bar with c = 3};*)  

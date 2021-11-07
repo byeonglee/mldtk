@@ -1,0 +1,14 @@
+module poly_variant_4;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [`Foo of bar] 
+;
+
+mltype bar = [`Bar of bor] ; {{ dg-error "must be a monomorphic variant" }}
+
+mltype bor = Bor of string ; 
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

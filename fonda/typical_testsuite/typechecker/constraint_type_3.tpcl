@@ -1,0 +1,19 @@
+module constraint_type_3;
+
+mltype node = 
+    Module of node list
+    
+  ;
+  
+mltype raw_type = N of int;
+mltype bor = M of Node 'a | P of Node 'b;
+
+mlvalue analyze n = n;
+
+mlvalue foo n: Node 'a = if (is_defined n) then 1
+                         else 2 ;
+                         
+mlvalue bar t = match t with
+    M(m) -> lookup m
+  | P(p) -> lookup p
+  | _ -> bottom ;  

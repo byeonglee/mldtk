@@ -1,0 +1,5 @@
+output q2 ;
+input someFile;
+@Parallel() @Commutes() @Keys(k1, k2) (q1, $v1) <- operatorX (someFile, $v1) ;
+@Parallel()                                (q2) <- operatorY (q1) ;
+

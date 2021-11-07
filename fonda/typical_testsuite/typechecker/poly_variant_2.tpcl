@@ -1,0 +1,12 @@
+module poly_variant_2;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of foo 
+;
+
+mltype foo = [ `Foo of node ]; 
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

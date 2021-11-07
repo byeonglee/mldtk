@@ -1,0 +1,18 @@
+module lookup_4;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace default: type = LowerID(s) -> SimpleName(s) ;
+
+mlvalue analyze n = n;
+
+mlvalue bar n = lookup n error 1 at n; (* {{ dg-error "expected string, found integer" }} *)
+

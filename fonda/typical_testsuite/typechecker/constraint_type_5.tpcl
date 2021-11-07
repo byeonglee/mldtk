@@ -1,0 +1,24 @@
+module constraint_type_5;
+
+mltype node = 
+    Module of node list
+  | SomeNode of ben
+  ;
+  
+mltype ben = 
+    FirstNode of string
+  | SecondNode of node ;
+  
+mltype adam = SomeName of string;  
+mltype raw_type = N of int;
+mltype bor = M of Node 'a | P of adam;
+
+mlvalue analyze n = n;
+
+mlvalue foo n: Node 'a = if (is_defined n) then 1
+                         else 2 ;
+                         
+mlvalue bar t = match t with
+    M(m) ->  m  (* {{ dg-error "do not match" }} *)
+  | P(p) ->  p
+  | _ -> bottom ;  

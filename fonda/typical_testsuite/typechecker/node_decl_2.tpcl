@@ -1,0 +1,10 @@
+module node_decl_2;
+
+mltype node = 
+   M of int
+ | N of float64 * err {{ dg-error "err is undefined" }}
+;
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;
+

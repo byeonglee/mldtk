@@ -1,0 +1,11 @@
+module union_type_5;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+mltype ('a, 'b) foo = M of 'a * 'a list | {{ dg-warning "b is an unused var" }}
+             P of 'a list * 'a opt ;

@@ -1,0 +1,19 @@
+// {{ dg-checkwhat "concurrency" }}
+materialize(node, infinity, 1, keys(1)).
+
+i0 node(@NI, N)          :- periodic(@NI, E, 0, 1), foo(@NI, E, 0), bar(@NI, E, 0). // {{ dg-error " non-materialized tuples" }}
+
+
+i1 foo(@NI, E, 0)      :- bar(@NI, E, 0, 1, 5).
+
+
+
+
+
+
+
+
+
+
+
+

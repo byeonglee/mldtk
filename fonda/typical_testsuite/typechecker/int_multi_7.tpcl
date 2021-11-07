@@ -1,0 +1,9 @@
+module int_multi_7;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo6 = 123 / "abc" ; (* {{ dg-error "expected integer, found string" }} *)

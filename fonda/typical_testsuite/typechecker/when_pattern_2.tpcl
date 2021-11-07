@@ -1,0 +1,12 @@
+module when_pattern_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = match n with
+   m when m + 2 -> true (* {{ dg-error "expected boolean, found integer" }} *)
+  | _ -> false
+;

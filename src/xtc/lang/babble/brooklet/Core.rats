@@ -1,0 +1,31 @@
+module xtc.lang.babble.brooklet.Core(Identifier, Symbol, Constant, Spacing);
+import Identifier;
+import Symbol;
+import Constant;
+import Spacing;
+public generic Program  = Outputs Inputs OpInvoke* EndOfFile;
+generic Outputs         = void:"output":Keyword AnnotatedStreamList? void:";":Symbol ;
+generic Inputs          = void:"input":Keyword AnnotatedStreamList? void:";":Symbol ;
+generic OpInvoke        = Annotations? void:"(":Symbol StreamsAndVars? void:")":Symbol void:"<-":Symbol Operator void:"(":Symbol StreamsAndVars? void:")":Symbol void:";":Symbol ;
+generic StreamsAndVars  = <StreamAndVar> StreamList (void:",":Symbol VarList)?
+                        / <Vars> VarList ;
+generic Stream          = Identifier ;
+generic AnnotatedStream = Annotations? Identifier ;
+generic Operator        = Identifier ;
+generic Var             = void:"$":Symbol Identifier ;
+generic Annotation      = void:"@":Symbol UppercaseIdentifier void:"(":Symbol ExpressionList? void:")":Symbol ;
+Node Expression         = <Variable> Variable / <Constant> Constant ;
+generic Variable        = Identifier ;
+
+generic AnnotatedStreamList   = AnnotatedStream_pc;
+generic StreamList            = Stream_pc;
+generic VarList               = Var_pc;
+generic IdentifierList        = Identifier_pc;
+generic ExpressionList        = Expression_pc;
+generic Annotations           = Annotation_pw;
+Pair<Node> AnnotatedStream_pc = AnnotatedStream (void:",":Symbol AnnotatedStream)*;
+Pair<Node> Annotation_pw      = Annotation+;
+Pair<Node> Stream_pc          = Stream (void:",":Symbol Stream)*;
+Pair<Node> Var_pc             = Var (void:",":Symbol Var)*;
+Pair<Node> Expression_pc      = Expression (void:",":Symbol Expression)*;
+Pair<String> Identifier_pc    = Identifier (void:",":Symbol Identifier)*;

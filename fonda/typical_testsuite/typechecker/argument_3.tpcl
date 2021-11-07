@@ -1,0 +1,19 @@
+module argument_3;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo n m p = let _ = n + 1 and
+                        _ = m ^ "c" and
+                        _ = p +. 3.5 in true;
+
+mlvalue bar = foo 2 "2"; 
+

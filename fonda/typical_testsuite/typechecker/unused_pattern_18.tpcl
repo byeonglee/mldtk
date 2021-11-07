@@ -1,0 +1,22 @@
+module analyze_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDeclaration of node
+  | Foo of int
+  | Bar of bool
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = match n with
+    Module _ -> true
+  | _ -> false
+  ;
+
+mlvalue foo n m = match (n,m) with
+    (Foo(1), Bar(_)) -> true {{ dg-error "non-exhaustive match" }}
+  | (Foo(1), Bar(true)) -> false  {{ dg-error "unused pattern" }}
+  | (ScopeDeclaration _, Bar(false)) -> true ;
+ 
+

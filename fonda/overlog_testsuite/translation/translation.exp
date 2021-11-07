@@ -1,0 +1,15 @@
+load_lib olg-translation-run.exp
+global SUBTOOL
+#if {[info exists SUBTOOL] == 1} {
+#  if ![string match $SUBTOOL "translation"] {
+#    return
+#  }
+#} else {
+#  return
+#}
+dg-init
+#
+# run test for every file .olg in this directory
+#
+dg-runtest [lsort [glob -nocomplain $srcdir/$subdir/*.olg]] 
+dg-finish

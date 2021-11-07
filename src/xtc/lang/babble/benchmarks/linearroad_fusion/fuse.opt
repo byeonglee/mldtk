@@ -1,0 +1,3 @@
+opt fuse   = FusionOptimizer();
+ord fuse ;
+

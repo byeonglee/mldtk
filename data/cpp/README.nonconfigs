@@ -1,0 +1,1 @@
+./collectnonconfigs.sh | ./findvardefine_gcc.sh 2> /dev/null | ./findvardefine.sh 2> /dev/null > nonconfigs.txt &

@@ -1,0 +1,15 @@
+module cons_pattern_6;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue analyzeList l = match l with
+    [] -> false 
+  | 2::true::_ -> true {{ dg-error "type of the head does not match with type in the list in cons pattern" }} 
+  ;

@@ -1,0 +1,9 @@
+module int_multi_5;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo4 = 123 / 4.5; (* {{ dg-error "expected integer, found 64-bit float" }} *)

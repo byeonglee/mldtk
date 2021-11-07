@@ -1,0 +1,25 @@
+// {{ dg-checkwhat "type" }}
+materialize(node, infinity, 1, keys(1)).
+materialize(foo, infinity, 1, keys(1)).
+materialize(bar, infinity, 1, keys(1)).
+materialize(bat, infinity, 1, keys(1)).
+
+i0 node(@NI, N)          :- periodic(@NI, E, 0, 1),
+                            foo(@NI, E, 0),
+                            bar(@NI, E, X),
+                            X := f_func(A).
+
+i1 foo(@NI, E, 0)      :- bar(@NI, E, X),    
+                             X := f_func().  // {{ dg-error "previously defined" }}
+
+
+
+
+
+
+
+
+
+
+
+

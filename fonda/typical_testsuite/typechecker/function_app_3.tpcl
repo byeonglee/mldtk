@@ -1,0 +1,14 @@
+module function_app_3;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  |  M of string
+  ;
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo n = n + 1;
+
+mlvalue bar x = let y = 2 in foo y; {{ dg-warning "unused var" }}

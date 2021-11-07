@@ -1,0 +1,12 @@
+module any_type_4;
+
+mltype node = 
+   M of string 
+ | N of string * node 
+ | Q of foo
+;
+
+mltype foo = Foo of any;
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

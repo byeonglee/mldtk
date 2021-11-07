@@ -1,0 +1,8 @@
+set tool babble
+set srcdir [pwd]
+lappend boards_dir "$srcdir/boards"
+set srcdir "$srcdir/testsuite"
+set env(DEJAGNU) "$srcdir/babble_dejagnu.exp"
+set check_what ""
+set verbose 1
+

@@ -1,0 +1,20 @@
+module namespace_2;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | UpperID of string
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace value: type = LowerID(s) -> SimpleName(s) and {{ dg-error "do not match" }}
+          constructor: type = UpperID(s) -> s;
+
+mlvalue analyze n = n;
+
+
+

@@ -1,0 +1,71 @@
+#superc_args -printAST
+ExternalDeclarationList(
+  Conditional(
+    A && B && C && D,
+    Declaration(
+      DeclaringList(
+        BasicTypeSpecifier(
+          BasicTypeName(
+            xtc.lang.cpp.Syntax$Language(
+              "int"
+            )
+          )
+        ),
+        SimpleDeclarator(
+          xtc.lang.cpp.Syntax$Text(
+            "x"
+          )
+        )
+      )
+    )
+  ),
+  Conditional(
+    A && E,
+    Declaration(
+      DeclaringList(
+        BasicTypeSpecifier(
+          BasicTypeName(
+            xtc.lang.cpp.Syntax$Language(
+              "int"
+            )
+          )
+        ),
+        SimpleDeclarator(
+          xtc.lang.cpp.Syntax$Text(
+            "y"
+          )
+        )
+      )
+    )
+  ),
+  Conditional(
+    1,
+    Declaration(
+      DeclaringList(
+        Conditional(
+          !A || A && !E,
+          BasicTypeSpecifier(
+            BasicTypeName(
+              xtc.lang.cpp.Syntax$Language(
+                "int"
+              )
+            )
+          ),
+          A && E,
+          BasicTypeSpecifier(
+            BasicTypeName(
+              xtc.lang.cpp.Syntax$Language(
+                "int"
+              )
+            )
+          )
+        ),
+        SimpleDeclarator(
+          xtc.lang.cpp.Syntax$Text(
+            "z"
+          )
+        )
+      )
+    )
+  )
+)

@@ -1,0 +1,11 @@
+module bool_literal_1;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo = true;
+
+mlvalue bar = false;

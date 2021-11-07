@@ -1,0 +1,81 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for the OCaml language.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.16 $
+ */
+module xtc.lang.babble.boat.Pattern(Core);
+
+modify Core;
+
+Node OCamlPattern = <Expression> Expression / <UnitImplementation> UnitImplementation;
+
+// Make program non-public.
+transient generic Program := ... ;
+
+Node PrimaryExpression +=
+    <Constant>  ...
+  / <Pattern> NodeVariable
+  ;
+
+generic NodeVariable             = void:'#' Word ;
+generic NodeListVariable         = void:'#' void:'[' Word void:']' Spacing ;
+
+generic ModuleDeclaration        := void:"module":Keyword ModuleName void:"=":Symbol ModuleExpr 
+                                 / void:"module":Keyword NodeVariable void:"=":Symbol ModuleExpr ;
+
+generic LetBinding               := Pattern void:"=":Symbol Expression 
+                                 / LowerID Parameters Type?  void:"=":Symbol Expression 
+                                 / NodeVariable Parameters Type? void:"=":Symbol Expression ;
+
+generic TypeDef                  := TypeParams? (TypeConstrName/NodeVariable) TypeInfo ;
+
+generic TypeRepresentation       := void:"=":Symbol ConstrDeclList 
+                                 / void:"=":Symbol NodeVariable  
+                                 / void:"=":Symbol void:"{":Symbol NodeVariable void:"}":Symbol 
+                                 / void:"=":Symbol void:"{":Symbol FieldDeclList void:"}":Symbol ;
+
+Node AtomicPattern               += <Literal> ...
+                                 / <NodeVariable> NodeVariable
+                                 ;
+
+Node PrimaryType                 += <UserDefined> ...
+                                 / <NodeVariable> NodeVariable
+                                 ;                                    
+
+generic ExceptionDefinitionOf    := void:"exception":Keyword UpperID (void:"of":Keyword TypeExprList)? 
+                                 /  void:"exception":Keyword NodeVariable (void:"of":Keyword TypeExprList)? ;
+
+generic ModTypePath              := (ModulePath void:".":Symbol)? UpperID 
+                                 / (NodeVariable void:".":Symbol)? NodeVariable ;
+
+generic ValuePath                := (ModulePath void:".":Symbol)? LowerID 
+                                 / (NodeVariable void:".":Symbol)? NodeVariable ;
+
+
+generic PatternMatch             := NodeVariable WhenClause? void:"->":Symbol Expression 
+                                  / Pattern WhenClause? void:"->":Symbol Expression ;
+
+
+generic ConstructorPattern     += <Recursion> ...
+                               /  <NodeVariable> NodeVariable BarPattern ;
+

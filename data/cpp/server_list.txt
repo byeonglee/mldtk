@@ -1,0 +1,14 @@
+beaker-15.news.cs.nyu.edu
+beaker-14.news.cs.nyu.edu
+beaker-13.news.cs.nyu.edu
+beaker-12.news.cs.nyu.edu
+beaker-11.news.cs.nyu.edu
+beaker-10.news.cs.nyu.edu
+beaker-9.news.cs.nyu.edu
+beaker-8.news.cs.nyu.edu
+beaker-7.news.cs.nyu.edu
+beaker-6.news.cs.nyu.edu
+beaker-5.news.cs.nyu.edu
+beaker-4.news.cs.nyu.edu
+beaker-3.news.cs.nyu.edu
+beaker-2.news.cs.nyu.edu

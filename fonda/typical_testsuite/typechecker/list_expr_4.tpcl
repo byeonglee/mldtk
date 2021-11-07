@@ -1,0 +1,17 @@
+module list_expr_4;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mltype bar = {
+  a: int,
+  b: bool
+  };
+
+mlvalue foo = [{a= 1, b = true},{a = 2, b= false}] ; 

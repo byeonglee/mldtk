@@ -1,0 +1,18 @@
+module cons_pattern_2;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue analyzeList l = match l with
+    [] -> false 
+  | x::xs::tx -> let _ = analyze x and
+                     _ = analyze xs and
+                     _ = analyzeList tx in true 
+  | _ -> false
+  ;

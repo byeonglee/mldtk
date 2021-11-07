@@ -1,0 +1,12 @@
+module typed_pattern_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int | M of string;
+mlvalue analyze n = n;
+
+mlvalue foo n m = match (n, m) with
+    (N _,M _): node*raw_type -> true {{ dg-error "type of the pattern does not match" }} 
+  | _ -> false
+  ;

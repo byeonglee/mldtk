@@ -1,0 +1,9 @@
+load_lib typical-run.exp
+global check_what
+set check_what ""
+dg-init
+#
+# run test for every file .tpcl in this directory
+#
+dg-runtest [lsort [glob -nocomplain $srcdir/$subdir/*.tpcl]] 
+dg-finish

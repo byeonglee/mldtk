@@ -1,0 +1,13 @@
+module let_binding_1;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo x = let n = 4 and
+                    m = n + 4 in x + m + n ; {{ dg-error "n is undefined" }}
+                  

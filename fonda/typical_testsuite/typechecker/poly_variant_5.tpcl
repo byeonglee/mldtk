@@ -1,0 +1,13 @@
+module poly_variant_5;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [| `Foo of bar
+         | `Bar of err ] {{ dg-error "err is undefined" }}
+;
+
+mltype bar = Bar of string ;
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

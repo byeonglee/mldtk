@@ -1,0 +1,190 @@
+factory xtc.lang.babble.sawzall.OperatorFactory {
+
+typedef         {
+                   module #modename = 
+                   struct
+                     type #name = {
+                         #fields
+                     }
+                   end;;
+                }
+
+declarePut      {
+                   external put : int -> int -> string -> unit = "put";;
+                }
+
+hashExpr        {
+                   let #name : (#type1, #type2 ) Hashtbl.t ref = ref (Hashtbl.create 1);; 
+                }
+
+outputWrap      {
+                   let ocaml_wrap_output ptr port data =
+                     put ptr port (Marshal.to_string data [Marshal.No_sharing])  ;;
+                }
+
+mapWrap         {
+                   let #name ptr port buffer =
+                     let data = Marshal.from_string buffer 0 in        
+                      #func ptr port data ;;        
+                }
+
+reduceWrap      {
+                   let #name ptr port buffer =
+                     let data = Marshal.from_string buffer 0 in        
+                      #func ptr port data ;;        
+                }
+
+register        {
+                  let () = #func
+                }
+
+callback        {
+                  Callback.register #str #name 
+                }
+
+openPrintf      {
+                  open Printf;;
+                }
+
+fprintf         {
+                  Printf.fprintf oc #args
+                }
+
+printf          {
+                  Printf.printf #args
+                }
+
+debugPrint      {
+                  let #name x =
+                      #expr;
+                      Printf.printf "\n";
+                      flush stdout;;
+                }
+
+tablePrint      {
+                  let #name h oc =
+                    Hashtbl.iter (fun key value ->
+                       let #keys = key and
+                           #values = value in
+                           #expr; flush stdout ) h;
+                      Printf.fprintf oc "\n";
+                      flush oc;;
+                }
+
+
+emit           {
+                 let key = #key
+                 and value = #val
+                 in (ocaml_wrap_output ptr 0 (#constr(key, value)))
+               }
+
+reducerTypes   {
+                 type reducerTypes = #constrList ;;
+               }
+
+map            {
+                 let #name ptr port tup = #expr
+               }
+
+reduce         {
+                 let #name ptr port data = #expr
+               }
+
+reduceSum      {
+                 let old_sum = 
+                   if Hashtbl.mem !#table key then
+                     Hashtbl.find !#table key 
+                   else 0
+                   in 
+                     Hashtbl.replace !#table key (old_sum + value)
+               }
+
+reduceCount    {
+                 let old_count = 
+                   if Hashtbl.mem !#table key then
+                     Hashtbl.find !#table key 
+                   else 0
+                   in 
+                     Hashtbl.replace !#table key (old_count + 1)
+               }
+
+reduceAvg      {
+                 let (old_sum, old_count) = 
+                   if Hashtbl.mem !#table key then
+                     Hashtbl.find !#table key 
+                   else (0, 0)
+                   in 
+                     Hashtbl.replace !#table key (old_sum +. value,  1)
+               }
+
+maybeSource     {
+                   let #maybe:in_channel option = 
+                     if (Array.length Sys.argv) > 1 && ((compare Sys.argv.(1) #name) == 0) then
+                       Some (open_in #file)
+                     else None;;
+                }
+
+source          {
+                   let #name ptr port =
+                     assert (port = 0);
+                     match
+                       #maybe 
+                     with
+                        | Some ic -> 
+                            (try 
+                              while true do 
+                                let tup:#module.#type = Marshal.from_channel ic in
+                                  (ocaml_wrap_output ptr 0 tup) 
+                              done
+                            with End_of_file ->
+                              close_in ic)
+                        | None -> ();;
+                }
+
+shutdown        {
+                  let #name ptr = ();;
+                }
+
+shutdownReducer {
+                  let #name ptr = 
+                    let filename = sprintf #file (Unix.getpid ()) in
+                    let oc = open_out filename in
+                    #expr;
+                    close_out oc;;
+                     
+                }
+
+parallelism     {
+                   let parallelism = ref 1
+                }
+
+hashSplit       {
+                  let #name ptr port data =
+                      #expr
+                }
+
+splitExpr       {
+                  (ocaml_wrap_output ptr ((Hashtbl.hash key) mod !parallelism) data)
+                }
+
+splitWrap       {
+                  let #name ptr port buffer =
+                    let data =
+                      Marshal.from_string buffer 0 in
+                      #func ptr 0 data;;
+                }
+
+mergeWrap       {
+                  let #name ptr port buffer  =
+                     let data = Marshal.from_string buffer 0 in   
+                       #funcname ptr port data ;;
+                 }
+
+merge            {
+                  let #name ptr port data  =
+                        ocaml_wrap_output ptr 0 data ;;
+                 }
+
+
+}
+

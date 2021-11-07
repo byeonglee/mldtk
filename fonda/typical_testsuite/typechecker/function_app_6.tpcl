@@ -1,0 +1,16 @@
+module function_app_6;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  |  M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue size l = match l with
+    [] -> 0
+  | _::xs -> size xs + 1
+;
+
+mlvalue foo = let l = 5 in size l; {{ dg-error "found integer" }}

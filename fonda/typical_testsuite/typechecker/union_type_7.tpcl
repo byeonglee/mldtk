@@ -1,0 +1,14 @@
+module union_type_7;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = P of int;
+mlvalue analyze n = n;
+
+
+mltype bar = H of bool * string * float64; 
+
+mltype  foo = M of int * bool |
+             N of string * foo |
+             H; {{ dg-error "previously defined" }}

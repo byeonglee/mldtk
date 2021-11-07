@@ -1,0 +1,10 @@
+module union_type_4;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mltype ('a, 'b) foo = M of 'a * 'b |
+             P of 'a list * 'b opt ; 

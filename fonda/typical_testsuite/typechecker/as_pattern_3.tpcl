@@ -1,0 +1,16 @@
+module as_pattern_3;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  | PatternMatching of node list
+  ;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = match n with
+   ScopeDefinition(PatternMatching(nl) as p)  -> {{ dg-error "AsPattern contains bindings" }}
+     require nl!=[] error "null list" at p in true 
+  | _ -> false
+;

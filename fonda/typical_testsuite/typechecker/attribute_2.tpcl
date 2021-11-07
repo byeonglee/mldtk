@@ -1,0 +1,11 @@
+module attribute_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+attribute a: int; 
+attribute b: bool;
+attribute a: string; {{ dg-error "previously defined" }} 

@@ -1,0 +1,77 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for StreamIt.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.2 $
+ */
+module xtc.lang.babble.streamit.Core(Boat, Constant, Spacing, Symbol, Reserved, Identifier);
+
+import Boat;
+import Constant;
+import Spacing;
+import Symbol;
+import Reserved;
+import Identifier;
+
+public generic StreamItProgram = P EndOfFile;
+Node    P                      = <Filter> Ft 
+                              / <Pipeline> Pl 
+                              / <SemiJoin> Sj 
+                              / <FeedbackLoop> Fl;
+generic Ft                    = void:"filter":Keyword void:"{":Symbol (IdCommaList void:";":Symbol)? void:"work":Keyword void:"{":Symbol A PsList PpList void:"}":Symbol void:"}":Symbol;
+generic A                     = IdCommaList void:"<-":Symbol Identifier void:"(":Symbol (IdCommaList void:",":Symbol)? PkList void:")":Symbol void:";":Symbol;
+generic Pk                    = void:"peek":Keyword void:"(":Symbol IntegerConstant void:")":Symbol;
+generic Ps                    = void:"push":Keyword void:"(":Symbol Identifier void:")":Symbol void:";":Symbol;
+generic Pp                    = void:"pop":Keyword void:"(":Symbol void:")":Symbol void:";":Symbol;
+generic Pl                    = void:"pipeline":Keyword void:"{":Symbol PList void:"}":Symbol;
+generic Sj                    = void:"splitjoin":Keyword void:"{":Symbol Sp PList Jn void:"}":Symbol;
+generic Fl                    = void:"feedbackloop":Keyword void:"{":Symbol Jn void:"body":Keyword PList void:"loop":Keyword PList Sp void:"}":Symbol;
+generic Sp                    = <Duplicate> void:"split":Keyword "duplicate":Keyword void:";":Symbol
+                              / <RoundRobin> void:"split":Keyword "roundrobin":Keyword void:";":Symbol; 
+generic Jn                    = void:"join":Keyword "roundrobin":Keyword void:";":Symbol;
+
+generic PList                 = P_s ;
+generic IdList                = Id_s ;
+generic PsList                = Ps_s ;
+generic PpList                = Pp_s ;
+generic PkList                = Pk_pc ;
+generic IdCommaList           = Id_pc ;
+generic IdSemiList            = Id_ps ;
+
+Pair<Node>   Ps_s             = Ps* ; 
+Pair<Node>   Pp_s             = Pp* ;
+Pair<Node>   P_s              = P* ;
+Pair<String> Id_s             = Identifier*;
+Pair<String> Id_pc            = Identifier (void:",":Symbol Identifier)*;
+Pair<String> Id_ps            = Identifier (void:";":Symbol Identifier)*;
+Pair<Node>   Pk_pc            = Pk (void:",":Symbol Pk)*;
+
+
+transient String SymbolCharacters =
+    <LArrow>        "<-"   
+  / <Semi>          ";"    
+  / <Comma>         ","    
+  / <LParen>        "("    
+  / <RParen>        ")"    
+  / <LCurly>        "{"    
+  / <RCurly>        "}"    
+  ;

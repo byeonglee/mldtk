@@ -1,0 +1,12 @@
+module unused_var_10;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mlvalue bar m n = match n with {{ dg-warning "unused var" }}
+    Module(m) -> List.is_empty m
+  | _ -> false ; 
+
+

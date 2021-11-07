@@ -1,0 +1,20 @@
+module constructor_pattern_12;
+
+mltype node = Module of node list ;
+
+mltype foo = 
+    NodeName of string
+  | Test of string * foo * foo list
+  | M 
+  | N 
+  ;
+
+mltype raw_type = P of int;
+
+mlvalue analyze n = match n with
+    N(_,_) -> true {{ dg-error "N must have no children" }}
+  | M _ -> false
+  | _ -> false
+;
+
+

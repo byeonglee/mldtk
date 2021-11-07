@@ -1,0 +1,22 @@
+module Test;
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | Foo of int
+   | Bar of int
+   ;
+mltype raw_type = NodeT | N of int | M of string * float64 | 
+                  P of bool * int * float64 ;
+
+equality raw_type = M(s,_) | P(_,i,f); 
+
+mlvalue analyze n = match n with
+    Module _ -> true
+  | ScopeDefinition _ -> true
+  | _ -> false ;
+
+mlvalue extractType = reduce to required singleton "type" with
+    [Foo _, Module _ ]    -> {type = NodeT}
+  | [Foo _, Bar _]  -> {type = NodeT} ; 
+
+

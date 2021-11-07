@@ -1,0 +1,24 @@
+module unify_1;
+
+mltype node = | A of node list 
+              | B of string * node
+              | C of node
+              | D of node * node ;
+
+(*****************************************************************************
+ *                             Scope declaration                             *
+ *****************************************************************************)
+scope
+    B(s,a) -> Scope(Named(SimpleName(s)),[a]);
+
+(*****************************************************************************
+ *                             Name_space declaration                        *
+ *****************************************************************************)
+namespace 
+  value: type = B(s,_) -> SimpleName(s) ;
+
+mltype raw_type = P of int;
+
+mlvalue define_ids ids t = match ids with
+    | id::rest -> let _ = define id t in define_ids rest {{ dg-error "do not match" }}
+    | [] -> t ;

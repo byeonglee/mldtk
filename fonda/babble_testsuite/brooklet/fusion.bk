@@ -1,0 +1,6 @@
+output q2;
+input q0;
+
+@fuse(one) (q1, $v1) <- ZigZag (q0, $v1) ;
+@fuse(one) (q2, $v2) <- IQuantization(q1, $v2) ;
+

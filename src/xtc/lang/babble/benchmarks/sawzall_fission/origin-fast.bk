@@ -1,0 +1,4 @@
+output ;
+input logRecord;
+@Parallel() (q1) <- map0 (logRecord) ;
+@Parallel() @Commutes() @Keys(k1) ($v1) <- reduce1 (q1, $v1) ;

@@ -1,0 +1,19 @@
+module poly_variant_6;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [| `Foo of bar
+         | `Bar of bor ] 
+;
+
+mltype bar = Bar of string;
+
+mltype bor = Bor of node;
+
+mltype raw_type = P of int;
+
+mlvalue analyze n = match n with
+    Q(n) -> lookup n
+  | _ -> bottom
+;

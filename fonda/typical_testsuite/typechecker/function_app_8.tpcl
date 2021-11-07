@@ -1,0 +1,17 @@
+module function_app_8;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo x = x;
+
+mlvalue bar y = foo y;
+
+mlvalue baz = foo 2;
+
+mlvalue bor = foo 4.5; 

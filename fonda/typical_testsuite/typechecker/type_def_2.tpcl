@@ -1,0 +1,17 @@
+module type_def_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype foo = M of int | P of bool * string;
+
+mltype bar = {
+  a : string,
+  b : float64
+};
+
+mltype baz = Q of bool * bar;
+
+mlvalue analyze n = n;

@@ -1,0 +1,44 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for Template file.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.2 $
+ */
+module xtc.lang.babble.texttemplate.TextTemplate;
+
+import xtc.util.Spacing;
+
+option withLocation, constant;
+
+public generic File = VarOrText+ EndOfFile;
+
+Node VarOrText      = <Var> Var
+                    / <Text> Text ; 
+generic Var         = VarId ;
+generic Text        = Anything ;
+
+String VarId        = '$' IdentifierCharacters;
+String Anything     =  ( !VarId _ ) +;
+
+generic Identifier  = IdentifierCharacters Spacing ;
+transient String IdentifierCharacters = [a-zA-Z0-9]+ ;
+

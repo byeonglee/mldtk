@@ -1,0 +1,9 @@
+module node_decl_1;
+
+mltype node = 
+   M of node 
+ | N of string * node
+;
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

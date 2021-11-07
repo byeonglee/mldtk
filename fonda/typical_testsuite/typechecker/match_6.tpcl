@@ -1,0 +1,13 @@
+module match_6;
+
+mltype node = 
+    Module of node list
+  | ScopeDeclaration of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n m = match (n,m) with {{ dg-error "does not match" }} 
+    Module _ -> true 
+  | _ -> false
+  ;

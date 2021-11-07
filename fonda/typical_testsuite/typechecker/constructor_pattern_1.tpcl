@@ -1,0 +1,17 @@
+module constructor_pattern_1;
+
+mltype node = 
+    Module of node list
+  | M of int * string
+  | N of bool * float64
+  ;
+mltype raw_type = P of int;
+
+mlvalue analyze n = match n with
+    Module(nl) -> true {{ dg-warning "unused var" }}
+  | M(3,"s") -> false
+  | N _ -> true
+  | _ -> false
+;
+
+

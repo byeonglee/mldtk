@@ -1,0 +1,12 @@
+module var_type_3;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype ('a, 'b) foo = Empty | Foo of 'a * 'b * 'a foo ; {{ dg-error "not have enough type parameters" }}
+
+mlvalue analyze n = n;
+
+

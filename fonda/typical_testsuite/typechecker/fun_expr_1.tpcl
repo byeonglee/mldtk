@@ -1,0 +1,22 @@
+module xtc.typical.Test;
+
+mltype node = | A of node list 
+              | B of string * node
+              | C of node
+              | D of node * node ;
+
+(*****************************************************************************
+ *                             Scope declaration                             *
+ *****************************************************************************)
+scope
+    B(s,a) -> Scope(Named(SimpleName(s)),[a]);
+
+(*****************************************************************************
+ *                             Name_space declaration                        *
+ *****************************************************************************)
+namespace 
+  value: type = B(s,_) -> SimpleName(s) ;
+
+mltype raw_type = P of int;
+
+mlvalue foo nl t = let _ = List.map (fun id -> define id t) nl in t;  

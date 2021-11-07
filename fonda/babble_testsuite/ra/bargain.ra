@@ -1,0 +1,9 @@
+quotesRel : { ticker : string; ask : int } relation ;
+history : { ticker : string; low : int } relation;
+bargainRel : { ticker : string; ask : int; low : int } relation
+  = join[quotesRel.ask <= history.low
+         && quotesRel.ticker == history.ticker](
+         quotesRel,
+        history
+      ) as J;
+

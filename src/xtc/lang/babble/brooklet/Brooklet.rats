@@ -1,0 +1,9 @@
+module xtc.lang.babble.brooklet.Brooklet;
+instantiate xtc.lang.babble.brooklet.Identifier(xtc.util.Spacing);
+instantiate xtc.lang.babble.brooklet.Symbol(xtc.util.Spacing);
+instantiate xtc.lang.babble.boat.Constant(xtc.util.Spacing);
+modify xtc.lang.babble.brooklet.Core(xtc.lang.babble.brooklet.Identifier, 
+                                     xtc.lang.babble.brooklet.Symbol, 
+                                     xtc.lang.babble.boat.Constant, 
+                                     xtc.util.Spacing);
+option withLocation, constant, flatten;

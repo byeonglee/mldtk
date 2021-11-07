@@ -1,0 +1,16 @@
+module mutual_7;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = VoidT | N of int;
+
+mlvalue f1 n = f2 n;
+
+mlvalue f2 n = f3 n;
+
+mlvalue f3 n = f1 n + 1;

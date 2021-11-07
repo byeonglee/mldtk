@@ -1,0 +1,5 @@
+(1, [{ticker=XYZ;ask=1;low=10;}; {ticker=IBM;ask=1;low=10;}], [])
+(2, [{ticker=XYZ;ask=2;low=20;}; {ticker=IBM;ask=2;low=20;}], [])
+(3, [{ticker=XYZ;ask=3;low=30;}; {ticker=IBM;ask=3;low=30;}], [])
+(4, [{ticker=XYZ;ask=4;low=40;}; {ticker=IBM;ask=4;low=40;}], [])
+(5, [{ticker=XYZ;ask=5;low=50;}; {ticker=IBM;ask=5;low=50;}], [])

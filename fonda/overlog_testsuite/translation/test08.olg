@@ -1,0 +1,9 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+
+r1 pEvent1(@X, S) :- periodic(@X, 1, 5), S:= 3.
+r2 table1(@X, S) :- pEvent1(@X, S). 
+r3 pEvent2(@X) :- table1(@X, _).
+
+watch(pEvent2).
+
+r4 exit(@X) :- pEvent2(@X).

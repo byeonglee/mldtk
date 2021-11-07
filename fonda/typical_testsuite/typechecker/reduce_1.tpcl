@@ -1,0 +1,17 @@
+module reduce_1;
+
+mltype node = 
+    Module of node list
+  | FirstNode of string
+  | SecondNode of node
+  | ThirdNode of string * node
+  | ForthNode of node * node
+  ;
+  
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue extractType = reduce to required singleton "type" with
+    [FirstNode _]  -> 1 
+  | [SecondNode _] -> 2  ;
+  

@@ -1,0 +1,13 @@
+16 reducers, 7 mappers
+10^8 data items in 53 seconds = 1886792.45
+                          vs.   1930793.52647342 
+                              we are slightly faster 1.02332057
+                               vs 1.27432372
+
+
+#Machines  #Input Tuples    Start Time    End Time    Difference    Avg. Throughput   
+16    $10^8$     10:16:09    10:17:06    53 sec   1886792.45  
+16    $10^8$     10:49:44    10:50:50    66 sec   1515151.52   6 mappers
+
+16    $10^8$     10:16:09    10:17:06    83 sec   1204819.28  -- 6 mappers, no combiner
+

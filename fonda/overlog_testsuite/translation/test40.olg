@@ -1,0 +1,24 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+materialize(expected, infinity, infinity, keys(1, 2)).
+
+table1(localhost:5000, 1, 100).
+table1(localhost:5000, 2, 200).
+table1(localhost:5000, 3, 300).
+table1(localhost:5000, 4, 400).
+table1(localhost:5000, 5, 500).
+
+/* expected output */
+expected(localhost:5000, 1, 100).
+expected(localhost:5000, 2, 200).
+
+
+r0 ini(@X):- periodic(@X, 0, 1).
+r0a checkTable(@X):- periodic(@X, 2, 1).
+
+r1 delete table1(@X,P,_)  :- ini(@X),table1(@X, P, _), P>2.
+r2 out(@X, P, Q) :- checkTable(@X), table1(@X, P, Q).
+
+watch(out).
+
+
+r3 exit(@X) :- out(@X, A, B), A == 1, B == 100 .

@@ -1,0 +1,11 @@
+module any_type_3;
+
+mltype node = 
+   M of string 
+ | N of string * node 
+;
+
+mltype foo = Foo of any; {{ dg-error "any is not allowed" }}
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

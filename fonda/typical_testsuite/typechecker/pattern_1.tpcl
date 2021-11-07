@@ -1,0 +1,22 @@
+module pattern_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | NodeName of string * node
+  | TypeName of string * node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace default: type = LowerID(s) -> SimpleName(s) ;
+
+mlvalue analyze n = n;
+
+mlvalue bar = function
+    NodeName(s,n) | TypeName(s,_) -> true {{ dg-error "do not have the same variables" }}
+  | _ -> false; 
+

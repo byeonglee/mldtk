@@ -1,0 +1,14 @@
+module let_binding_3;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo x = let n = 4.3 in {{ dg-warning "n is an unused var" }}
+                let n = 4 in
+                let m = n + 4 in x + m ; 
+                  

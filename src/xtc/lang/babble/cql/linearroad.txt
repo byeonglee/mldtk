@@ -1,0 +1,157 @@
+car_loc_str : {car_id:int; speed:int; exp_way:int; lane:int; dir:int; x_pos:int} stream;   
+
+acc_bal_query_str : {car_id:int; query_id:int} stream;
+                        
+exp_query_str : {car_id:int; query_id:int} stream;
+
+travel_time_query_str : {query_id:int; exp_way:int; init_seg:int; fin_seg:int; time_of_day:int; day_of_week:int} stream;
+
+credit_stream : {car_id:int; credit:int} relation;
+
+
+// Toll Notification
+
+car_seg_str :  {car_id:int; speed:int; exp_way:int; lane:int; dir:int; seg:int  } stream = 
+select car_id, speed, exp_way, lane, dir, (x_pos/52800) as seg
+from car_loc_str;
+
+cur_active_cars (relation) = 
+select DISTINCT car_id
+from car_seg_str [range 30 SECONDS];
+
+cur_car_seg (relation) = 
+select car_id, exp_way, dir, seg
+from car_seg_str [PARTITION BY car_id ROWS 1], cur_active_cars
+where car_seg_str.car_id = cur_active_cars.car_id;
+
+CarSegEntryStr (stream) = 
+istream (cur_car_seg);
+
+select rstream(E.car_id, T.toll)
+from CarSegEntryStr [NOW] AS E, SegToll as T
+where E.exp_way = T.exp_way AND E.dir = T.dir AND E.seg = T.seg;
+
+
+/ /Toll Computation for Segments
+
+SegAvgSpeed (relation) :
+select exp_way, dir, seg, AVG(speed) as speed,
+from car_seg_str [range 5 MINUTES]
+group by exp_way, dir, seg;
+
+
+select exp_way, dir, seg, COUNT(*) as volume
+from cur_car_seg
+group by exp_way, dir, seg;
+
+select S.exp_way, S.dir, S.seg, basetoll*(V.volume-150)*(V.volume-150)
+from SegAvgSpeed as S, SegVol as V
+where S.exp_way = V.exp_way and S.dir = V.dir and S.seg = V.seg
+      and S.speed < 40
+      and (S.exp_way, S.dir, S.seg) NOT IN (AccAffectedSeg);
+
+
+// Accident Detection and Notification
+
+AccCars (relation)
+select car_id, AVG(x_pos) AS acc_loc
+from car_loc_str [PARTITION BY car_id ROWS 4]
+group by car_id
+HAVING COUNT DISTINCT (x_pos) == 1;
+
+AccSeg (relation):
+select DISTINCT exp_way, dir, seg, acc_loc
+from cur_car_seg, AccCars
+where cur_car_seg.car_id = AccCars.car_id;
+
+AccNotifyStr (stream): 
+select rstream (car_id, acc_loc)
+from (istream (AccSeg)) [NOW] AS A, cur_car_seg as S
+where (A.exp_way = S.exp_way and A.dir = EAST and S.dir = EAST and 
+      S.seg < A.seg and S.seg > A.seg - 5) OR
+      (A.exp_way = S.exp_way and A.dir = WEST and S.dir = WEST and 
+      S.seg > A.seg and S.seg < A.seg + 5);
+
+
+AccAffectedSeg (relation):
+select A.exp_way, A.dir, A.seg
+from AllSeg AS A, AccSeg AS S
+where (A.exp_way = S.exp_way AND A.dir = EAST AND S.dir = EAST AND
+       A.seg < S.seg AND A.seg > S.seg - 10) OR
+      (A.exp_way = S.exp_way AND A.dir = WEST AND S.dir = WEST AND
+       A.seg > S.seg AND A.seg < S.seg + 10)
+
+union
+
+select A.exp_way, A.dir, A.seg
+from AllSeg AS A, DSTREAM ( AccSeg )[range 20 MINUTES] AS S
+where (A.exp_way = S.exp_way AND A.dir = EAST AND S.dir = EAST AND
+       A.seg < S.seg AND A.seg > S.seg - 10) OR
+      (A.exp_way = S.exp_way AND A.dir = WEST AND S.dir = WEST AND
+       A.seg > S.seg AND A.seg < S.seg + 10);
+
+
+// Negative Toll Generation
+
+CarExitStr (stream):
+
+select rstream (S.car_id, S.exp_way, S.dir, S.seg)
+from (DSTREAM (cur_active_cars)) [NOW] AS A,
+     car_seg_str [PARTITION BY car_id ROWS 1] AS S
+where A.car_id = S.car_id;
+
+NegTollStr (stream): 
+select rstream (E.car_id, T.toll)
+from CarExitStr [NOW] AS E, TollStr [PARTITION BY car_id ROWS 1] AS T
+where E.car_id = T.car_id;
+
+NegAccTollStr (stream): 
+select rstream (car_id, X)
+from CarExitStr [NOW] as E, AccSeg as A
+where (E.exp_way = A.exp_way AND E.dir = EAST AND A.dir = EAST and 
+       E.seg < A.seg AND E.seg > A.seg - 5) OR
+      (E.exp_way = A.exp_way AND E.dir = WEST AND A.dir = WEST and 
+       E.seg > A.seg AND E.seg < A.seg + 5);
+
+// Accounting
+
+AccTransStr (stream):
+
+select *
+from CreditStr
+
+union ALL
+
+select car_id, toll AS credit
+from NegTollStr
+
+union ALL
+
+select car_id, toll AS credit
+from NegAccTollStr
+
+union ALL
+
+select car_id, -1 * toll AS credit
+from TollStr;
+
+AccBal (relation):
+select car_id, SUM(credit) AS balance
+from AccTransStr
+group by car_id;
+
+// Adhoc Query Answering
+
+AccBalOutStr (stream): 
+select rstream(query_id, B.car_id, B.balance)
+from AccBalQueryStr [NOW] AS Q, AccBal AS B
+where Q.car_id = B.car_id;
+
+ExpOutStr (stream):
+select rstream(query_id, E.car_id, -1 * SUM(credit))
+from ExpQueryStr [NOW] as Q, AccTransStr[Today Window] as T
+where Q.car_id = T.car_id;
+
+
+
+

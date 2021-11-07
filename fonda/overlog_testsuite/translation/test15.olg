@@ -1,0 +1,18 @@
+materialize(table1, 9, infinity, keys(1, 2)).
+materialize(seq, infinity, 1, keys(1, 2)).
+
+r0 ini(@X):- periodic(@X, 0, 1).
+r0a seq(@X, S) :- ini(@X), S:=0.
+
+r1 add(@X) :- periodic(@X, 2, 8).
+r2 checkTable(@X) :- periodic(@X, 20, 1).
+
+
+r3 table1(@X, S) :- add(@X), seq(@X, Seq), S:= Seq + 1.
+r4 seq(@X, S) :- add(@X), seq(X, Seq), S:= Seq + 1.
+
+r5 tableContent(@X, S) :- checkTable(@X), table1(@X, S).
+
+watch(tableContent).
+
+r6 exit(@X) :- tableContent(@X, Y), Y == 6.

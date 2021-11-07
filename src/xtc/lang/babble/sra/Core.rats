@@ -1,0 +1,59 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2009 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Grammar for the stream relational algebra
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.4 $
+ */
+
+module xtc.lang.babble.sra.Core(Core, Constant);
+
+modify Core;
+import Constant;
+
+option withLocation, constant, flatten;
+
+public generic SRAProgram   = Decl+ EndOfFile;
+generic Decl                := Identifier void:":":Symbol RelType (void:"=":Symbol RelQuery)? void:";":Symbol 
+                            /  Identifier void:":":Symbol StrType (void:"=":Symbol StrQuery)? void:";":Symbol ; 
+generic StrType             = RecordDeclaration void:"stream":Keyword ;
+Node StrQuery               = <R2S> R2SOp
+                            / <Stream> Stream ;
+Node R2SOp                  = <IStream> IStream
+                            / <DStream> DStream
+                            / <RStream> RStream ;
+generic Stream              = Identifier ;
+generic IStream             = void:"istream":Keyword void:"(":Symbol RelQuery void:")":Symbol ;
+generic DStream             = void:"dstream":Keyword void:"(":Symbol RelQuery void:")":Symbol ;
+generic RStream             = void:"rstream":Keyword void:"(":Symbol RelQuery void:")":Symbol ;
+Node RelQuery               += <R2ROp> ...
+                            / <S2ROp> S2ROp ;
+Node S2ROp                  = <Now> Now
+                            / <Range> Range
+                            / <Rows> Rows
+                            / <Partition> Partition ;
+generic Now                 = void:"now":Keyword void:"(":Symbol StrQuery void:")":Symbol ;
+generic Range               = void:"range":Keyword void:"[":Symbol Constant void:"]":Symbol void:"(":Symbol StrQuery void:")":Symbol ;
+generic Rows                = void:"rows":Keyword void:"[":Symbol Constant void:"]":Symbol void:"(":Symbol StrQuery void:")":Symbol ;
+generic Partition           = void:"partition":Keyword void:"[":Symbol Identifier void:",":Symbol Constant void:"]":Symbol void:"(":Symbol StrQuery void:")":Symbol;
+
+
+

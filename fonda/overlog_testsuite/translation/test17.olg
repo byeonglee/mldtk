@@ -1,0 +1,27 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+materialize(table2, infinity, infinity, keys(1, 2, 3)).
+materialize(seq1, infinity, 1, keys(1, 2)).
+materialize(seq2, infinity, 1, keys(1, 2)).
+
+r0 ini(@X):- periodic(@X, 0, 1).
+r0a seq1(@X, S) :- ini(@X), S:=0.
+r0b seq2(@X, S) :- ini(@X), S:=100.
+
+r1 add(@X) :- periodic(@X, 1, 10).
+r2 checkTable(@X) :- periodic(@X, 12, 1).
+
+
+r3 table1(@X, Seq1, S2) :- add(@X), seq1(@X, Seq1), 
+   	      	    seq2(@X, Seq2), S2:= Seq2 + 1. 
+r4 table2(@X, Seq1, S2) :- add(@X), seq1(@X, Seq1), 
+   	      	    seq2(@X, Seq2), S2:= Seq2 + 1. 
+r5 seq2(@X, S2) :- add(@X), seq2(X, Seq), S2:= Seq + 1.
+
+
+r6 tableContent1(@X, S, P) :- checkTable(@X), table1(@X, S, P).
+r7 tableContent2(@X, S, P) :- checkTable(@X), table2(@X, S, P).
+
+watch(tableContent1).
+watch(tableContent2).
+
+r8 exit(@X) :- tableContent2(@X, A,B), A == 0, B == 105.

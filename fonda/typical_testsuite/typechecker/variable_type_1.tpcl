@@ -1,0 +1,16 @@
+module var_type_1;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype 'a btree = Empty | Btree of 'a * 'a btree * 'a btree ;
+
+mlvalue analyze n = n;
+
+mlvalue isEmpty b = match b with
+    Empty -> true
+  | _ -> false
+  ;
+

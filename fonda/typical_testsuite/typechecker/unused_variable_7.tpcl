@@ -1,0 +1,12 @@
+module unused_var_7;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mlvalue analyze n m = n + 1 + 2 ; {{ dg-warning "unused var" }}
+
+mlvalue bar m = 1 ; {{ dg-warning "unused var" }}
+
+

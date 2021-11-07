@@ -1,0 +1,46 @@
+Todo:
+
+Sliding time based
+Sliding row based
+Aggregate
+<del> fix join delete problem </del>
+
+// - initialization:
+//  - no state variables: IStream, DStream, Unbounded, Select, Project
+//  - RStream: start empty, since there was nothing yet on the input stream
+//  - other windows (Now, Time, Partition): start out empty, but at time=0,
+//    receive data item with "insert" for every tuple in initial relation,
+//    which will trigger the normal operator logic to write variable and output
+//  - other R2R operators (Aggregate, Union, Join): start out empty, but at
+//    time=0, receive initial data item; note that even Aggregate starts out
+//    empty, since entries with neutral element are auto-vivified later
+//  - in other words, everything starts out empty, but everything that consumes
+//    an input relation processes that whole relation at the start of all time,
+//    triggering downstream initializations for initial dependent views
+
+
+
+Items:
+
+1. Strange problem:
+
+    BabbleIterator(BabbleCQLInputSigmaType2) findIt
+      = BabbleBagFind(oldsigma2, tup);
+    if (findIt != oldsigma2.end()) {
+      BabbleBagErase(oldsigma2, findIt);
+    }
+
+Should there be a BabbleBagEnd(Bag) macro?
+
+2. Another problem:
+ How do we tell the code generator we want a theta or a natural join?
+
+3. What is the proper way to signal an error?
+ i.e. in a join with two ports, a tuple arrives with a port index 3. 
+What should the response be? Do we expect the runtime to be able to
+recover?
+
+4. How to pass a filename or URI to a source or sink?
+
+
+

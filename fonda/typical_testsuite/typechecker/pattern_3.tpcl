@@ -1,0 +1,22 @@
+module pattern_3;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | NodeName of string * node
+  | TypeName of string * node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of node;
+
+namespace default: type = LowerID(s) -> SimpleName(s) ;
+
+mlvalue analyze n = n;
+
+mlvalue bar = function
+    NodeName(_,n) | N(n) -> true {{ dg-error "do not match" }}
+  | _ -> false; 
+

@@ -1,0 +1,1166 @@
+<html lang="en">
+<head>
+<title>User Guide for a debugger contributed to xtc Version x.xx.x (10/17/08).</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="User Guide for a debugger contributed to xtc Version x.xx.x (10/17/08).">
+<meta name="generator" content="makeinfo 4.11">
+<link title="Top" rel="top" href="#Top">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<!--
+The current Blink project members are
+Robert Grimm (http://cs.nyu.edu/rgrimm),
+Martin Hirzel (http://www.research.ibm.com/people/h/hirzel),
+Byeoncheol Lee (http://www.cs.utexas.edu/users/bclee), and
+Kathryn McKinley (http://www.cs.utexas.edu/users/mckinley).
+
+
+UT Austin: This work was supported by CNS-0719966, NSF
+CCF-0429859, NSF EIA-0303609, DARPA F33615-03-C-4106, Intel, IBM, and
+Microsoft.  Any opinions, findings and conclusions expressed herein
+are the authors' and do not necessarily reflect those of the sponsors.
+
+NYU and IBM: This material is based in part upon work supported by
+the National Science Foundation under Grants No. CNS-0448349 and
+CNS-0615129 and by the Defense Advanced Research Projects Agency under
+Contract No. NBCH30390004.
+
+
+
+This is the user guide for a debugger contributed to xtc Version
+1.xx.x (03/30/09).
+
+Copyright (C) 2007, 2008 IBM, UT Austin and NYU.-->
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
+--></style>
+</head>
+<body>
+<h1 class="settitle">User Guide for a debugger contributed to xtc Version x.xx.x (10/17/08).</h1>
+<div class="contents">
+<h2>Table of Contents</h2>
+<ul>
+<li><a name="toc_Top" href="#Top">Blink User Guide</a>
+<li><a name="toc_Introduction" href="#Introduction">1 Introduction</a>
+<ul>
+<li><a href="#Installation">1.1 Installation</a>
+<ul>
+<li><a href="#Requirements">1.1.1 Requirements</a>
+<li><a href="#Download">1.1.2 Download</a>
+<li><a href="#Configuration">1.1.3 Configuration</a>
+<li><a href="#Testing-the-installation">1.1.4 Testing the installation</a>
+</li></ul>
+<li><a href="#Trouble-shooting">1.2 Trouble shooting</a>
+</li></ul>
+<li><a name="toc_Examples" href="#Examples">2 Examples</a>
+<ul>
+<li><a href="#Compiling-with-debugging-information">2.1 Compiling with debugging information</a>
+<li><a href="#Launching-and-terminating-a-debug-session">2.2 Launching and terminating a debug session</a>
+<li><a href="#Setting-breakpoint">2.3 Setting breakpoint</a>
+<li><a href="#Stepping">2.4 Stepping</a>
+<li><a href="#Examining-the-stack">2.5 Examining the stack</a>
+<li><a href="#Inspecting-data-with-Jeannie-expression">2.6 Inspecting data with Jeannie expression</a>
+</li></ul>
+<li><a name="toc_Tools" href="#Tools">3 Tools</a>
+<ul>
+<li><a href="#blink_002esh">3.1 blink.sh</a>
+<li><a href="#Blink-Debugger">3.2 Blink Debugger</a>
+<li><a href="#Blink-command-syntax">3.3 Blink command syntax</a>
+</li></ul>
+<li><a name="toc_Index" href="#Index">Index</a>
+</li></ul>
+</div>
+
+
+
+<!-- Part 4: 'Top' Node and Master Menu -->
+<div class="node">
+<p><hr>
+<a name="Top"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Introduction">Introduction</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#dir">(dir)</a>
+
+</div>
+
+<h2 class="unnumbered">Blink User Guide</h2>
+
+<p>This document is a user guide for a debugger contributed to xtc that
+implements the Jeannie programming language. The latest official version
+of this user guide is here:
+<a href="http://cs.nyu.edu/rgrimm/xtc/blink.html">http://cs.nyu.edu/rgrimm/xtc/blink.html</a>. This guide is also
+available in pdf format:
+<a href="http://cs.nyu.edu/rgrimm/xtc/blink.pdf">http://cs.nyu.edu/rgrimm/xtc/blink.pdf</a>.
+
+   <p>The current Blink project members are
+<a href="http://cs.nyu.edu/rgrimm">Robert Grimm</a>,
+<a href="http://www.research.ibm.com/people/h/hirzel">Martin Hirzel</a>,
+<a href="http://www.cs.utexas.edu/users/bclee">Byeoncheol Lee</a>, and
+<a href="http://www.cs.utexas.edu/users/mckinley">Kathryn McKinley</a>.
+
+<!-- [ack??] -->
+<!-- [check-funding source] -->
+   <p>UT Austin: This work was supported by CNS-0719966, NSF
+CCF-0429859, NSF EIA-0303609, DARPA F33615-03-C-4106, Intel, IBM, and
+Microsoft.  Any opinions, findings and conclusions expressed herein
+are the authors' and do not necessarily reflect those of the sponsors.
+
+   <p>NYU and IBM: This material is based in part upon work supported by
+the National Science Foundation under Grants No. CNS-0448349 and
+CNS-0615129 and by the Defense Advanced Research Projects Agency under
+Contract No. NBCH30390004.
+
+<!-- We received helpful feedback from Joshua Auerbach, Rodric Rabbah, Gang -->
+<!-- Tan, David Ungar, and Jan Vitek. -->
+<!-- This material is based in part upon work supported by the National -->
+<!-- Science Foundation under Grants No. CNS-0448349 and CNS-0615129 and by -->
+<!-- the Defense Advanced Research Projects Agency under Contract No. -->
+<!-- NBCH30390004. -->
+   <p>This is the user guide for a debugger contributed to xtc Version
+1.xx.x (03/30/09).
+
+   <p>Copyright &copy; 2007, 2008 IBM, UT Austin and NYU.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Introduction">Introduction</a>:  Introduction. 
+<li><a accesskey="2" href="#Examples">Examples</a>:  Examples. 
+<li><a accesskey="3" href="#Tools">Tools</a>:  Tools. 
+<li><a accesskey="4" href="#Index">Index</a>:  Index. 
+</ul>
+
+<!-- EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE -->
+<div class="node">
+<p><hr>
+<a name="Introduction"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Examples">Examples</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Top">Top</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">1 Introduction</h2>
+
+<p>Blink is a portable mixed-mode Java/native debugger for JNI (Java
+Native Interface) and Jeannie programs. Blink allows you to inspect
+Java and native program state while the JDB or the GDB shows only one
+of Java or the native program state.
+
+   <p><a name="index-Blink-1"></a>Blink is portable across different Java virtual machines, machine
+architectures and operating systems. Blink combines an existing
+poratable Java debugger (JDB) and native debugger (GDB). These
+black-box sub-debuggers under the Blink control cooperate
+transparently with each other to create an illusion of a single
+mixed-mode Java/native debugger.
+
+   <p>The Blink user interface is similiar to the command line interfaces in
+JDB and GDB. The Blink master script file (<code>blink.sh</code>) provides
+the same invocation command line syntax as JDB. The Blink commands
+within the debugging session are similar to these in JDB and the
+GDB. JDB and GDB users should be familiar with the Blink
+debugger. This user guide describes how to use the Blink mixed-mode
+Java/native debugger in practice.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Installation">Installation</a>:  How to install the debugger. 
+<li><a accesskey="2" href="#Trouble-shooting">Trouble shooting</a>:  What to do if it does not work. 
+</ul>
+
+<!-- ================================================================== -->
+<div class="node">
+<p><hr>
+<a name="Installation"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Trouble-shooting">Trouble shooting</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Introduction">Introduction</a>
+
+</div>
+
+<h3 class="section">1.1 Installation</h3>
+
+<p><a name="index-installation-2"></a>
+This section describes how to install xtc, which includes the Blink
+debugger, and how to test that the installed Blink debugger runs
+correctly.
+
+<ul class="menu">
+<li><a accesskey="1" href="#Requirements">Requirements</a>:  System requirements for installing the debugger. 
+<li><a accesskey="2" href="#Download">Download</a>:  Where to get the debugger. 
+<li><a accesskey="3" href="#Configuration">Configuration</a>:  How to set up the debugger. 
+<li><a accesskey="4" href="#Testing-the-installation">Testing the installation</a>:  How to validate an installation. 
+</ul>
+
+<!--  -->
+<div class="node">
+<p><hr>
+<a name="Requirements"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Download">Download</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+
+</div>
+
+<h4 class="subsection">1.1.1 Requirements</h4>
+
+<p><a name="index-requirements-3"></a><a name="index-dependencies-4"></a>
+The Blink debugger uses Java Standard Edition version 6 or higher, and
+GDB 6.7.1 and Linux-2.6.22 or higher under x86. We have tested Blink
+with IBM J9 1.6 and Sun Hotspot 1.6 running on the Linux-2.6.22. We
+plan to include more operating systems and architectures. For
+instance, we are actively working on using the Microsoft CDB and
+supporting the Windows native environment. We are also considering
+PowerPC architecture.
+
+   <p><a name="index-PATH-5"></a>
+<!--  -->
+<div class="node">
+<p><hr>
+<a name="Download"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Configuration">Configuration</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Requirements">Requirements</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+
+</div>
+
+<h4 class="subsection">1.1.2 Download</h4>
+
+<p><a name="index-download-6"></a><a name="index-obtaining-Blink-7"></a>
+You need xtc-core.zip to run Blink, xtc-testsuite.zip to test your
+local Blink installation, and antlr.jar and junit.jar to compile
+xtc. You can download these four files from their respective project
+websites, for example like this:
+
+<pre class="example">     wget http://cs.nyu.edu/rgrimm/xtc/xtc-core.zip
+     wget http://cs.nyu.edu/rgrimm/xtc/xtc-testsuite.zip
+     wget http://www.antlr.org/download/antlrworks-1.1.7.jar
+     wget http://downloads.sourceforge.net/junit/junit-4.4.jar
+</pre>
+   <p class="noindent">Pick a directory where you want your local xtc and Blink installation
+to live. Assuming your directory is called <code>local_install_dir</code>,
+populate it with your downloads like this:
+
+<pre class="example">     unzip -d local_install_dir xtc-core.zip
+     unzip -d local_install_dir xtc-testsuite.zip
+     mv antlrworks-1.1.7.jar local_install_dir/xtc/bin/antlr.jar
+     mv junit-4.4.jar local_install_dir/xtc/bin/junit.jar
+</pre>
+   <!--  -->
+<div class="node">
+<p><hr>
+<a name="Configuration"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Testing-the-installation">Testing the installation</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Download">Download</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+
+</div>
+
+<h4 class="subsection">1.1.3 Configuration</h4>
+
+<p><a name="index-configuration-8"></a>
+You need to set your <samp><span class="env">PATH</span></samp> environment variable to include your
+Java 1.6 compiler and JVM. In addition, you need to set <samp><span class="env">PATH_SEP</span></samp>
+either to `<code>:</code>' on Linux or Mac OS X or to `<code>;</code>' on
+Windows/Cygwin. Assuming you unzipped xtc to a directory called
+<code>local_install_dir</code> and you installed JDK 1.6 or higher in
+<code>jdk_home</code>, you now need to perform the following steps:
+
+   <p><a name="index-PATH_005fSEP-9"></a><a name="index-JAVA_005fDEV_005fROOT-10"></a><a name="index-PATH-11"></a><a name="index-CLASSPATH-12"></a>
+<pre class="example">     export PATH_SEP=':'
+     export JAVA_DEV_ROOT=local_install_dir/xtc
+     export PATH=$JAVA_DEV_ROOT/src/xtc/lang/blink:$PATH
+     export PATH=$JAVA_DEV_ROOT/src/xtc/lang/jeannie:$PATH
+     export CLASSPATH=$JAVA_DEV_ROOT/bin/junit.jar$PATH_SEP$CLASSPATH
+     export CLASSPATH=$JAVA_DEV_ROOT/bin/antlr.jar$PATH_SEP$CLASSPATH
+     export CLASSPATH=$JAVA_DEV_ROOT/classes$PATH_SEP$CLASSPATH
+     export JAVA_HOME=jdk_home
+     make -C $JAVA_DEV_ROOT classes configure
+</pre>
+   <p class="noindent">The last step will use <code>xtc/Makefile</code> to compile and configure
+xtc along with the Blink debugger. You may see some warning messages
+related to Java generics, but the compilation should keep going and
+finish without any fatal error messages.
+
+<!--  -->
+<div class="node">
+<p><hr>
+<a name="Testing-the-installation"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Configuration">Configuration</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Installation">Installation</a>
+
+</div>
+
+<h4 class="subsection">1.1.4 Testing the installation</h4>
+
+<p><a name="index-testing-the-installation-13"></a><a name="index-regression-tests-14"></a>
+After completing the download and configuration step, try the following:
+
+<pre class="example">     (bash) cd $JAVA_DEV_ROOT/fonda/blink_testsuite
+     (bash) make
+     ...
+</pre>
+   <p>Make sure that the JDB correctly runs three examples.
+
+<pre class="smallexample">     
+     (bash)jdb PingPong
+     Initializing jdb ...
+     &gt; run
+     run PingPong
+     Set uncaught java.lang.Throwable
+     Set deferred uncaught java.lang.Throwable
+     &gt;
+     VM Started:
+     jPing: 3
+     cPong: 2
+     jPing: 1
+     cPong: 0
+     The application exited
+     
+     (bash)jdb CompoundData
+     Initializing jdb ...
+     &gt; run
+     run CompoundData
+     Set uncaught java.lang.Throwable
+     Set deferred uncaught java.lang.Throwable
+     &gt;
+     VM Started:
+     2.5029
+     2.71828
+     3.14159
+     4.6692
+     The application exited
+     
+     (bash)jdb JeannieMain
+     Initializing jdb ...
+     &gt; run
+     run JeannieMain
+     Set uncaught java.lang.Throwable
+     Set deferred uncaught java.lang.Throwable
+     &gt;
+     VM Started:
+     1
+     3
+     2
+     The application exited
+</pre>
+   <p>Make sure that the Blink master script correctly runs all the three
+examples.
+
+<pre class="smallexample">     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) run
+     jPing: 3
+     jPing: 1
+     cPong: 2
+     cPong: 0
+     (bash) blink.sh CompoundData
+     Blink a Java/C mixed language debugger.
+     (bdb-j) run
+     2.5029
+     2.71828
+     3.14159
+     4.6692
+     (bash) blink.sh JeannieMain
+     Blink a Java/C mixed language debugger.
+     (bdb-j) run
+     1
+     3
+     2
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Trouble-shooting"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Installation">Installation</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Introduction">Introduction</a>
+
+</div>
+
+<h3 class="section">1.2 Trouble shooting</h3>
+
+<p><a name="index-trouble-shooting-15"></a><a name="index-debugging-16"></a>
+As with any complex piece of software, you may run into trouble when
+trying to use the Blink debugger. This section describes a few common
+issues and how to address them. We will keep updating this section as
+we encounter additional difficulties and their solutions.
+
+   <p>If you cannot compile the Blink debugger at all, or if it does not
+run, you should double-check whether all the required tools are
+installed on your local machine. In particular, you need Java 1.6 or
+higher, and you need the GNU GDB, see <a href="#Requirements">Requirements</a>.  Next, try
+the tests that come with Blink, see <a href="#Testing-the-installation">Testing the installation</a>. Finally, double-check that you set your environment
+variables correctly, in particular, <samp><span class="env">PATH</span></samp>, <samp><span class="env">CLASSPATH</span></samp>, and
+<samp><span class="env">LD_LIBRARY_PATH</span></samp>. 
+<a name="index-PATH-17"></a><a name="index-CLASSPATH-18"></a><a name="index-LD_005fLIBRARY_005fPATH-19"></a>
+If the Blink debugger throws an internal exception rather than
+producing a nice error message, that's a bug; please report it, along
+with a minimal test case that reproduces it.
+
+<!-- nice error -> ``can we be more specific''  - Kathryn -->
+<!-- EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE -->
+<div class="node">
+<p><hr>
+<a name="Examples"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Tools">Tools</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Introduction">Introduction</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">2 Examples</h2>
+
+<ul class="menu">
+<li><a accesskey="1" href="#Compiling-with-debugging-information">Compiling with debugging information</a>:  Compiling with debugging information
+<li><a accesskey="2" href="#Launching-and-terminating-a-debug-session">Launching and terminating a debug session</a>:  Launching and terminating a debug session
+<li><a accesskey="3" href="#Setting-breakpoint">Setting breakpoint</a>:  Setting breakpoint
+<li><a accesskey="4" href="#Stepping">Stepping</a>:  Stepping
+<li><a accesskey="5" href="#Examining-the-stack">Examining the stack</a>:  Examining the stack
+<li><a accesskey="6" href="#Inspecting-data-with-Jeannie-expression">Inspecting data with Jeannie expression</a>:  Inspecting data with Jeannie expression
+</ul>
+
+<p>This chapter discusses Blink through the use of examples. Each section
+uses a short self-contained piece of code to illustrate one aspect of
+how to use the Blink debugger.
+
+   <p>The following <code>PingPong</code> example in the Blink test suite
+illustrates how to examine the transitions between Java code and
+native code with JNI. We show the code and then use it to illustrate
+how to use Blink.
+
+<pre class="example">     (bash) cd  $JAVA_DEV_ROOT/fonda/blink_testsuite
+     (bash) cat -n PingPong.java
+      1	public abstract class PingPong {
+      2	  static {System.loadLibrary("PingPong");}
+      3	  public static void main(String[] args) {
+      4	    jPing(3);
+      5	  }
+      6	  static int jPing(int i) {
+      7	    System.out.println("jPing: " + i );
+      8	    if (i &gt; 0 )
+      9	      cPong(i-1);
+     10	    return i;
+     11	  }
+     12	  native static void cPong(int i);
+     13	}
+     (bash) cat -n PingPong.c|tail -n 12
+     14	#include &lt;jni.h&gt;
+     15	#include &lt;stdio.h&gt;
+     16	JNIEXPORT jint JNICALL Java_PingPong_cPong(
+     17	  JNIEnv *env, jclass cls, jint i
+     18	) {
+     19	  printf("cPong: %d\n", i);
+     20	  if ( i &gt; 0) {
+     21	    jmethodID mid=(*env)-&gt;GetStaticMethodID(env,cls,"jPing","(I)I");
+     22	    (*env)-&gt;CallStaticIntMethod(env, cls, mid, i-1);
+     23	  }
+     24	  return i;
+     25	}
+</pre>
+   <p>The main method at Line 4 calls the jPing method with argument 3,
+yielding the following stack:
+
+<pre class="example">     main:4 -&gt; jPing(3):7
+</pre>
+   <p>Since i = 3 &gt; 0, control reaches Line 9, where the Java method jPing
+calls a native method cPong defined in C code as function
+Java_PingPong_cPong:
+
+<pre class="example">     main:4 -&gt; jPing(3):9 -&gt; cPong(2):19
+</pre>
+   <p>The C function cPong calls back up into Java method jPing by first
+obtaining its method ID in Line 21, then using the method ID in the
+call to CallStaticIntMethod in Line 22:
+
+<pre class="example">     main:4 -&gt; jPing(3):9 -&gt; cPong(2):22 -&gt; jPing(1):7
+</pre>
+   <p>After one more call from jPing to cPong, the mixed-language mutual
+recursion comes to an end because it reaches the base case where i =
+0:
+
+<pre class="example">     main:4 -&gt; jPing(3):9 -&gt; cPong(2):22 -&gt; jPing(1):9 -&gt; cPong(0):19
+</pre>
+   <p>This ending condition triggers the following successive returns from
+CPong(0):19.
+
+<pre class="example">     main:4 -&gt; jPing(3):9 -&gt; cPong(2):22 -&gt; jPing(1):9 -&gt; cPong(0):24
+     main:4 -&gt; jPing(3):9 -&gt; cPong(2):22 -&gt; jPing(1):10
+     main:4 -&gt; jPing(3):9 -&gt; cPong(2):24
+     main:4 -&gt; jPing(3):10
+     main:5
+</pre>
+   <div class="node">
+<p><hr>
+<a name="Compiling-with-debugging-information"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Launching-and-terminating-a-debug-session">Launching and terminating a debug session</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.1 Compiling with debugging information</h3>
+
+<p><a name="index-Compiling-with-debugging-information-20"></a>
+Debuggers require that you compile source files with a debug flag. For
+instance, you can specify <code>-g</code> option in <code>javac</code> and
+<code>gcc</code> to enable the debugging information when you compile the
+<code>PingPong</code> example.
+
+<pre class="example">     (bash) javac -g PingPong.java
+     (bash) gcc -g -shared -o libPingPong.so PingPong.c
+</pre>
+   <p>The Jeannie compiler also supports the <code>-g</code> debugging option.
+<pre class="example">     (bash) jeannie.sh -g JeannieMain.jni
+</pre>
+   <p>If you miss this compile time debug flag, you may not able to inspect
+data and code at the source-level during the debugging session.
+
+<div class="node">
+<p><hr>
+<a name="Launching-and-terminating-a-debug-session"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Setting-breakpoint">Setting breakpoint</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Compiling-with-debugging-information">Compiling with debugging information</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.2 Launching and terminating a debug session</h3>
+
+<p><a name="index-Launching-and-terminating-a-debug-session-21"></a>
+The Blink debugger master script (<code>blink.sh</code>) supports JDB
+compatible syntax to launch a debugging session. For instance, you can
+launch the <code>PingPong</code> program with the master script as you do
+with JDB.
+
+<pre class="example">     (bash) jdb PingPong
+     Initializing jdb ...
+     &gt; run
+     ...
+     
+     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) run
+     ...
+</pre>
+   <p>You can terminate the Blink debugging session by running the
+<code>exit</code> command as you do with the JDB.
+
+<pre class="example">     (bash) jdb PingPong
+     Initializing jdb ...
+     &gt; exit
+     
+     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) exit
+</pre>
+   <p>Note that the Blink prompt <code>(bdb-j)</code> means that Blink is
+internally controlling the JDB.
+
+<!-- .................................................................. -->
+<div class="node">
+<p><hr>
+<a name="Setting-breakpoint"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Stepping">Stepping</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Launching-and-terminating-a-debug-session">Launching and terminating a debug session</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.3 Setting breakpoint</h3>
+
+<p><a name="index-Setting-breakpoint-22"></a>
+This section illustrates how to set break points in Java and C code
+and continue the program execution at each break point. First you
+begin the debugging session. To set a Java break point, you can use
+<code>stop at</code> command and specify which Java class and which line
+number within the class file. The Blink <code>stop at</code> command is the
+same as the <code>stop at</code> in JDB.
+
+<pre class="example">     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) stop at PingPong:8
+</pre>
+   <p>To set a native break point, you can use the <code>break</code> command,
+which is also available in GDB.
+
+<pre class="example">     (bdb-j) break PingPong.c:20
+</pre>
+   <p>You can query the active break points with <code>info break</code> command.
+
+<pre class="example">     (bdb-j) info break
+     1   java PingPong:8
+     2  native PingPong.c:20
+</pre>
+   <p>Now you actually run the <code>PingPong</code> program, stops the program at
+each break point and you can continue the execution as follows:
+
+<pre class="example">     (bdb-j) run
+     jPing: 3
+     Breakpoint 1:  thread=main, PingPong.jPing(), line=8 bci=25
+     8        if (i &gt; 0 )
+     (bdb-j) continue
+     Breakpoint 2: Java_PingPong_cPong ... at PingPong.c:20
+     20	  if ( i &gt; 0) {
+     (bdb-c) continue
+     jPing: 1
+     Breakpoint 1:  thread=main, PingPong.jPing(), line=8 bci=25
+     8        if (i &gt; 0 )
+     (bdb-j) continue
+     Breakpoint 2: Java_PingPong_cPong ... at PingPong.c:20
+     20	  if ( i &gt; 0) {
+     (bdb-c) continue
+     cPong: 2
+     cPong: 0
+</pre>
+   <p>Note that the Blink prompt <code>(bdb-c)</code> means that Blink is
+internally controlling the GDB.
+
+<!-- .................................................................. -->
+<div class="node">
+<p><hr>
+<a name="Stepping"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Examining-the-stack">Examining the stack</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Setting-breakpoint">Setting breakpoint</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.4 Stepping</h3>
+
+<p><a name="index-Stepping-23"></a>
+The <code>step</code> command supports source-level stepping for mixed-mode
+Java/native programs.  The Java-only-mode debugger such as JDB ignores
+stepping into native code as in the following:
+
+<pre class="example">     blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) stop at PingPong:9
+     (bdb-j) run
+     jPing: 3
+     Breakpoint 1: thread=main, PingPong.jPing(), line=9 bci=29
+     9          cPong(i-1);
+     (bdb-j) where
+       [0] PingPong.jPing  (PingPong.java:9) Java
+       [1] PingPong.main  (PingPong.java:4) Java
+     (bdb-j) step
+     Step completed: PingPong.c:18
+     18	) {
+     (bdb-c) where
+       [0] Java_PingPong_cPong  (PingPong.c:18) C
+       [1] PingPong.jPing  (PingPong.java:9) Java
+       [2] PingPong.main  (PingPong.java:4) Java
+</pre>
+   <p>The Blink <code>step</code> command takes care of stepping from Java code to
+native code as follows:
+
+<pre class="example">     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) stop at PingPong:9
+     (bdb-j) run
+     jPing: 3
+     Breakpoint 1: thread=main, PingPong.jPing(), line=9 bci=29
+     9          cPong(i-1);
+     (bdb-j) where
+       [0] PingPong.jPing  (PingPong.java:9) Java
+       [1] PingPong.main  (PingPong.java:4) Java
+     (bdb-j) step
+     Step completed: PingPong.c:18
+     18	) {
+     (bdb-c) where
+       [0] Java_PingPong_cPong  (PingPong.c:18) C
+       [1] PingPong.jPing  (PingPong.java:9) Java
+       [2] PingPong.main  (PingPong.java:4) Java
+</pre>
+   <p>The <code>next</code> command is similar to the <code>step</code> command, but it
+hops one method/function calls within the current line instead of
+stepping into them. The Blink <code>next</code> is also different from the
+JDB <code>next</code> as it takes care of the transition between Java code
+and native code.
+
+<!--  -->
+<div class="node">
+<p><hr>
+<a name="Examining-the-stack"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Inspecting-data-with-Jeannie-expression">Inspecting data with Jeannie expression</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Stepping">Stepping</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.5 Examining the stack</h3>
+
+<p><a name="index-Examining-the-stack-24"></a>
+Blink supports <code>where</code>, <code>up</code>, <code>down</code> and <code>locals</code>
+commands to examine the call stack. Suppose that you hit a break point
+at <code>PingPong.c:20</code> in the second time.
+
+<pre class="example">     (bash) blink.sh PingPong
+     Blink a Java/C mixed language debugger.
+     (bdb-j) break PingPong.c:20
+     the break point is delayed until the native debugger attached.
+     (bdb-j) run
+     jPing: 3
+     Breakpoint 1: Java_PingPong_cPong ... at PingPong.c:20
+     20	  if ( i &gt; 0) {
+     (bdb-c) continue
+     jPing: 1
+     Breakpoint 1: Java_PingPong_cPong ... at PingPong.c:20
+     20	  if ( i &gt; 0) {
+</pre>
+   <p>The <code>where</code> command discovers the mixed Java/native call frames
+at the break point.
+
+<pre class="example">     (bdb-c) where
+       [0] Java_PingPong_cPong  (PingPong.c:20) C
+       [1] PingPong.jPing  (PingPong.java:9) Java
+       [2] Java_PingPong_cPong  (PingPong.c:22) C
+       [3] PingPong.jPing  (PingPong.java:9) Java
+       [4] PingPong.main  (PingPong.java:4) Java
+</pre>
+   <p>The <code>locals</code> command allows you to inspect local variables of the
+currently chosen call frame.
+
+<pre class="example">     (bdb-c) locals
+     env = (JNIEnv *) 0x80780ec
+     cls = (jclass) 0xb7da6c3c
+     i = 0
+</pre>
+   <p>The <code>up</code> and <code>down</code> commands move the currently selected
+call frame.
+
+<pre class="example">     (bdb-c) up 1
+     (bdb-c) locals
+     i = 1
+     (bdb-c) up 2
+     (bdb-c) locals
+     i = 3
+     (bdb-c) down 3
+     (bdb-c) where
+       [0] Java_PingPong_cPong  (PingPong.c:20) C
+       [1] PingPong.jPing  (PingPong.java:9) Java
+       [2] Java_PingPong_cPong  (PingPong.c:22) C
+       [3] PingPong.jPing  (PingPong.java:9) Java
+       [4] PingPong.main  (PingPong.java:4) Java
+</pre>
+   <!-- ================================================================== -->
+<div class="node">
+<p><hr>
+<a name="Inspecting-data-with-Jeannie-expression"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Examining-the-stack">Examining the stack</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Examples">Examples</a>
+
+</div>
+
+<h3 class="section">2.6 Inspecting data with Jeannie expression</h3>
+
+<p><a name="index-Inspecting-data-with-Jeannie-expression-25"></a>
+The Blink <code>print &lt;jexpr&gt;</code> command evaluates a Jeannie expression
+to examine both Java and native data.  Since the Jeannie expression is
+the superset of Java and C expression, this Jeannie expression
+evaluator allows the user to inspect both the Java data and native
+data. Consider the following example.
+
+<pre class="smallexample">     (bash) cd $JAVA_DEV_ROOT/fonda/blink_testsuite
+     (bash) cat -n CompoundData.java
+      1	import java.util.Vector;
+      2	public class CompoundData {
+      3	  static {System.loadLibrary("CompoundData");}
+      4	  public static void main(String[] args) {
+      5	    Vector strings = new Vector();
+      6	    strings.add("2.50290");
+      7	    strings.add("2.71828");
+      8	    strings.add("3.14159");
+      9	    strings.add("4.66920");
+     10	    double[] doubles = new double[strings.size()];
+     11	    doubles[0] = 3.48;
+     12	    parse(doubles.length, doubles, strings);
+     13	    for( int i = 0; i &lt; doubles.length;i++)
+     14	      System.out.println(doubles[i]);
+     15	  }
+     16	  public static native void parse(int size, double[] doubles, Vector strings);
+     17	}
+     (bash)cat -n  CompoundData.c| tail -n22
+     18	#include &lt;stdlib.h&gt;
+     19	#include &lt;math.h&gt;
+     20	JNIEXPORT void JNICALL Java_CompoundData_parse (
+     21	  JNIEnv *env, jclass cls, jint size,
+     22	  jdoubleArray doubles, jobject strings)
+     23	{
+     24	    int i;
+     25	    /* parse the Java strings to the C doubles. */
+     26	    jdouble* results = malloc( sizeof(jdouble) * size);
+     27	    for(i = 0; i &lt; size;i++) {
+     28	       /* get string. */
+     29	      jclass jvector = (*env)-&gt;FindClass(env, "java/util/Vector");
+     30	      jmethodID mid_vget = (*env)-&gt;GetMethodID(env, jvector,
+                                             "get", "(I)Ljava/lang/Object;");
+     31	      jstring jstr = (jstring)(*env)-&gt;CallObjectMethod(env,
+                                                       strings, mid_vget, i);
+     32	      /* keep the result. */
+     33	      const char* cstr = (*env)-&gt;GetStringUTFChars(env, jstr, 0);
+     34	      results[i] = atof(cstr);
+     35	      (*env)-&gt;ReleaseStringUTFChars(env, jstr, cstr);
+     36	    }
+     37	    (*env)-&gt;SetDoubleArrayRegion(env, doubles, 0, size, results);
+     38	    free(results);
+     39	}
+</pre>
+   <p>At the line <code>CompoundData.c:26</code>, you can inspect both C and Java
+data through the Jeannie expression.
+
+<pre class="example">     (bash) blink.sh CompoundData
+     Blink a Java/C mixed language debugger.
+     (bdb-j) break CompoundData.c:26
+     the break point is delayed until the native debugger attached.
+     (bdb-j) run
+     Breakpoint 1: Java_CompoundData_parse (env=0x80780ec, cls=0xb7dad088, size=4, doubles=0xb7dad094, strings=0xb7dad090) at CompoundData.c:26
+     26	    jdouble* results = malloc( sizeof(jdouble) * size);
+     (bdb-c) print size
+     ====&gt; 4
+     (bdb-c) print `((`strings).size())
+     ====&gt; 4
+     (bdb-c) print `((`strings).elementCount)
+     ====&gt; 4
+     (bdb-c) print bda_cstr(`((`strings).get(1)))
+     ====&gt; 0xb7d169e0 "2.71828"
+     (bdb-c) print `((`doubles).length)
+     ====&gt; 4
+     (bdb-c) print `((`doubles)[0])
+     ====&gt; 3.48
+     (bdb-c) exit
+</pre>
+   <p>Blink also supports debugging Jeannie programs. Consider the following
+Jeannie example:
+
+<pre class="smallexample">     (bash) cd $JAVA_DEV_ROOT/fonda/blink_testsuite
+     (bash) cat -n JeannieMain.jni
+     1	`.C {
+     2	#include &lt;stdio.h&gt;
+     3	}
+     4	public class JeannieMain {
+     5	  public static void main(String[] args) {
+     6	    f(1);
+     7	  }
+     8	  public static native void f(int x)
+     9	  `{
+     10	    int y = 0;
+     11	    `{
+     12	      int z;
+     13	      z = 1 + `(y = 1 + `(x = 1));
+     14	      System.out.println(x);
+     15	      System.out.println(z);
+     16	    }
+     17	    printf("%d\n", y);
+     18	  }
+     19	}
+</pre>
+   <p>You can direct the Blink to pause at <code>JeannieMain.jni:14</code>:
+
+<pre class="example">     (bash) blink.sh JeannieMain
+     Blink a Java/C mixed language debugger.
+     (bdb-j) break JeannieMain$JavaEnvFor_f:14
+     (bdb-j) run
+     Breakpoint 1: thread=main, JeannieMain$JavaEnvFor_f.c2j1(), line=14 bci=11
+     14          System.out.println(x);
+</pre>
+   <p>At the break point, you can inspect the calling context and data.
+
+<pre class="example">     
+     (bdb-j) where
+       [0] JeannieMain.f(I)V  (JeannieMain.jni:14) Jeannie
+       [1] JeannieMain.main  (JeannieMain.jni:6) Java
+     (bdb-j) list
+     10        int y = 0;
+     11        `{
+     12          int z;
+     13          z = 1 + `(y = 1 + `(x = 1));
+     14 =&gt;       System.out.println(x);
+     15          System.out.println(z);
+     16        }
+     17        printf("%d\n", y);
+     18      }
+     19    }
+     (bdb-j) print x
+     ===&gt; 1
+     (bdb-j) print `y
+     ===&gt; 2
+     (bdb-j) print z
+     ===&gt; 3
+     (bdb-j) print x + `y  + z
+     ===&gt; 6
+     (bdb-j) print x = `y  + z
+     ===&gt; 5
+</pre>
+   <!-- EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE -->
+<div class="node">
+<p><hr>
+<a name="Tools"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Index">Index</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Examples">Examples</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="chapter">3 Tools</h2>
+
+<p>This section describes the command line tools for debugging JNI and
+Jeannie programs. In the normal case, you should only need to use one
+of them: the &ldquo;master script&rdquo; <code>blink.sh</code>.
+
+<ul class="menu">
+<li><a accesskey="1" href="#blink_002esh">blink.sh</a>:  Orchestrates all other Jeannie tools. 
+<li><a accesskey="2" href="#Blink-Debugger">Blink Debugger</a>:  Debugs both JNI and Jeannie programs. 
+<li><a accesskey="3" href="#Blink-command-syntax">Blink command syntax</a>:  controls the Blink debugger. 
+</ul>
+
+<!-- ================================================================== -->
+<div class="node">
+<p><hr>
+<a name="blink.sh"></a>
+<a name="blink_002esh"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Blink-Debugger">Blink Debugger</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Tools">Tools</a>
+
+</div>
+
+<h3 class="section">3.1 blink.sh</h3>
+
+<p><a name="index-blink_002esh-26"></a><a name="index-master-script-27"></a>
+     <dl>
+<!-- .................................................................. -->
+<dt><span class="sc">Name</span><dd><code>blink.sh</code> &ndash; Blink debugger master script.
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Synopsis</span><dd><code>blink.sh</code> [ <var>options</var> ] <var>CLASS</var> [ <var>arguments</var> ]
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Parameters</span><dd>
+          <dl>
+<dt><var>options</var><dd>Options may be in any order. See <span class="sc">Options</span> below.
+
+          <br><dt><var>CLASS</var><dd>The main class name to launch the debugging session.
+
+          <br><dt><var>arguments</var><dd>The arguments to the main class. 
+</dl>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Description</span><dd>The <code>blink.sh</code> master script supports JDB-like command line
+syntax. This master script first ensures that the necessary
+environment variables are properly set and that the necessary Blink
+related files are properly installed. It also ensures that the Blink
+debug agent code exists in the system and launches the Blink debugger
+to begin a debugging session. 
+<!-- .................................................................. -->
+<br><dt><span class="sc">Options</span><dd>
+          <dl>
+<dt><code>-help</code><dd>Print out the following message and exit.
+
+          <br><dt><code>-sourcepath</code> <var>&lt;directories separated by ":"&gt;</var><dd>Directories in which to look for source files.
+
+          <br><dt><code>-dbgtrace</code><dd>Print JDB log messages.
+
+          <br><dt><code>-v</code><span class="roman"> | </span><code>-verbose[:class|gc|jni]</code><dd>Turn on verbose mode in the target debugee JVM.
+
+          <br><dt><code>-D&lt;name&gt;=&lt;value&gt;</code><dd>Set a system property in the target debugee JVM.
+
+          <br><dt><code>-classpath </code> <var>&lt;directories separated by ":"&gt;</var><dd>Set a class path in the target debugee JVM.
+
+          <br><dt><code>-X</code><var>&lt;option&gt;</var><dd>Non-standard VM option in the target debugee JVM.
+
+     </dl>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Environment</span><dd>
+          <dl>
+<dt><samp><span class="env">JAVA_DEV_ROOT</span></samp><dd>The xtc installation path.
+
+          <br><dt><samp><span class="env">CLASSPATH</span></samp><dd><a name="index-CLASSPATH-28"></a>Paths where to search for the user class files. See the
+<code>-classpath</code> command line option above for details.
+
+          <br><dt><samp><span class="env">JAVA_HOME</span></samp><dd>Path where the JDK is installed.
+
+          <br><dt><samp><span class="env">OSTYPE</span></samp><dd>Operating system type (linux, cygwin, or win32).
+
+     </dl>
+
+   </dl>
+
+<!-- ================================================================== -->
+<div class="node">
+<p><hr>
+<a name="Blink-Debugger"></a>
+Next:&nbsp;<a rel="next" accesskey="n" href="#Blink-command-syntax">Blink command syntax</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#blink_002esh">blink.sh</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Tools">Tools</a>
+
+</div>
+
+<h3 class="section">3.2 Blink Debugger</h3>
+
+<p><a name="index-Blink-Debugger-29"></a>
+     <dl>
+<!-- .................................................................. -->
+<dt><span class="sc">Name</span><dd><code>xtc.lang.blink.Blink</code> &ndash; Launching a Blink debugging session.
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Synopsis</span><dd><code>java xtc.lang.blink.Blink</code> [ <var>options</var> ] <var>CLASS</var> <var>options</var>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Parameters</span><dd>
+          <dl>
+<dt><var>options</var><dd>Options may be in any order. See <span class="sc">Options</span> below.
+
+          <br><dt><var>CLASS</var><dd>The main class name to launch the debugging session.
+
+          <br><dt><var>arguments</var><dd>The arguments to the main class. 
+</dl>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Description</span><dd>
+The Blink debugger launches the debuggee JVM with its main class name
+arguments, and starts the mixed-mode debugging session. This debugger
+usually gets invoked from the blink.sh master script, but you can run
+this Blink debugger directly by providing the class and library paths
+for the Blink debugging agent. You can specify these class and library
+paths with <code>-bacp</code> and <code>-balp</code> options.
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Options</span><dd>
+          <dl>
+<dt><code>-bacp</code> <var>path</var><dd>Use the specified directory as home directory for the Java byte code
+of the Blink debug agent.
+
+          <br><dt><code>-balp</code> <var>path</var><dd>Use the specified directory as home directory for the native code of
+the Blink debug agent.
+
+          <br><dt><code>-help</code><dd>Print out this message and exit.
+
+          <br><dt><code>-sourcepath</code> <var>&lt;directories separated by ":"&gt;</var><dd>Directories in which to look for source files.
+
+          <br><dt><code>-v</code><span class="roman"> | </span><code>-verbose[:class|gc|jni]</code><dd>Turn on verbose mode in the target debugee JVM.
+
+          <br><dt><code>-D&lt;name&gt;=&lt;value&gt;</code><dd>Set a system property in the target debugee JVM.
+
+          <br><dt><code>-classpath </code> <var>&lt;directories separated by ":"&gt;</var><dd>Set a class path in the target debugee JVM.
+
+          <br><dt><code>-X</code><var>&lt;option&gt;</var><dd>Non-standard VM option in the target debugee JVM.
+
+     </dl>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Environment</span><dd>
+          <dl>
+<dt><samp><span class="env">JAVA_DEV_ROOT</span></samp><dd>The xtc installation path.
+
+          <br><dt><samp><span class="env">CLASSPATH</span></samp><dd><a name="index-CLASSPATH-30"></a>Paths where to search for the user class files. See the
+<code>-classpath</code> command line option above for details.
+
+          <br><dt><samp><span class="env">JAVA_HOME</span></samp><dd>Path where the JDK is installed.
+
+          <br><dt><samp><span class="env">OSTYPE</span></samp><dd>Operating system type (linux, cygwin, or win32).
+
+     </dl>
+     </dl>
+
+<!-- ================================================================== -->
+<div class="node">
+<p><hr>
+<a name="Blink-command-syntax"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Blink-Debugger">Blink Debugger</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Tools">Tools</a>
+
+</div>
+
+<h3 class="section">3.3 Blink command syntax</h3>
+
+<p><a name="index-Blink-command-syntax-31"></a>
+Within the Blink debugging session, you can control the debugee with
+the following Blink commands.
+
+     <dl>
+<dt><span class="sc">Help</span><dd>
+          <dl>
+<dt><var>help</var><dd>Print help message. 
+</dl>
+
+     <!-- .................................................................. -->
+     <br><dt><span class="sc">Controlling execution</span><dd>
+          <dl>
+<dt><samp><span class="env">run</span></samp><dd>Start the program execution. 
+<br><dt><samp><span class="env">continue</span></samp><dd>Continue running. 
+<br><dt><samp><span class="env">step</span></samp><dd>Execute until another line reached. 
+<br><dt><samp><span class="env">next</span></samp><dd>Execute the next line, including function calls, and stop. 
+<br><dt><samp><span class="env">exit</span></samp><dd>Exit the Blink debugger. 
+</dl>
+
+     <br><dt><span class="sc">Pausing the execution</span><dd>
+          <dl>
+<dt><samp><span class="env">break </span><var>[file:line]</var></samp><dd>Add a native source line breakpoint. For instance, <code>break PingPong.c:9</code>. 
+<br><dt><samp><span class="env">stop at </span><var>&lt;classid&gt;:&lt;line&gt;</var></samp><dd>Add a Java symbol breakpoint. For instance, <code>stop at PongPong:15</code>. 
+<br><dt><samp><span class="env">stop in </span><var>&lt;classid&gt;:&lt;method&gt;</var></samp><dd>Add a Java source line breakpoint. For instance, <code>stop in PingPong.jPing</code>. 
+<br><dt><samp><span class="env">info break</span></samp><dd>List break points. 
+<br><dt><samp><span class="env">delete </span><var>[n]</var></samp><dd>Delete a break/watch point with id <code>[n]</code>. 
+</dl>
+
+     <br><dt><span class="sc">Inspecting the calling context</span><dd>
+          <dl>
+<dt><samp><span class="env">where</span></samp><dd>Dump stack trace
+<br><dt><samp><span class="env">up </span><var>[n]</var></samp><dd>Select n frames up
+<br><dt><samp><span class="env">down </span><var>[n]</var></samp><dd>Select n frames down
+<br><dt><samp><span class="env">list</span></samp><dd>Print source code. 
+<br><dt><samp><span class="env">locals</span></samp><dd>Print local variables in selected frame
+</dl>
+
+     <br><dt><span class="sc">Inspecting data.</span><dd>
+          <dl>
+<dt><samp><span class="env">print </span><var>&lt;jexpr&gt;</var></samp><dd></dl>
+     Evaluate a Jeannie expression, and print the result. Note that Jeannie
+expressions include both Java and C expressions. 
+</dl>
+
+<!-- EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE -->
+<!-- Part 6: The End of the Document -->
+<div class="node">
+<p><hr>
+<a name="Index"></a>
+Previous:&nbsp;<a rel="previous" accesskey="p" href="#Tools">Tools</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="#Top">Top</a>
+
+</div>
+
+<h2 class="unnumbered">Index</h2>
+
+<ul class="index-cp" compact>
+<li><a href="#index-Blink-1">Blink</a>: <a href="#Introduction">Introduction</a></li>
+<li><a href="#index-Blink-command-syntax-31">Blink command syntax</a>: <a href="#Blink-command-syntax">Blink command syntax</a></li>
+<li><a href="#index-Blink-Debugger-29">Blink Debugger</a>: <a href="#Blink-Debugger">Blink Debugger</a></li>
+<li><a href="#index-blink_002esh-26">blink.sh</a>: <a href="#blink_002esh">blink.sh</a></li>
+<li><a href="#index-CLASSPATH-30">CLASSPATH</a>: <a href="#Blink-Debugger">Blink Debugger</a></li>
+<li><a href="#index-CLASSPATH-28">CLASSPATH</a>: <a href="#blink_002esh">blink.sh</a></li>
+<li><a href="#index-CLASSPATH-18">CLASSPATH</a>: <a href="#Trouble-shooting">Trouble shooting</a></li>
+<li><a href="#index-CLASSPATH-12">CLASSPATH</a>: <a href="#Configuration">Configuration</a></li>
+<li><a href="#index-Compiling-with-debugging-information-20">Compiling with debugging information</a>: <a href="#Compiling-with-debugging-information">Compiling with debugging information</a></li>
+<li><a href="#index-configuration-8">configuration</a>: <a href="#Configuration">Configuration</a></li>
+<li><a href="#index-debugging-16">debugging</a>: <a href="#Trouble-shooting">Trouble shooting</a></li>
+<li><a href="#index-dependencies-4">dependencies</a>: <a href="#Requirements">Requirements</a></li>
+<li><a href="#index-download-6">download</a>: <a href="#Download">Download</a></li>
+<li><a href="#index-Examining-the-stack-24">Examining the stack</a>: <a href="#Examining-the-stack">Examining the stack</a></li>
+<li><a href="#index-Inspecting-data-with-Jeannie-expression-25">Inspecting data with Jeannie expression</a>: <a href="#Inspecting-data-with-Jeannie-expression">Inspecting data with Jeannie expression</a></li>
+<li><a href="#index-installation-2">installation</a>: <a href="#Installation">Installation</a></li>
+<li><a href="#index-JAVA_005fDEV_005fROOT-10">JAVA_DEV_ROOT</a>: <a href="#Configuration">Configuration</a></li>
+<li><a href="#index-Launching-and-terminating-a-debug-session-21">Launching and terminating a debug session</a>: <a href="#Launching-and-terminating-a-debug-session">Launching and terminating a debug session</a></li>
+<li><a href="#index-LD_005fLIBRARY_005fPATH-19">LD_LIBRARY_PATH</a>: <a href="#Trouble-shooting">Trouble shooting</a></li>
+<li><a href="#index-master-script-27">master script</a>: <a href="#blink_002esh">blink.sh</a></li>
+<li><a href="#index-obtaining-Blink-7">obtaining Blink</a>: <a href="#Download">Download</a></li>
+<li><a href="#index-PATH-17">PATH</a>: <a href="#Trouble-shooting">Trouble shooting</a></li>
+<li><a href="#index-PATH-11">PATH</a>: <a href="#Configuration">Configuration</a></li>
+<li><a href="#index-PATH-5">PATH</a>: <a href="#Requirements">Requirements</a></li>
+<li><a href="#index-PATH_005fSEP-9">PATH_SEP</a>: <a href="#Configuration">Configuration</a></li>
+<li><a href="#index-regression-tests-14">regression tests</a>: <a href="#Testing-the-installation">Testing the installation</a></li>
+<li><a href="#index-requirements-3">requirements</a>: <a href="#Requirements">Requirements</a></li>
+<li><a href="#index-Setting-breakpoint-22">Setting breakpoint</a>: <a href="#Setting-breakpoint">Setting breakpoint</a></li>
+<li><a href="#index-Stepping-23">Stepping</a>: <a href="#Stepping">Stepping</a></li>
+<li><a href="#index-testing-the-installation-13">testing the installation</a>: <a href="#Testing-the-installation">Testing the installation</a></li>
+<li><a href="#index-trouble-shooting-15">trouble shooting</a>: <a href="#Trouble-shooting">Trouble shooting</a></li>
+   </ul></body></html>
+

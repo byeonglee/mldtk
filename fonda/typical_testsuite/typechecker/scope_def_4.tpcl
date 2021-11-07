@@ -1,0 +1,17 @@
+module scope_def_4;
+
+mltype node = 
+  A of node * node list |
+  B of string * node |
+  C of node opt list |
+  D of string * node list
+;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+scope
+    A(_,_) -> false  {{ dg-error "do not match" }}
+  | B(_, n) -> Scope(Named(SimpleName("bname")),[n]) 
+;

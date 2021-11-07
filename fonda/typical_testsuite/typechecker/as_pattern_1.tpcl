@@ -1,0 +1,14 @@
+module as_pattern_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = match n with
+   Module _ as n -> true {{ dg-warning "unused var" }} 
+  | _ -> false
+;

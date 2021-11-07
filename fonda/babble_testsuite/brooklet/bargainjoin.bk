@@ -1,0 +1,5 @@
+output q0; 
+input quotes, history; 
+(qq, $vn)	<- wrapNow(quotes, $vn); 
+(qb, $vq, $vh)  <- wrapBargainJoin(qq, history, $vq, $vh); 
+(q0, $vo)	<- wrapIStream(qb, $vo);

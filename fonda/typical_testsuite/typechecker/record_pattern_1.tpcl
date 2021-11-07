@@ -1,0 +1,18 @@
+module record_pattern_1;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  | PatternMatching of node list
+  | Foo 
+  ;
+
+mltype raw_type = N of int;
+
+mltype foo = {a: int};
+mltype bar = {b: string};
+
+mlvalue analyze n = match n with
+   {a = 2} -> true
+  | _ -> false
+;

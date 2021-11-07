@@ -1,0 +1,12 @@
+module typed_pattern_3;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int | M of string;
+mlvalue analyze n = n;
+
+mlvalue foo n m = match (n, m) with
+    (N _,M _): raw_type*raw_type -> true 
+  | _ -> false
+  ;

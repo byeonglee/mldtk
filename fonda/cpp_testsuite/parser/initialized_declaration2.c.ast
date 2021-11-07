@@ -1,0 +1,136 @@
+#superc_args -printAST
+ExternalDeclarationList(
+  Conditional(
+    !A || A && !B && !C && !D && E || A && !B && !C && D || A && !B && C || A && B,
+    FunctionDefinition(
+      FunctionDeclarator(
+        BasicTypeSpecifier(
+          BasicTypeName(
+            xtc.lang.cpp.Syntax$Language(
+              "int"
+            )
+          )
+        ),
+        PostfixIdentifierDeclarator(
+          SimpleDeclarator(
+            xtc.lang.cpp.Syntax$Text(
+              "main"
+            )
+          )
+        )
+      ),
+      DeclarationOrStatementList(
+        Conditional(
+          B,
+          ExpressionStatement(
+            Conditional(
+              !A && B,
+              PrimaryIdentifier(
+                xtc.lang.cpp.Syntax$Text(
+                  "b"
+                )
+              ),
+              A && B,
+              AssignmentExpression(
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "a"
+                  )
+                ),
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "b"
+                  )
+                )
+              )
+            )
+          )
+        ),
+        Conditional(
+          C,
+          ExpressionStatement(
+            Conditional(
+              !A && C || A && B && C,
+              PrimaryIdentifier(
+                xtc.lang.cpp.Syntax$Text(
+                  "c"
+                )
+              ),
+              A && !B && C,
+              AssignmentExpression(
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "a"
+                  )
+                ),
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "c"
+                  )
+                )
+              )
+            )
+          )
+        ),
+        Conditional(
+          D,
+          ExpressionStatement(
+            Conditional(
+              !A && D || A && !B && C && D || A && B && D,
+              PrimaryIdentifier(
+                xtc.lang.cpp.Syntax$Text(
+                  "d"
+                )
+              ),
+              A && !B && !C && D,
+              AssignmentExpression(
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "a"
+                  )
+                ),
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "d"
+                  )
+                )
+              )
+            )
+          )
+        ),
+        Conditional(
+          E,
+          ExpressionStatement(
+            Conditional(
+              !A && !D && E || A && !B && C && !D && E || A && B && !D && E,
+              PrimaryIdentifier(
+                xtc.lang.cpp.Syntax$Text(
+                  "e"
+                )
+              ),
+              D && E,
+              PrimaryIdentifier(
+                xtc.lang.cpp.Syntax$Text(
+                  "e"
+                )
+              ),
+              A && !B && !C && !D && E,
+              AssignmentExpression(
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "a"
+                  )
+                ),
+                PrimaryIdentifier(
+                  xtc.lang.cpp.Syntax$Text(
+                    "e"
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

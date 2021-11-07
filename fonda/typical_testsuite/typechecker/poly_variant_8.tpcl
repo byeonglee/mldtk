@@ -1,0 +1,21 @@
+module poly_variant_8;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [| `Foo of bar
+         | `Bar of bor ] 
+;
+
+mltype bar = Bar of string;
+
+mltype bor = Bor of node;
+
+mltype foo = Foo of string;
+
+mltype raw_type = P of int | TypeName of string;
+
+mlvalue analyze n = match n with
+    Foo(s) -> lookup Foo(s)  (* {{ dg-error "expected node" }} *)
+  | _ -> bottom
+;

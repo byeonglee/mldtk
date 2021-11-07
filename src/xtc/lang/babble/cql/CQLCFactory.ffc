@@ -1,0 +1,129 @@
+
+alias TYPEA, TYPEB, TYPEC, TYPED, TYPEE, TYPEF, TYPEG, TYPEH, TYPEI,
+  ISTREAM_TYPE1, ISTREAM_TYPE2, ISTREAM_TYPE3, ISTREAM_TYPE4,
+  ISTREAM_TYPE5, ISTREAM_TYPE6, ISTREAM_TYPE7, ISTREAM_TYPE8,
+  BabbleBuffer, BabbleUInt32, BabbleCQLInputSigmaType, BabbleCQLOutputType,
+  BabbleQueueReturn, BabbleReturn;
+
+factory xtc.lang.babble.cql.CQLCFactory {
+
+  testCall {
+    void foo() {
+      bar();
+      bat(); 
+    }
+  }
+
+  projectCondition {
+    BabbleTupleSet(outTup, 0, BabbleTupleGet(inTup, 0) + 100);
+  }
+
+  projectOutSchemaNew {
+    BabbleTuple1New(BabbleUInt32)
+      }
+
+  projectOpDec {
+    BabbleReturn*
+      #name(const BabbleBuffer inBuf, BabbleUInt32 port);
+  }
+
+  projectOp {
+    BabbleReturn*
+      #name(const BabbleBuffer inBuf, BabbleUInt32 port)
+    {
+      typedef TYPEA BabbleTupleInputSchema;
+      typedef TYPEB BabbleTupleOutputSchema;
+      typedef TYPEF BabbleCQLInputSigmaType;
+      typedef TYPEG BabbleCQLOutputSigmaType;
+      typedef BabbleUInt32 BabbleCQLTauType;
+      assert(0 == port);
+      TYPEC inDataItem = 
+        BabbleTuple3New(BabbleCQLTauType, BabbleCQLInputSigmaType, BabbleCQLInputSigmaType);
+      BabbleRead(inBuf, inDataItem);
+      BabbleUInt32  ts = BabbleTupleGet(inDataItem,0);
+      BabbleCQLInputSigmaType  inDataItem1 = BabbleTupleGet(inDataItem,1);
+      BabbleCQLInputSigmaType  inDataItem2 = BabbleTupleGet(inDataItem,2);
+      BabbleCQLOutputSigmaType outDataItem1 =
+        BabbleBagNew(BabbleTupleOutputSchema);
+      TYPED inDataItem1It;
+      BabbleIteratorBegin(inDataItem1It, inDataItem1);
+      while(BabbleIteratorHasNext(inDataItem1It, inDataItem1 )) {
+        TYPEA inTup = BabbleIteratorValue(TYPEA, inDataItem1It);
+        BabbleTupleOutputSchema outTup = #outschemanew;
+#assignment
+        BabbleBagAdd(outDataItem1, outTup);
+        BabbleIteratorNext(inDataItem1It);
+      }
+      TYPED inDataItem2It;
+      BabbleIteratorBegin(inDataItem2It, inDataItem2);
+      while(BabbleIteratorHasNext(inDataItem2It,inDataItem2)) {
+        TYPEA inTup = BabbleIteratorValue(TYPEA, inDataItem2It);
+        BabbleTupleOutputSchema outTup = #outschemanew;
+#assignment
+        BabbleBagAdd(outDataItem1, outTup);
+        BabbleIteratorNext(inDataItem2It);
+      }
+      TYPEE outDataItem = 
+        BabbleTuple3New(BabbleCQLTauType, BabbleCQLOutputSigmaType, BabbleCQLOutputSigmaType);
+      BabbleTupleSet(outDataItem,0,ts);
+      BabbleTupleSet(outDataItem,1,outDataItem1);
+      BabbleBuffer out = BabbleBufferNew();
+      BabbleWrite(out, outDataItem); 
+      BabbleReturn* retval = BabbleReturnNew();
+      TYPEH queues = BabbleListNew(BabbleQueueReturn);
+      TYPEI variables = BabbleListNew(BabbleVariableReturn);
+      BabbleQueueReturn* qr = BabbleQueueReturnNew;
+      qr->buffer = &out;
+      qr->index = 0;
+      BabbleListPushBack(queues, *qr);
+      retval->queues = queues;
+      retval->variables = variables;
+      BabbleTuple3Delete(inDataItem);       
+      BabbleBagDelete(outDataItem1);
+      BabbleTuple3Delete(outDataItem);
+      return retval;
+    }
+  }
+
+  istreamOpDec {
+    BabbleReturn*
+      #name(const BabbleBuffer inBuf, BabbleUInt32 port);
+  }
+
+  istreamOp {
+    BabbleReturn*
+      #name(const BabbleBuffer inBuf, BabbleUInt32 port)
+    {
+      typedef ISTREAM_TYPE5 BabbleTupleInputSchema;
+      typedef ISTREAM_TYPE6 BabbleTupleOutputSchema;
+      typedef ISTREAM_TYPE7 BabbleCQLInputSigmaType;
+      typedef ISTREAM_TYPE8 BabbleCQLOutputSigmaType;
+      typedef BabbleUInt32 BabbleCQLTauType; 
+      assert(0 == port);
+      ISTREAM_TYPE1 inDataItem = 
+        BabbleTuple3New(BabbleCQLTauType, BabbleCQLInputSigmaType, BabbleCQLInputSigmaType);
+      ISTREAM_TYPE2 outDataItem = 
+        BabbleTuple3New(BabbleCQLTauType, BabbleCQLOutputSigmaType, BabbleCQLOutputSigmaType);
+      BabbleRead(inBuf, inDataItem);
+      BabbleUInt32  ts = BabbleTupleGet(inDataItem,0);
+      BabbleCQLInputSigmaType  inputInsertions = BabbleTupleGet(inDataItem,1);
+      BabbleTupleSet(outDataItem, 0, ts);
+      BabbleTupleSet(outDataItem, 1, inputInsertions);
+      BabbleBuffer out = BabbleBufferNew();
+      BabbleWrite(out, outDataItem);
+      BabbleReturn* retval = BabbleReturnNew();
+      ISTREAM_TYPE3 queues = BabbleListNew(BabbleQueueReturn);
+      ISTREAM_TYPE4 variables = BabbleListNew(BabbleVariableReturn);
+      BabbleQueueReturn* qr = BabbleQueueReturnNew;
+      qr->buffer = &out;
+      qr->index = 0;
+      BabbleListPushBack(queues, *qr);
+      retval->queues = queues;
+      retval->variables = variables;
+      BabbleTuple3Delete(inDataItem);       
+      BabbleTuple3Delete(outDataItem);
+      return retval;
+    }
+  }       
+
+}

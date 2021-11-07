@@ -1,0 +1,4 @@
+output q1;
+input q0;
+(q1) <- Pipe (q0);
+

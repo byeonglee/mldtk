@@ -1,0 +1,9 @@
+module float_multi_3;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of float64;
+mlvalue analyze n = n;
+
+mlvalue foo2 = true *. 123.4; (* {{ dg-error "expected 64-bit float, found boolean" }} *)

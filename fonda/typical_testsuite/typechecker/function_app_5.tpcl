@@ -1,0 +1,15 @@
+module function_app_5;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = n + 1;
+
+mlvalue bar n = let x = 2 and {{ dg-warning "unused var" }}
+                    y = 3 in 
+                  foo x y; {{ dg-error "too many arguments" }} 

@@ -1,0 +1,39 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+materialize(table2, infinity, infinity, keys(1, 2)).
+materialize(table3, infinity, infinity, keys(1, 2)).
+materialize(expected, infinity, infinity, keys(1, 2, 3)).
+
+table1(localhost:5000, 1, 100).
+table1(localhost:5000, 2, 200).
+table1(localhost:5000, 3, 300).
+table1(localhost:5000, 4, 400).
+table1(localhost:5000, 5, 500).
+
+table2(localhost:5000, 1, 100).
+table2(localhost:5000, 2, 200).
+table2(localhost:5000, 3, 300).
+table2(localhost:5000, 4, 400).
+table2(localhost:5000, 5, 500).
+
+table3(localhost:5000, 300).
+table3(localhost:5000, 400).
+
+
+/* expected output */
+expected(localhost:5000, 3, 2).
+expected(localhost:5000, 3, 1).
+expected(localhost:5000, 4, 3).
+expected(localhost:5000, 4, 2).
+expected(localhost:5000, 4, 1).
+
+
+r0 ini(@X):- periodic(@X, 0, 1).
+
+r1 out(@X, P, Q) :- ini(@X), table1(@X, P, Y), table2(@X, Q, _), 
+   	      	    table3(@X, Y), P>Q.
+
+watch(out).
+
+
+r2 exit(@X) :- out(@X,A,B), A == 3, B == 1.
+

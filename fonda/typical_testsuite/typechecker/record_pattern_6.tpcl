@@ -1,0 +1,17 @@
+module record_pattern_6;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node
+  | PatternMatching of node list
+  | Foo 
+  ;
+mltype raw_type = N of int;
+
+mltype foo = {a: int};
+mltype bar = {b: string};
+
+mlvalue analyze n = match n with
+   {a = true} -> true {{ dg-error "type of the pattern does not match" }}
+  | _ -> false
+;

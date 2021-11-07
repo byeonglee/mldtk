@@ -1,0 +1,17 @@
+module constructor_pattern_9;
+
+mltype node = 
+    Module of node list
+  | NodeName of string
+  | Test of string * node * node list
+  | M of int * string
+  | N of bool * float64
+  ;
+mltype raw_type = P of int;
+
+mlvalue analyze n = match n with
+    Test(_,Test(_,NodeName(s),_),_) -> s = "foo"
+  | _ -> false
+;
+
+

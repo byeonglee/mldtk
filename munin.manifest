@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Main-Class: edu.nyu.cs.web.Server
+Implementation-Title: Munin - The NYU CS Event-Driven Web Server
+Implementation-Version: 1.0
+Implementation-Vendor: New York University
+Implementation-URL: http://cs.nyu.edu/rgrimm
+Sealed: true

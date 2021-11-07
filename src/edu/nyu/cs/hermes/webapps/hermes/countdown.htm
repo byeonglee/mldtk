@@ -1,0 +1,46 @@
+<html>
+<!--
+  The countdown page. This page tells the user where
+  to look to face the camera and presents a countdown
+  before the picture is snapped and sent in an email
+ -->
+  <head>
+  <title>Hermes</title>
+  <link rel="stylesheet" href="style.css" type="text/css" />
+  <script language="Javascript">
+    function change(){
+      var img = countdown.src;
+      var index = img.char( img.indexOf( '_' ) + 1 );
+      index--;
+      countdown.src = "images/timer_"+ index + ".png"
+    }
+    function countdown(){
+    setTimeout('change', 1000);
+    setTimeout('change', 1000);
+    setTimeout('change', 1000);
+    setTimeout('change', 1000);
+    setTimeout('change', 1000);
+    
+    //get the url
+    //cut the end off and forward it to the jsp page
+    }
+  </script>
+  
+  <body onLoad="countdown()">
+  
+  <div class="header">
+  <br />
+  <img src="images/hermes_logo.png">
+  <br />
+  </div>
+  
+  <table align=center width=500>
+    <tr>
+      <td>
+        <img name="countdown" src="images/timer_5.png">
+      </td>
+    </tr>
+  </table>
+  
+  </body>
+  </html>

@@ -1,0 +1,5 @@
+output hits;
+input @keys(target) logs ;
+@parallel() @commutes() @keys()         (q1, $v1) <- range2 (logs, $v1) ;
+@parallel() @commutes() @keys(origin)   (q2, $v2) <- aggregate1 (q1, $v2) ;
+@parallel()                                (hits) <- istream0 (q2) ;

@@ -1,0 +1,12 @@
+module var_type_6;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype 'a btree = Empty | Btree of 'a * 'a btree * ('a, 'a) btree ; {{ dg-error "too many type parameters" }}
+
+mlvalue analyze n = n;
+
+

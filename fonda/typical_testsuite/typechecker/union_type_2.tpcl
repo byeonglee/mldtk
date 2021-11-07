@@ -1,0 +1,11 @@
+module union_type_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mltype  foo = M of int * bool |
+             P of string * foo;
+

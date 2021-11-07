@@ -1,0 +1,17 @@
+module constraint_type_4;
+
+mltype node = 
+    Module of node list
+  | FirstNode of string
+  | SecondNode of node
+  | ThirdNode of string * node
+  | ForthNode of node * node
+  ;
+  
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue extractType = reduce to required optional singleton "type" with (* {{ dg-error "not compatible" }} *)
+    [FirstNode _]  -> 1 
+  | [SecondNode _] -> 2  ;
+  

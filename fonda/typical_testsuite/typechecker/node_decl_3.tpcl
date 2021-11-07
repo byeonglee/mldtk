@@ -1,0 +1,10 @@
+module node_decl_3;
+
+mltype node = 
+   M of int 
+ | N of float64 * bool
+ | M of bool {{ dg-error "previously defined" }}    
+;
+
+mltype raw_type = P of int;
+mlvalue analyze n = n;

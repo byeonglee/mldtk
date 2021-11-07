@@ -1,0 +1,19 @@
+module exhaustive_19;
+
+mltype node = 
+    Module of node list
+  | Foo of int
+  | Bar of bool * bool
+  ;
+
+mltype raw_type = N of int;
+mltype re = {a: int, b: bool} ;
+mltype rec = {c: re, d: bool} ;
+
+mlvalue analyze n = match n with
+    {c = {b = true}, d = true} -> true
+  | {c = {b = false}, d = false} -> false  
+  | {c = {b = false}, d = true} -> true
+  | {c = {b = true}, d = false} -> false
+ ;
+

@@ -1,0 +1,16 @@
+module as_pattern_4;
+
+mltype node = 
+    Module of node list
+  |  ScopeDefinition of node * node
+  | PatternMatching of node list
+  ;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+mlvalue foo n = match n with
+   ScopeDefinition(p, PatternMatching(nl) as p)  -> {{ dg-error "previously defined" }}
+     require (nl != []) error "null list" at p in true 
+  | _ -> false
+;

@@ -1,0 +1,5 @@
+output commission;
+input sale;
+(qt) <- BrokerCommission (sale);
+(commission) <- SelectIBM(qt);
+

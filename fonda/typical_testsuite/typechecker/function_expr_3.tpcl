@@ -1,0 +1,15 @@
+module function_expr_3;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node   
+  ;
+mltype raw_type = N of int | M of string * float64 | P of bool * int * float64;
+
+equality raw_type = M(s,_) | P(_,i,f); 
+
+mlvalue analyze =  let t = function 
+                              1 -> true {{ dg-error "do not match" }}
+                             |"s" -> false in
+                       t 2
+;

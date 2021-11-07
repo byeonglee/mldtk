@@ -1,0 +1,58 @@
+module TypedLambda;
+
+mltype node =
+  | Application of node * node
+  | Abstraction of node * type_spec * node
+  | Identifier of string
+  | IntegerConstant of string
+  | StringConstant of string
+  ;
+
+mltype type_spec =
+  | FunctionType of type_spec * type_spec
+  | IntegerType
+  | StringType
+  ;
+
+mltype raw_type = IntegerT | StringT | FunctionT of type * type ;
+
+scope Abstraction (id, _, body) -> Scope(Anonymous("lambda"), [id, body]) ;
+
+namespace default : type = Identifier (id) -> SimpleName(id) ;
+
+mlvalue get_type = function
+  | FunctionType (parameter, result) ->
+      { type = FunctionT (analyze parameter, get_type result) } (* {{ dg-error "expected node" }} *)
+  | IntegerType ->
+      { type = IntegerT }
+  | StringType ->
+      { type = StringT }
+  ;
+
+mlvalue analyze = function
+  | Application (lambda, expr) ->
+      let tl = analyze lambda
+      and tr = analyze expr in 
+        require (predicate FunctionT _) tl.type
+        error "application of non-function" in begin
+          match tl.type, tr with
+            | FunctionT (param, res), param -> res
+            | _ -> error "argument/parameter type mismatch"
+        end
+  | Abstraction (id, type, body) ->
+      let param = get_type type in
+      let _     = define id param in
+      let res   = analyze body in
+        { type = FunctionT (param, res) }
+  | Identifier _ as id ->
+      lookup id
+  | IntegerConstant _ ->
+      { type = IntegerT }
+  | StringConstant _ ->
+      { type = StringT }
+  ;
+
+mlvalue get_name = function
+  | Identifier (name) -> name
+  | _ -> bottom
+  ;

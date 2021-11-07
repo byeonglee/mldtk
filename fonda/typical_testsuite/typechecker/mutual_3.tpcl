@@ -1,0 +1,19 @@
+module mutual_3;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = VoidT | N of int;
+
+mlvalue f2 n = 2 + f3 n ;
+
+mlvalue f3 n = f1 (n - 2);
+
+mlvalue f1 n = match n with
+   2 -> 2
+  | _ -> f2 n + f3 n
+;

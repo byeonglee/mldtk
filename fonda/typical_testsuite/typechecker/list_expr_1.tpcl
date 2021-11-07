@@ -1,0 +1,13 @@
+module list_expr_1;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue foo = []
+  ;

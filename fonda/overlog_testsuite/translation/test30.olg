@@ -1,0 +1,23 @@
+materialize(table1, infinity, infinity, keys(1, 2)).
+materialize(expected, infinity, infinity, keys(1, 2)).
+
+table1(localhost:5000, 1, 100).
+table1(localhost:5000, 2, 200).
+table1(localhost:5000, 3, 300).
+table1(localhost:5000, 4, 400).
+table1(localhost:5000, 5, 500).
+
+
+/* expected output */
+expected(localhost:5000, 1).
+
+
+r0 ini(@X):- periodic(@X, 0, 1).
+
+r1 out(@X, a_MIN<P>) :- ini(@X), table1(@X, P, Q).
+
+
+watch(out).
+
+
+r2 exit(@X) :- out(@X, Y), Y == 1.

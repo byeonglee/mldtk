@@ -1,0 +1,22 @@
+module mutual_2;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+attribute d: float64;
+
+mltype raw_type = VoidT | N of int;
+
+
+mlvalue analyze n = match n with
+    Module(nl) -> let tl = analyzeList nl in true {{ dg-warning "unused var" }}
+  | ScopeDefinition(no) -> analyze no
+  | _ -> false
+;
+
+mlvalue analyzeList nl = match nl with
+   [] -> []
+  | x::xs -> (analyze x)::(analyzeList xs)
+;

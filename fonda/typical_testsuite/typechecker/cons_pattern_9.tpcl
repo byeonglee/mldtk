@@ -1,0 +1,15 @@
+module cons_pattern_9;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  ;
+
+mltype raw_type = N of int;
+
+mlvalue analyze n = n;
+
+mlvalue analyzeList l = match l with
+    [] -> false 
+  | ScopeDefinition(n)::[Module(nl)] -> true {{ dg-error "bindings in different nodes" }} 
+  ;

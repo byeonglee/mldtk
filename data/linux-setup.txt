@@ -1,0 +1,19 @@
+In order to generte a preprocessed version of the linux kernel 
+(ver 2.6 at least) you need to make a modification to scripts/Makefile.build 
+in the kernel source tree.  At approximately line 129 there is the rule:
+define rule_cc_o_c  
+
+add the following line as the first line of the rule:
+$(CC) $(c_flags) -E -o $@.E $< ;  \
+
+That will make all the object files needed for the kernel (based on .config)
+and also make files named .o.E which are the preprocessed output.  
+
+If you want to preprocesses "all" the files in the tree than run 
+'make config' and just select Y to everything.  This won't get all the 
+files since there are lots of either/or things but it gets the ones that
+aren't.  Warning doing this will take 10+ hours on a 3.0 ghz machine 
+with 1 gig of ram and consume ~3 gig of disk.
+
+--AMK
+   

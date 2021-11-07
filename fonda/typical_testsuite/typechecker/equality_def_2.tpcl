@@ -1,0 +1,11 @@
+module equality_def_2;
+
+mltype node = 
+    Module of node list
+ |   ScopeDefinition of node
+   ;
+mltype raw_type = N of int | M of string * float64 | P of bool * int * float64;
+
+equality raw_type = K(s,_) | P(_,i,f);  {{ dg-error "undefined" }}
+
+mlvalue analyze n = n;

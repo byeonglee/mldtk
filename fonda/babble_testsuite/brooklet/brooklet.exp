@@ -1,0 +1,58 @@
+#load_lib babble-sawzall-run.exp
+#global check_what ""
+#dg-init
+#
+# run test for every file .sz in this directory
+#
+#dg-runtest [lsort [glob -nocomplain $srcdir/$subdir/*.sz]] 
+#dg-finish
+
+set testcases [lsort [glob -nocomplain $srcdir/$subdir/*.bk]] 
+
+foreach testcase $testcases {
+  set output ""
+  set res ""
+  set timeout 120
+  set command "java xtc.lang.babble.brooklet.Brooklet -printSource $testcase"
+  verbose "testing $testcase"
+  eval spawn $command
+  expect {
+    -i $spawn_id -timeout $timeout -re ".+" {
+      append output $expect_out(buffer)
+      if { [string length $output] < 512000 } {
+        exp_continue -continue_timer
+      }
+    }
+    timeout {
+      set output "Timeout"
+      wait -i $spawn_id
+      return $output
+    }
+  }
+
+  # check if xtc (Brooklet) could not run
+  if ![regsub "Brooklet Driver" $output "Brooklet Driver" output] {
+    set output "Tool Error"
+      wait -i $spawn_id
+      return $output
+  }
+
+  # check and delete the first two lines
+  regsub "\[^\n]*\n" $output "" output
+  regsub "\[^\n]*\n" $output "" output
+
+  # delete extra (empty) lines
+  regsub -all "\n+" $output "\n" output
+  regsub "^\n+" $output "" output
+  wait -i $spawn_id
+ 
+  regexp "\[^\n\]*error:\[^\n\]+\n" $output res
+
+  if ![string match $res ""] {
+    fail $testcase
+  } else {
+    pass $testcase
+  }
+
+}
+

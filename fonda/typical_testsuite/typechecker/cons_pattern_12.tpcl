@@ -1,0 +1,30 @@
+module cons_pattern_12;
+
+mltype node = | A of node list 
+              | B of string * node
+              | C of node
+              | D of node * node ;
+
+(*****************************************************************************
+ *                             Scope declaration                             *
+ *****************************************************************************)
+scope
+    B(s,a) -> Scope(Named(SimpleName(s)),[a]);
+
+(*****************************************************************************
+ *                             Name_space declaration                        *
+ *****************************************************************************)
+namespace 
+  value: type = B(s,_) -> SimpleName(s) ;
+
+mltype raw_type = P of int;
+
+mlvalue check_vector_assignment xs es = 
+   match xs, es with 
+     | x :: xs, e :: es ->  
+         let _ = check_assignment x e in  {{ dg-error "undefined" }}
+           check_vector_assignment xs es 
+     | [], [] -> bottom 
+     | _::(_), [] -> error "lengths do not match in vector assignment" 
+     | [], _::(_) -> error "lengths do not match in vector assignment" 
+; 

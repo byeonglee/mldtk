@@ -1,0 +1,12 @@
+module var_type_7;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int;
+
+mltype ('a, 'b, 'c) foo = Empty | Foo of 'a * 'b ; {{ dg-warning "c is an unused var" }}
+
+mlvalue analyze n = n;
+
+

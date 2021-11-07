@@ -1,0 +1,5 @@
+queryOrigins : table sum[url : string] of count : int;
+queryTargets : table sum[url : string] of count : int;
+logRecord : { origin : string; target : string } = input;
+emit queryOrigins[logRecord.origin] <- 1;
+emit queryTargets[logRecord.target] <- 1;

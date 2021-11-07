@@ -1,0 +1,92 @@
+Hermes Docs:
+
+=======================================================
+Description:
+=======================================================
+Hermes is a messaging system intended for touch screen kiosk-like systems. Hermes provides a way for visitors outside a restricted access area to contact the staff member they are visiting directly. By touching the person' s name on the screen the user is presented with some information about the staff member and a method for contact. Those who subscribe to be in the hermes directory specify how they want to be contacted (office phone, cell phone, email, instant messaging...) when subscribing. WHENN  Hermes then takes the appropriate action and attempts contact. If a method fails to make contact, Hermes tries again with another method until successful or it runs out of methods. 
+
+
+=======================================================
+Flow
+=======================================================
+The main part of the Hermes project is a set of .jsp pages displayed on a touch screen. These .jsp pages use the MySQL  database to build an interface resembling a set of ID cards laid out. Users are first shown ranges of last names form which to choose. The next page displays the users inn the range of last names as a set of pictures with names, locations, and a button to contact them. When pressed, the contact page is invoked. Hermes determines the staff member's preferred method of contact and attempts to contact them.
+
+A secondary part of Hermes is the Hermes daemon. It performs several tasks. Primarily, the Hermes Daemon waits for connections and commands from the .jsp pages on the touch screen. Depending on the command, the daemon may send an email, dial the phone, send an instant message, or check to see if messages have been received for a specific subscriber. 
+
+It also serves as a secondary way for users to subscribe and unsubscribe. The mail daemon periodically checks the hermes mailbox and provides subscribe and unsubscribe services for the directory system. Staff members must send an email with the subject line "SUBSCRIBE" (no quotes) to the hermes mailbox with a vCard (RFC 2426, .vcf extension) file attached. The mail daemon then parses the card, checks the user's name against a white list (where?***) , enters the user's information in the database, and sends a confirmation email to the user. Once the user visits the activation page their account will become active and he/she will show up on the display. To unsubscribe, send a blank email to the hermes email address with the subject line "UNSUBSCRIBE".  
+
+=======================================================
+Requirements
+=======================================================
+
+Server environment:
+- Java Runtime Environment 1.4.1 + 
+- JavaMail API ( http://java.sun.com/products/javamail/ )
+- Java Activation API
+  ( http://java.sun.com/products/javabeans/glasgow/jaf.html )
+- Apache Tomcat (Developed on 4.1)
+- MySQL database (Developed on 4.0) ( www.mysql.org )
+- MySQL Connector J 
+- VoiceTronix OpenLine4 card with kernel driver ( www.voicetronix.com )
+- ctserver 0.6 ( www.voicetronix.com )
+
+
+
+Touch screen environment:
+- Linux (Redhat 9)
+- Gnome display manager
+- Mozilla with AutoHide Toolbox installed ( http://www.krickelkrackel.de/autohide.htm )
+
+=========================================================
+Installation
+=========================================================
+
+=====================
+	Hermes Server
+
+=====================
+Make sure java, tomcat, ctserver, and mySQL are running correctly and that 
+port 10383 is open.
+
+Install the java activation, JavaMail, and MySQL Connector/J by adding them to your
+CLASSPATH or copying them to  $JAVA_HOME/jre/lib/ext where JAVA_HOME is the path to 
+your java installation.
+
+Add Hermes.jar to your CLASSPATH or copy it to $JAVA_HOME/jre/lib/ext. Java jre 1.4.1+
+is recommended.
+
+Move webapps/hermes to $TOMCAT/webapps/ROOT/.
+
+Move all files in the prompts directory to /var/ctserver/USEngM/
+
+Move the hermes.conf file to a directory of your choice. You must run Hermes from the directory
+containing the hermes.conf file for it to read the settings or pass the -c flag
+with the full path to the config file ie. java Hermes -c /etc/hermes.conf.
+
+Edit hermes.conf.
+
+Don't forget to sign up for a AIM screen name! http://www.aim.com
+
+=====================
+	Touch Screens
+=====================
+
+This has only been tested on Redhat 9 with XFree86 4.3 and Mozilla 1.5. The
+touch screens were EloTouch screens with the Elo X driver and serial connection.
+
+Make sure Mozilla is installed with the AutoHide ToolBox (see above). 
+
+If you are using the serial connection you will need to have this script running.
+Since XScreensaver doesn't properly recognize serial port interrupts the screen will 
+lock up. This script reads the interrupt count in /proc/interrupts.
+Copy scripts/screenSaverSaver.sh to /usr/bin or anywhere in the $PATH.
+
+add this to the crontab:
+* * * * * pervasive screenSaverSaver.sh
+
+Copy the file scripts/kiosk to /etc/X11/gdm/Sessions
+Copy scripts/gdm.conf to /etc/X11/gdm/
+Copy scripts/.xscreensaver to the home directory of the user that owns the kiosk environment. 
+
+Remember to edit the hermes.conf file to associate the touch screens with the web cams.
+

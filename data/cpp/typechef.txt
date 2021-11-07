@@ -1,0 +1,89 @@
+rep1SepOpt prevents exponential explosion, but buggy
+bug in rep1SepOpt (heuristic to avoid exponential explosion in repSep, rep1Sep)
+array_break
+break3 (breaking using f call parm list)
+
+rep1Sep causes exponential explosion
+break4.c
+exponential explosion
+only parameterTypeList using the exponentially explosive rep1Sep
+
+ast duplicates shared nodes
+break7.c
+
+exponential explosion on assignment expression, but so does allofc (due to c definition)
+break8.c
+
+
+duplicates stuff on ast
+break12.c
+1) duplicates shared (because tree, not dag)
+2) but also duplicates some other stuff (see
+MultiFeatureParser:482 * drawback: currently the first expression after an optional expression is parsed twice:
+
+
+joins (check out how ASTs are joined)
+perhaps it needs to copy and join already constructed ast nodes or something similar?
+
+break14.c
+similar to array_break, drops some parses
+also mishandles parseing errors
+keeps invalid configuration
+
+goto_label.c
+weird behavior, treats bad_config: as an empty labeled statement, doesn't
+account for both possibilities where it is labeled with default:
+for some reasons, label: is a complete statement
+
+case7.c
+needs to duplicate tree nodes (reparsed?!)
+# Function-like macro hoisting.
+
+typechef_run_file.sh -t TypeChef -r -a "-o ./function_object2.c.typechef" /home/paul/work/java/fonda/cpp_testsuite/macros/function_object2.c;
+
+typechef_run_file.sh -t SuperC -r -a "-E" /home/paul/work/java/fonda/cpp_testsuite/macros/function_object2.c;
+TypeChef's Initial Configuration:
+
+TypeChef provides a great deal of initial configuration in several ways.  We will analyze it using the linuxTextCase.sh script as a starting point.
+
+Firstly, TypeChef's linux test runs on 7,665 of the 13,661 .c files in the linux kernel.  There are 9,862 files when removing all .c files from the arch directory except for arch/x86.
+
+The command-line takes several arguments to preconfigure the linux kernel:
+-c linux-redhat.properties  specifies system includes and predefined macros
+-x CONFIG_  treats only CONFIG_ macros as variable, rest are assumed undefined
+-U __INTEL_COMPILER  deconfigures intel compiler support
+-U __ASSEMBLY__  undefs a linux macro indicating headers are included in asm
+--include completedConf.h  defines/undefs over 300 config vars
+--include partialConf.h  constrains some config vars and defines non-bool vars
+--openFeat openFeaturesList.txt  specifies "free" config vars
+-U CONFIG_SPARC  deconfigures support for sparc architecture
+
+linux-redhat.properties specifies the following in LinuxAnalysis/src/main/scala/de/fosd/typechef/linux LinuxPreprocessorFrontend.scala
+1) systems/redhat/usr/lib/gcc/x86_64-redhat-linux/4.4.4/include
+   gcc includes
+2) host/platform-redhat-gnu89-O2-32bit.h
+   predefined macros
+3) systems/redhat/usr/include
+   system includes (actually specified in scala file itself
+
+-x CONFIG_ treats only macros starting with CONFIG_ as "free" in the file PartialPreprocessor/src/main/scala/de/fosd/typechef/lexer/macrotable/MacroContext.scala via lexer/Main.java
+
+-openFeat also filters macros, only those in the list are "free"
+The start and end times for running TypeChef/linuxTestCase.sh
+Mon May 30 19:33:43 EDT 2011
+Wed Jun  1 10:34:21 EDT 2011
+
+The total running time (hh:mm:ss)
+39:00:38
+
+Machine:
+core i5 2500k
+1-core turbo-boost overclocked from 3.7 to 4.4
+2-core turbo-boost overclocked from 3.6 to 4.3
+8GB RAM
+
+Ubuntu 10.10 Desktop
+gdm disabled
+
+Java VM given 2GB of RAM
+

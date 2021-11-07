@@ -1,0 +1,137 @@
+A:visited{
+	font-weight: normal;
+	font-size: 30pt;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: none
+}
+
+A:link{
+	font-weight: normal;
+	font-size: 30pt;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: none
+}
+
+A:active{
+	font-weight: normal;
+	font-size: 30.5pt;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: none
+}
+
+A:hover{
+	font-weight: normal;
+	font-size: 30.5pt;
+	COLOR: #000000;
+	font-family: Tahoma, Verdana, Helvetica, sans-serif;
+	text-decoration: underline
+}
+
+body {
+	font-family: verdana, arial, sans-serif;
+	font-size: large;
+	margin: 0px; 
+	padding: 0px;
+	text-align:center;
+	background-image: url(images/stripe_back.png); 
+}
+
+table.main{
+	margin: 0px auto;
+	align: center;
+}
+			
+table.names{
+	border: 1px solid #000;	
+}
+
+table.mainTable{
+	margin: 0px auto;			
+}
+				
+img.pic{
+	float: left;
+}
+
+div.name{
+	float: left;
+	color: #666;
+	padding-left: 10px;
+}
+		
+div.location{
+	float: left;
+	color: #000;
+	padding-left: 10px;
+	font-weight: bold;
+}
+		
+div.moreInfo{
+	float: left;
+	width: 300px;
+	padding-left: 25px;	
+	padding-top: 5px;
+	font-family: arial;	
+}
+		
+div.click{
+	margin: 0px auto; 
+	width: 290px;
+	height: 40px;
+	border: 1px solid #666;
+	color: #000;
+	background-color:#ccc;
+	font-weight: bold;
+	font-family: verdana;
+}
+
+div.text{
+	padding: 15px;
+	font-family: verdana;
+}
+		
+div.header{
+	text-align:left;
+	border-bottom: 2px solid #000;
+	background: #FFF;			
+}
+			
+div.message{
+	margin: 0px auto;
+	width: 75%;
+	border: 1px solid #CCC;
+	background: #FFF;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 18px;
+	font-style: normal;
+	font-weight: bold;
+}
+			
+div.directions{
+	margin: 0px auto;
+	width: 50%;
+	border: 1px solid #ccc;
+	background: #FFCC99;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 20px;
+	font-style: normal;
+}		
+
+.backButton{
+ 	position: relative;
+ 	left: 25px;
+}				
+
+.paddedDiv {
+	position: relative;
+	left: 25px;
+}
+.arrow_text{
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 25px;
+	font-style: normal;
+}
+

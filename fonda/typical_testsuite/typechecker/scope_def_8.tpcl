@@ -1,0 +1,19 @@
+module scope_def_3;
+
+mltype node = 
+  A of node * node list |
+  B of string * node |
+  C of node opt list |
+  D of string * foo
+;
+
+mltype foo = E of string * node;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+mltype bar = F of string * node;
+
+scope
+    A(_,l) -> Scope(Named(SimpleName("aname")),l) 
+  | B(_,n) -> Scope(Named(SimpleName("bname")),[n]) 
+  | F(_,m) -> Scope(Named(SimpleName("ename")),[m]) ; (* {{ dg-error "expected node" }} *)

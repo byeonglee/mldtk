@@ -1,0 +1,12 @@
+module require_expr_5;
+
+mltype node = 
+    Module of node list
+   | ScopeDefinition of node
+   | M of string
+  ;
+mltype raw_type = N of int;
+mlvalue analyze n = match n with
+    M(s) -> require s="string" error "Error message" at n in true
+  | _ -> false  
+;

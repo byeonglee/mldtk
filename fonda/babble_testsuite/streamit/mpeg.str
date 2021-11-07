@@ -1,0 +1,10 @@
+pipeline {
+  splitjoin {
+    split roundrobin;
+    filter { work {tf <- FrequencyDecode(peek(1), peek(2)); push(tf); pop();}}
+    filter { work {tm <- MotionVecDecode(peek(1)); push(tm); pop();}}
+    join roundrobin;
+  }
+  filter{s; work {s,tc <- MotionComp(s,peek(1)); push(tc); pop(); }}
+}
+

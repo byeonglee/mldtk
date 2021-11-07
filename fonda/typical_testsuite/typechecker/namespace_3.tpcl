@@ -1,0 +1,20 @@
+module namespace_3;
+
+mltype node = 
+    Module of node list
+  | ScopeDefinition of node
+  | LowerID of string
+  | UpperID of string
+  ;
+
+attribute d: float64;
+
+mltype raw_type = N of int;
+
+namespace value: type = LowerID(s) -> SimpleName(s) and
+          constructor: type = UpperID(s) -> Err(s); {{ dg-error "Err is undefined" }}
+
+mlvalue analyze n = n;
+
+
+

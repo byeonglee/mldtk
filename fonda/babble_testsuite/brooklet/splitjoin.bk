@@ -1,0 +1,7 @@
+output q5;
+input q0;
+(q1, q2) <- Split (q0);
+(q3) <- North (q1);
+(q4) <- South (q2);
+(q5) <- Join (q3, q4);
+

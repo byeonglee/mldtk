@@ -1,0 +1,17 @@
+module scope_def_1;
+
+mltype raw_type = N of int;
+mlvalue analyze n = n;
+
+
+mltype node = 
+  A of node * node list |
+  B of string * node |
+  C of node opt list |
+  D of string * node list
+;
+
+scope
+    A(_,l) -> Scope(Named(SimpleName("aname")),l)
+  | B(_, n) -> Scope(Named(SimpleName("bname")),[n])
+;

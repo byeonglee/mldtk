@@ -1,0 +1,5 @@
+output Sale;                 
+input Bid, Quote;             
+(BidWindow)   <- BidWindow (Bid,$BidWindowState);        
+(QuoteWindow) <- QuoteWindow (Quote, $QuoteWindowState);   
+(Sale)        <- Join (BidW, QuoteWindow, $Condition, $BidWindowState, $QuoteWindowState);

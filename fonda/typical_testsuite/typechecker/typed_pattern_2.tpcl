@@ -1,0 +1,12 @@
+module typed_pattern_2;
+
+mltype node = 
+    Module of node list
+  ;
+mltype raw_type = N of int | M of string;
+mlvalue analyze n = n;
+
+mlvalue foo n = match n with
+    N(n): err -> true {{ dg-error "err is undefined" }}
+  | _ -> false
+  ;

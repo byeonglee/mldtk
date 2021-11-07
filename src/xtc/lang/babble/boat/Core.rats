@@ -1,0 +1,424 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+/**
+ * Definition of OCaml identifiers and keywords.
+ *
+ * @author Robert Soule
+ * @version $Revision: 1.30 $
+ */
+module xtc.lang.babble.boat.Core(Constant, Identifier, Symbol, Spacing);
+
+import Constant;
+import Identifier;
+import Symbol;
+import Spacing;
+
+public generic Program = Spacing UnitImplementationList EndOfFile ;
+
+generic UnitInterfaceList         = UnitInterface+ ;
+generic UnitImplementationList    = UnitImplementation+ ;
+
+generic UnitInterface                = Specification (";;":Symbol)?  ;
+generic UnitImplementation           = Expression (";;":Symbol)?  
+                                     / Definition (";;":Symbol)? ;
+
+//generic Expression     = <TypeExpr> TypeExpr ;
+//generic Expression     = <TypeDefinition> TypeDefinition  void:";":Symbol void:";":Symbol ;
+
+//------------------------------ Type Expressions ------------------------------ 
+
+generic TypeConstr                   = (ModulePath void:".":Symbol)? TypeConstrName ;
+transient variant Node TypeExpr       = AliasedType ;
+generic AliasedType                   = <Recursion> AliasedType void:"as":Keyword TypeVariable
+                                      / <Base> yyValue:FunctionType ;
+generic FunctionType                  = <Recursion> FunctionType void:"->":Symbol TypeExpr
+                                      / <Base> yyValue:TupleType ;  
+generic TupleType                     = <Tuple> TupleType void:"*":Symbol TypeExpr
+                                      / <Base> yyValue:ConstructedType ;
+generic ConstructedType               = <Unary> ConstructedType ValuePath
+                                      / <Nary> yyValue:NaryConstructedType
+                                      / <ValuePath> yyValue:ValuePath 
+                                      / <Base> yyValue:ParenthesizedType ;
+generic NaryConstructedType           = NaryType ValuePath ;
+generic NaryType                      = void:"(":Symbol ConstructedType (void:",":Symbol ConstructedType)+ void:")":Symbol ;
+generic ParenthesizedType             = <Parenthesized> void:"(":Symbol TypeExpr void:")":Symbol 
+                                      / <Base> yyValue:PrimaryType;
+Node PrimaryType                      = <Boolean> BooleanType
+                                      / <Int> IntType
+                                      / <FloatType> FloatType
+                                      / <String> StringType
+                                      / <Any> AnyType
+                                      / <UserDefined> UserDefinedType
+                                      / <TypeVariable> TypeVariable
+                                      / <PolymorphicVariant> PolyVariantType ;
+
+inline generic BooleanType            = void:"bool":Keyword ;
+inline generic IntType                = void:"int":Keyword ;
+inline generic FloatType              = void:"float":Keyword ;
+inline generic Float32                = void:"float32":Keyword ;
+inline generic Float64                = void:"float64":Keyword ;
+inline generic StringType             = void:"string":Keyword ;
+inline generic AnyType                = void:"any":Keyword ;
+inline generic UserDefinedType        = LowercaseIdentifier ;
+inline generic TypeVariable           = void:"'":Symbol LowercaseIdentifier ;
+generic TypeParameters                = <Nary>  void:"(":Symbol TypeVariable (void:",":Symbol TypeVariable)+ void:")":Symbol
+                                      / <Unary> TypeVariable ;
+variant Node TypeInformation          = <Variant> VariantDeclaration
+                                      / <Record> RecordDeclaration
+                                      / <PolymorphicVariant> PolyVariantDeclaration ;
+inline generic VariantDeclaration     = void:("|":Symbol)? TypeConstructor (void:"|":Symbol TypeConstructor)* ;
+inline generic RecordDeclaration      = void:"{":Symbol FieldTypeList void:"}":Symbol ;
+generic FieldTypeList                 = FieldType_ps ;
+inline generic PolyVariantDeclaration = void:"[":Symbol void:("|":Symbol)? PolyTypeConstructor (void:"|":Symbol PolyTypeConstructor)* void:"]":Symbol ;
+inline generic PolyVariantType        = void:"[":Symbol void:("|":Symbol)? PolyTypeConstructor (void:"|":Symbol PolyTypeConstructor)* void:"]":Symbol ;
+generic TypeConstructor               = UppercaseIdentifier (void:"of":Keyword TypeExpr)? ;
+generic FieldType                     = LowercaseIdentifier void:":":Symbol TypeExpr ;
+generic PolyTypeConstructor           = void:"`":Symbol UppercaseIdentifier void:"of":Keyword LowercaseIdentifier ;
+
+
+
+//-------------------------- Type and Exception Defs ------------------------------ 
+// See page 117 in reference manual
+
+generic TypeDefinition      = void:"type":Keyword TypeDefList ;
+generic TypeDefList         = TypeDef_pand ;
+generic TypeDef             = TypeParams? TypeConstrName TypeInfo ;
+generic TypeInfo            = TypeEquation? TypeRepresentation? TypeConstraint*;
+generic TypeEquation        = TypeExpr ;
+generic TypeRepresentation  = void:"=":Symbol ConstrDeclList 
+                            / void:"=":Symbol void:"{":Symbol FieldDeclList void:"}":Symbol ;
+generic TypeParams          = TypeParam
+                            / void:"(":Symbol TypeParamList void:")":Symbol ;
+
+generic ConstrDecl          = ConstrName (void:"of":Keyword TypeExpr)?;
+generic FieldDecl           = ("mutable":Keyword)? LowercaseIdentifier void:":":Symbol TypeExpr; 
+generic TypeParam           = TypeParamPrefix? void:"'":Symbol Identifier ;
+generic TypeParamPrefix     = "+":Symbol / "-":Symbol ;
+generic TypeConstraint      = void:"constraint":Keyword void:"'":Symbol Identifier void:"=":Symbol TypeExpr;
+
+generic FieldDeclList       = FieldDecl_ps ;
+generic TypeParamList       = TypeParam_pc ;
+generic ConstrDeclList      = ConstrDecl_pb ;
+generic TypeExprList        = TypeExpr_pa ;
+
+Node ExceptionDefinition    = <ExceptionDefinitionEqual> ExceptionDefinitionEqual
+                            / <ExceptionDefinitionOf> ExceptionDefinitionOf ;
+
+generic ExceptionDefinitionEqual =  void:"exception":Keyword UpperID void:"=":Symbol Constr ;
+generic ExceptionDefinitionOf    =  void:"exception":Keyword UpperID (void:"of":Keyword TypeExprList)? ;
+                            
+
+//------------------------- Refering to Named Object  -------------------------- 
+
+generic ValuePath          = (ModulePath void:".":Symbol)? LowerID ;
+generic Constr             = (UppercaseIdentifier void:".":Symbol)* UppercaseIdentifier ;
+//generic TypeConstr         = (ExtendedModulePath void:".":Symbol)? TypeConstrName ;
+generic Field              = (ModulePath void:".":Symbol)? FieldName ;
+generic ModTypePath        = (ModulePath void:".":Symbol)? UpperID ;
+generic ClassPath          = (ModulePath void:".":Symbol)? ClassName ;
+generic ModulePath         = ModuleName (void:".":Symbol ModuleName)* ;
+generic ExtendedModulePath = ExtendedModulePath void:".":Symbol ModuleName 
+                           / ExtendedModulePath void:"(":Symbol ExtendedModulePath void:")":Symbol
+                           / ModuleName ;
+
+//------------------------------ Names  ----------------------------------------  
+
+String ValueName        = LowercaseIdentifier
+                        / void:"(":Symbol OperatorName void:")":Symbol;
+String OperatorName     = PrefixSymbol
+                        / InfixOp;
+String InfixOp          = InfixSymbol
+                        / "*":Symbol
+                        / "=":Symbol
+                        / "or":Keyword
+                        / "&":Symbol
+                        / ":=":Symbol
+                        / "mod":Keyword
+                        / "land":Keyword
+                        / "lor":Keyword
+                        / "lxor":Keyword
+                        / "lsl":Keyword
+                        / "lsr":Keyword
+                        / "asr":Keyword
+                        ;
+String ConstrName      = UppercaseIdentifier;
+String LabelName       = LowercaseIdentifier;
+String TagName         = UppercaseIdentifier;
+generic TypeConstrName = LowercaseIdentifier;
+String FieldName       = LowercaseIdentifier;
+String ModuleName      = UppercaseIdentifier;
+String ModTypeName     = Identifier;
+String ClassName       = LowercaseIdentifier;
+String InstVarName     = LowercaseIdentifier;
+String MethodName      = LowercaseIdentifier;
+
+//------------------------------  Patterns ------------------------------ 
+
+
+Node Pattern                   = LazyPattern ;
+generic LazyPattern            = <Recursion> void:"lazy":Keyword Pattern 
+                               / <Base> yyValue:BracketBarPattern ;
+generic BracketBarPattern      = <Recursion> void:"[|":Symbol PatternList void:"|]":Symbol
+                               / <Base> yyValue:DoubleColonPattern ;
+generic PatternList            = Pattern_ps ;
+Pair<Node> Pattern_ps          = Pattern (void:";":Symbol Pattern)* ;
+generic DoubleColonPattern     = <Recursion> DoubleColonPattern void:"::":Symbol Pattern
+                               / <Base> yyValue:BracketPattern ;
+generic BracketPattern         = <Recursion> void:"[":Symbol PatternList void:"]":Symbol
+                               / <Base> yyValue:RecordPattern ;
+generic RecordPattern          = <Recursion> void:"{":Symbol FieldPatternList void:"}":Symbol
+                               / <Base> yyValue:CommaPattern ;
+generic FieldPatternList       = FieldPattern_ps ;
+Pair<Node> FieldPattern_ps     = FieldPattern (void:";":Symbol FieldPattern)* ;
+generic FieldPattern           = LowerID void:"=":Symbol Pattern ;
+generic CommaPattern           = <Recursion> CommaPattern void:",":Symbol Pattern
+                               / <Base> yyValue:TagPattern ;
+//generic TypeConstrPattern      = <Recursion> void:"#":Symbol TypeConstrName
+//                               / <Base> yyValue:TagPattern ;
+generic TagPattern             = <Recursion> void:"'":Symbol UpperID Pattern
+                               / <Base> yyValue:ConstructorPattern ;
+generic ConstructorPattern     = <Recursion> Constr BarPattern 
+                               / <Base> yyValue:BarPattern ;
+generic BarPattern             = <Recursion> BarPattern void:"|":Symbol Pattern
+                               / <Base> yyValue:ParenthesisedPattern ;
+generic ParenthesisedPattern   = <Recursion> void:"(":Symbol Pattern ( void:":":Symbol TypeExpr)? void:")":Symbol 
+                               / <Base> yyValue:AsPattern ;
+generic AsPattern              = <Recursion> AsPattern void:"as":Keyword LowerID
+                               / <Base> yyValue:AtomicPattern ;
+Node AtomicPattern             = <WildCard>         WildCard
+                               / <Variable>         Variable
+                               / <Literal>          Literal 
+                               / <UpperID>          UpperID ;
+generic Variable               = LowerID ;
+generic WildCard               = void:"_":Symbol ;
+
+
+
+generic PatternMatching        = ("|":Symbol)? PatternMatchList ;
+generic MultipleMatching       = MultipleParameters WhenClause? void:"->":Symbol Expression ;
+generic MultipleParameters     = Parameter_s ;            
+Pair<Node> Parameter_s         = Parameter+ ;           
+generic PatternMatchList       = PatternMatch_pb;
+Pair<Node>  PatternMatch_pb    = PatternMatch (void:"|":Symbol PatternMatch )* ;
+generic PatternMatch           = Pattern WhenClause? void:"->":Symbol Expression ;
+generic WhenClause             = void:"when":Keyword Expression ;
+
+//------------------------------  Expressions ------------------------------ 
+
+Node Expression                            = LetExpression;
+generic LetExpression                      = <Recursion> void:"let":Keyword ("rec":Keyword)? LetBindingList void:"in":Keyword Expression  
+                                           / <Base> yyValue:TryExpression ;
+generic LetBindingList                     = LetBinding_pand ;
+Pair<Node> LetBinding_pand                 = LetBinding ( void:"and":Keyword LetBinding)*;
+generic LetBinding                         = Pattern void:"=":Symbol Expression 
+                                           / LowerID Parameters Type? void:"=":Symbol Expression ;                                           
+generic Type                               = void:":":Symbol TypeExpr ;                                                     
+generic TryExpression                      = <Recursion> void:"try":Keyword Expression void:"with":Keyword PatternMatching  
+                                           / <Base> yyValue:FunExpression ;
+generic FunExpression                      = <Recursion> void:"fun":Keyword MultipleMatching  
+                                           / <Base> yyValue:FunctionExpression ;
+generic FunctionExpression                  = <Recursion> void:"function":Keyword PatternMatching  
+                                           / <Base> yyValue:MatchExpression ;
+generic MatchExpression                    = <Recursion> void:"match":Keyword Expression void:"with":Keyword PatternMatching  
+                                           / <Base> yyValue:SemiExpression ;
+generic SemiExpression                     = <Recursion> SemiExpression void:";":Symbol Expression
+                                           / <Base> yyValue:ForExpression ;
+generic ForExpression                      = void:"for":Keyword LowerID void:"=":Symbol Expression Direction Expression void:"do":Keyword Expression void:"done":Keyword
+                                           / <Base> yyValue:WhileExpression ;
+generic Direction                          = "to":Keyword / "downto":Keyword ;
+generic WhileExpression                    = void:"while":Keyword Expression void:"do":Keyword Expression void:"done":Keyword
+                                           / <Base> yyValue:IfElseExpression ;
+generic IfElseExpression                   = void:"if":Keyword Expression void:"then":Keyword Expression void:"else":Keyword Expression
+                                           / <Base> yyValue:IfExpression ;
+generic IfExpression                       = void:"if":Keyword Expression void:"then":Keyword Expression 
+                                           / <Base> yyValue:CommaExpression ;
+generic ArrowClause                        = void:"<-":Symbol Expression ;
+generic CommaExpression                    = <Recursion> CommaExpression void:",":Symbol LogicalOrExpression 
+                                           / <Base> yyValue:LogicalOrExpression ;
+
+
+generic LogicalOrExpression                = <Or> LogicalOrExpression void:"||":Symbol LogicalAndExpression
+                                           / <Base> yyValue:LogicalAndExpression ;
+transient generic LogicalAndExpression     = <And> LogicalAndExpression void:"&&":Symbol EqualityExpression
+                                           / <Base> yyValue:EqualityExpression ;
+transient generic EqualityExpression       = <Recursion> EqualityExpression EqualityOperator RelationalExpression
+                                           / <Base> yyValue:RelationalExpression ;
+String EqualityOperator                    = <Equal> "=":Symbol
+                                           / <EqualEqual> "==":Symbol  
+                                           / <NotEqual> "<>":Symbol  
+                                           / <BangEqual> "!=":Symbol  ;
+transient generic RelationalExpression     = <Recursion> RelationalExpression RelationalOperator AdditiveExpression
+                                           / <Base> yyValue:AdditiveExpression ;  
+String RelationalOperator                  = IntegerRelationalOperator
+                                           / FloatRelationalOperator  ;
+String IntegerRelationalOperator           = <IntegerLessEqual> "<=":Symbol
+                                           / <IntegerLess> "<":Symbol
+                                           / <IntegerGreaterEqual> ">=":Symbol
+                                           / <IntegerGreater> ">":Symbol ;
+String FloatRelationalOperator             = <FloatLessEqual> "<=.":Symbol
+                                           / <FloatLess> "<.":Symbol
+                                           / <FloatGreaterEqual> ">=.":Symbol
+                                           / <FloatGreater> ">.":Symbol ;
+transient generic AdditiveExpression       = <Recursion> AdditiveExpression AdditiveOperator ConcatenationExpression
+                                           / <Base> yyValue:ConcatenationExpression  ;
+String AdditiveOperator                    = IntegerAdditiveOperator
+                                           / FloatAdditiveOperator  ;
+String IntegerAdditiveOperator             = <IntegerPlus>  "+":Symbol
+                                           / <IntegerMinus> "-":Symbol ;
+String FloatAdditiveOperator               = <FloatPlus>  "+.":Symbol
+                                           / <FloatMinus> "-.":Symbol ;
+transient generic ConcatenationExpression  = <Recursion> ConcatenationExpression ConcatenationOperator MultiplicativeExpression
+                                           / <Base> yyValue:MultiplicativeExpression ;
+String ConcatenationOperator               = "^":Symbol 
+                                           / "@":Symbol ;
+transient generic MultiplicativeExpression = <Recursion> MultiplicativeExpression MultiplicativeOperator AssignmentExpression
+                                           / <Base> yyValue:AssignmentExpression ;
+String MultiplicativeOperator              = IntegerMultiplicativeOperator
+                                           / FloatMultiplicativeOperator ;
+String IntegerMultiplicativeOperator       = <IntegerTimes>  "*":Symbol
+                                           / <IntegerOver>   "/":Symbol
+                                           / <Modulo>        "mod":Keyword  ;
+String FloatMultiplicativeOperator         = <FloatTimes>  "*.":Symbol
+                                           / <FloatOver>   "/.":Symbol  ;
+generic AssignmentExpression               = <Recursion> AssignmentExpression void:":=":Symbol Expression
+                                           / <Base> yyValue:AssertExpression ;
+generic AssertExpression                   = void:"assert":Keyword Expression 
+                                           / <Base> yyValue:LazyExpression ;
+generic LazyExpression                     = void:"lazy":Keyword Expression 
+                                           / <Base> yyValue:ApplicationExpression ;
+generic ApplicationExpression              = ApplicationExpression ArgumentList
+                                           / yyValue:DottedBracketExpression ;                
+generic ArgumentList                       = Argument+ ;       
+generic Argument                           = Expression ;
+generic DottedBracketExpression            = <Recursion> DottedBracketExpression void:".":Symbol void:"[":Symbol Expression void:"]":Symbol ArrowClause?
+                                           / <Base> yyValue:DottedParenExpression ;
+generic DottedParenExpression              = <Recursion> DottedParenExpression void:".":Symbol void:"(":Symbol Expression void:")":Symbol ArrowClause?
+                                           / <Base> yyValue:DottedExpression ;
+generic DottedExpression                   = <Recursion> DottedExpression void:".":Symbol ID ArrowClause?
+                                           / <Base> yyValue:PrefixExpression ;
+generic ID                                 = Identifier ;
+generic PrefixExpression                   = PrefixOp Expression
+                                           / yyValue:RecordWithExpression ;
+generic PrefixOp                           = "!":Symbol 
+                                           / "-":Symbol ;
+generic RecordWithExpression               = <Recursion> void:"{":Symbol  void:"with":Keyword FieldAssignmentList void:"}":Symbol 
+                                           / <Base> yyValue:RecordExpression ;
+generic RecordExpression                   = <Recursion> void:"{":Symbol FieldAssignmentList void:"}":Symbol 
+                                           / <Base> yyValue:BracketBarExpression ;
+generic FieldAssignment                    = Field void:"=":Symbol LogicalOrExpression ;
+generic FieldAssignmentList                = FieldAssignment_ps ;
+Pair<Node> FieldAssignment_ps              = FieldAssignment (void:";":Symbol FieldAssignment)* ;
+generic BracketBarExpression               = <Recursion> void:"[|":Symbol ExpressionSemiList void:"|]":Symbol  
+                                           / <Base> yyValue:ListExpression ;
+generic ListExpression                     = <Recursion> void:"[":Symbol ExpressionSemiList void:"]":Symbol 
+                                           / <Base> yyValue:ColonColonExpression ;
+generic ExpressionSemiList                 = Expression_ps;
+Pair<Node> Expression_ps                   = Expression (void:";":Symbol Expression)* ;
+generic ColonColonExpression               = <Recursion> ColonColonExpression void:"::":Symbol Expression 
+                                           / <Base> yyValue:TagNameExpression ;
+generic TagNameExpression                  = <Recursion> void:"'":Symbol UpperID Expression 
+                                           / <Base> yyValue:ConstrExpression ;
+generic ConstrExpression                   = <Recursion> Constr Expression 
+                                           / <Base> yyValue:PrimaryExpression ;
+Node PrimaryExpression                     = <TypedExpression>          TypedExpression
+                                           / <BeginExpression>          BeginExpression
+                                           / <ParenthesizedExpression>  ParenthesizedExpression
+                                           / <LowerID>                  LowerID
+                                           / <UpperID>                  UpperID
+                                           / <Constant>                 Constant  
+                                           / <Operator>                 Operator ;
+generic Operator                           = AdditiveOperator ;
+generic TypedExpression                    = void:"(":Symbol Expression void:":":Symbol TypeExpr void:")":Symbol ;
+generic BeginExpression                    = void:"begin":Keyword Expression void:"end":Keyword ;
+generic ParenthesizedExpression            = void:"(":Symbol Expression void:")":Symbol ;
+
+Node Literal                               = Constant ;
+generic LowerID                            = LowercaseIdentifier ;
+generic UpperID                            = UppercaseIdentifier ;
+
+generic Parameters                         = Parameter* ;
+generic Parameter                          = LowerID (void:":":Symbol TypeExpr)?
+                                           / Pattern ; 
+
+//------------------------------ Module types ------------------------------ 
+
+generic ModuleType = "todo":Word;
+
+generic Specification =                                        
+                     void:"open":Keyword ModulePath
+                   / void:"include":Keyword ModuleExpr
+                   / void:"external":Keyword ValueName void:":":Symbol TypeExpr void:"=":Symbol ExternalDeclaration
+                   ;
+
+//  void:"module":Keyword ModuleName (void:"(":Symbol ModuleName void:":":Symbol ModuleType void:")":Symbol)* void:":":Symbol ModuleType
+
+//------------------------------ Module Expressions ------------------------------ 
+// page 130
+
+//                   / ModuleExpr void:"(":Symbol ModuleExpr void:")":Symbol                   
+//                    / void:"struct":Keyword void:"{":Symbol Definition (void:";;":Symbol)?
+
+Node ModuleExpr              = <ModulePathExpr> ModulePathExpr
+                             / <StructExpr> StructExpr
+                             / <FunctorExpr> FunctorExpr
+                             / <ParenthesizedExpr> ParenthesizedExpr ;
+generic ModulePathExpr       = ModulePath ;
+generic StructExpr           = void:"struct":Keyword DefinitionOrExprList void:"end":Keyword  ;
+generic FunctorExpr          = void:"functor":Keyword void:"(":Symbol ModuleName void:":":Symbol ModuleType void:")":Symbol void:"->":Symbol ModuleExpr ;
+generic ParenthesizedExpr    = void:"(":Symbol ModuleExpr void:":":Symbol ModuleType void:")":Symbol
+                             / void:"(":Symbol ModuleExpr void:")":Symbol ;
+
+generic DefinitionOrExpr     = Definition (";;":Symbol)? /  Expression (";;":Symbol)? ;
+generic DefinitionOrExprList = DefinitionOrExpr* ; 
+
+Node Definition              = <LetBindingDef> LetBindingDef
+                             / <TypeDefinition> TypeDefinition
+                             / <ExceptionDefinition>  ExceptionDefinition
+                             / <ModuleDeclaration> ModuleDeclaration
+                             / <OpenModule> OpenModule
+                             / <IncludeModule> IncludeModule
+                             / <ExternalDefinition> ExternalDefinition ;
+
+generic LetBindingDef        = void:"let":Keyword ("rec":Keyword)? LetBindingList ;
+generic ModuleDeclaration    = void:"module":Keyword ModName void:"=":Symbol ModuleExpr ;
+generic ModName              = ModuleName ;
+generic OpenModule           = void:"open":Keyword ModulePath ;
+generic IncludeModule        = void:"include":Keyword ModuleExpr ;
+generic ExternalDefinition   = void:"external":Keyword LowercaseIdentifier void:":":Symbol TypeExpr void:"=":Symbol ExternalDeclaration ;
+
+//                           / <ExternalDefinition> void:"external":Keyword ValueName void:":":Symbol TypeExpr void:"=":ExternalDeclaration ;
+//                           / <ModuleDeclaration> "module":Keyword ModuleName (ModuleName void:":":Symbol ModuleType)* void:"=":Symbol ModuleExpr 
+
+
+//------------------------------ Undefined for now  ------------------------------ 
+
+generic ExternalDeclaration = StringLiteral ;
+
+//------------------------------ Lists ------------------------------ 
+
+Pair<Node> FieldDecl_ps           = (FieldDecl void:";":Symbol)+ ;
+Pair<Node> TypeParam_pc           = TypeParam (void:",":Symbol TypeParam)* ;
+Pair<Node> ConstrDecl_pb          = ConstrDecl (void:"|":Symbol ConstrDecl)* ;
+Pair<Node> TypeExpr_pa            = TypeExpr (void:"*":Symbol TypeExpr)* ;
+Pair<Node> FieldType_ps           = FieldType ( void:";":Symbol FieldType )* ;
+Pair<Node> TypeDef_pand           = TypeDef (void:"and":Keyword TypeDef)* ;
+Pair<Node> Pattern_pb             = Pattern (void:"|":Symbol Pattern)* ;  
+Pair<Node> LogicalOrExpression_pc = LogicalOrExpression ( void:",":Symbol LogicalOrExpression)+ ;
+

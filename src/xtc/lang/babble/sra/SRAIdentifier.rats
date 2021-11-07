@@ -1,0 +1,57 @@
+/*
+ * xtc - The eXTensible Compiler
+ * Copyright (C) 2010 New York University
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
+ * USA.
+ */
+
+module xtc.lang.babble.sra.SRAIdentifier(Spacing, Reserved, Identifier);
+
+import Spacing;
+import Reserved;
+modify Identifier;
+
+body {
+  static {
+    add(SRA_KEYWORDS, new String[] {
+      "as",
+      "avg",
+      "count",
+      "distinct",
+      "dstream",
+      "istream",
+      "join",
+      "now",
+      "partition",
+      "project",
+      "range",
+      "relation",
+      "rows",
+      "rstream",
+      "select",
+      "stream",
+      "sum",
+      "union",
+      "aggregate"
+    });
+  }
+}
+
+option setOfString(SRA_KEYWORDS), setOfString(OCAML_KEYWORDS);
+
+String Keyword              := yyValue:Word &{ contains(SRA_KEYWORDS, toText(yyValue)) || contains(OCAML_KEYWORDS, toText(yyValue)) } Spacing;
+String Identifier           := yyValue:Word &{ !contains(SRA_KEYWORDS, toText(yyValue)) && !contains(OCAML_KEYWORDS, toText(yyValue)) } Spacing;
+String LowercaseIdentifier  := yyValue:LowercaseCharacters &{ !contains(SRA_KEYWORDS, toText(yyValue)) && !contains(OCAML_KEYWORDS, toText(yyValue)) } Spacing;
+String UppercaseIdentifier  := yyValue:UppercaseCharacters &{ !contains(SRA_KEYWORDS, toText(yyValue)) && !contains(OCAML_KEYWORDS, toText(yyValue)) } Spacing;

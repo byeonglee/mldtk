@@ -1,0 +1,20 @@
+module poly_variant_7;
+
+mltype node = 
+   M of string 
+ | N of string * node
+ | Q of [| `Foo of bar
+         | `Bar of bor ] 
+;
+
+mltype bar = Bar of string;
+
+mltype bor = Bor of node;
+
+mltype raw_type = P of int | TypeName of string;
+
+mlvalue analyze n = match n with
+    Q(n) -> lookup n  {{ dg-error "do not match" }}
+  | Bar(s) -> lookup_locally Bar(s)
+  | _ -> bottom
+;
