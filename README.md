@@ -1,6 +1,6 @@
 ## Multi-Language Debugging Toolkit
 
-Multi-language debugging toolkit (mldtk) is a collection of software tools derived from the xtc project at http://www.cs.nyu.edu/xtc. The main goal of this toolkit is to make it easy to test and debug the computer programs written in multiple programming languages. It includes a debugger for mixed-environment (Blink), a runtime error detector for foreign language interfaces, and a syntax and semantic error checker for processing macros in multiple languages (Marco). Its implementation works for Java and C/C++ while its design is programming language agnostic.
+Multi-language debugging toolkit (mldtk) is a collection of software tools derived from the xtc project at http://www.cs.nyu.edu/xtc. The main goal of this toolkit is to make it easy to test and debug the computer programs written in multiple programming languages. It includes a debugger for mixed-environment (Blink), a runtime error detector for foreign language interfaces (Jinn), and a syntax and semantic error checker for processing macros in multiple languages (Marco). Its implementation works for Java and C/C++ while its design is programming language agnostic.
  
  ## Related research papers
 * MUSEUM: Debugging Real-World Multilingual Programs using Mutation Analysis. Information and Software Technology (IST) Volume 82, February 2017 \[[paper](https://byeonglee.github.io/publications/museum-ist-2017.pdf)\].
