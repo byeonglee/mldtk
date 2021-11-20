@@ -524,7 +524,7 @@ public final class GenerateJNIFunctionProxy implements JNIConstants {
           w.printf("    awrap.type = BDA_VA_LIST;\n");
         } else if (argPass.equals("V")) {
           w.printf("    awrap.type = BDA_VA_LIST;\n");
-          w.printf("    awrap.value.ap = %s;\n", fargs[3].varName);
+          w.printf("    va_copy(awrap.value.ap, %s);\n", fargs[3].varName);
         } else if (argPass.equals("A")) {
           w.printf("    awrap.type = BDA_JARRAY;\n");
           w.printf("    awrap.value.array = %s;\n", fargs[3].varName);
@@ -540,11 +540,11 @@ public final class GenerateJNIFunctionProxy implements JNIConstants {
         } else if (argPass.equals("V")) {
           w.printf("    awrap.type = BDA_VA_LIST;\n");
           if (methodType.equals("")) {
-            w.printf("     awrap.value.ap = %s;\n", fargs[3].varName);
+            w.printf("     va_copy(awrap.value.ap, %s);\n", fargs[3].varName);
           } else if (methodType.equals("Nonvirtual")) {
-            w.printf("     awrap.value.ap = %s;\n", fargs[4].varName);
+            w.printf("     va_copy(awrap.value.ap, %s);\n", fargs[4].varName);
           } else if (methodType.equals("Static")) {
-            w.printf("     awrap.value.ap = %s;\n", fargs[3].varName);
+            w.printf("     va_copy(awrap.value.ap, %s);\n", fargs[3].varName);
           } else {
             assert false;
           }

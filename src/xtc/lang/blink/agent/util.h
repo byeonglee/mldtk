@@ -32,16 +32,28 @@
 
 #if defined(__i386__)
 #define GET_CURRENT_PROCESS_ID() getpid()
-#define GET_FRAME_POINTER(fp) asm("mov %%ebp, %0;": "=m"(fp));
+#define GET_FRAME_POINTER(fp) asm("mov %%rbp, %0;": "=m"(fp));
 #define GET_RETURN_ADDRESS(addr) \
-  asm("movl 4(%%ebp), %%eax;movl %%eax, %0;":"=m"(addr));
+  asm("movl 8(%%rbp), %%eax;movl %%eax, %0;":"=m"(addr));
 #define GET_PREVIOUS_FRAME_POINTER(fp) \
-  asm("movl 0(%%ebp), %%eax;movl %%eax, %0;":"=m"(fp));
+  asm("movl 0(%%rbp), %%rax;movl %%rax, %0;":"=m"(fp));
 #define SET_RETURN_ADDRESS(addr) \
-  asm("movl %0, %%eax;movl %%eax, 4(%%ebp);"::"m"(addr));
+  asm("movl %0, %%rax;movl %%rax, 8(%%rbp);"::"m"(addr));
 #define SET_PREVIOUS_FRAME_POINTER(fp) \
-  asm("movl %0, %%eax;movl %%eax, 0(%%ebp);"::"m"(fp));
+  asm("movl %0, %%rax;movl %%rax, 0(%%rbp);"::"m"(fp));
 
+#elif defined(__x86_64__)
+#define GET_CURRENT_PROCESS_ID() getpid()
+#define GET_FRAME_POINTER(fp) \
+  { fp = __builtin_frame_address(0); }
+#define GET_RETURN_ADDRESS(addr) \
+  { addr = __builtin_return_address(0); }
+#define GET_PREVIOUS_FRAME_POINTER(fp) \
+  { fp = __builtin_frame_address(1); }
+#define SET_RETURN_ADDRESS(addr) \
+  { void **fp = __builtin_frame_address(0); *(fp + 1) = addr;}
+#define SET_PREVIOUS_FRAME_POINTER(addr) \
+  { void **fp = __builtin_frame_address(0); *(fp + 0) = addr;}
 #elif defined(__powerpc__)
 #define GET_CURRENT_PROCESS_ID() getpid()
 #define GET_FRAME_POINTER(fp) asm("stw %%r1, %0": "=m"(fp));

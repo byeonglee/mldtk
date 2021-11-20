@@ -2031,7 +2031,7 @@ static jobject JNICALL bda_c2j_proxy_NewObjectV(JNIEnv * env, jclass p1, jmethod
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-    awrap.value.ap = p3;
+    va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "NewObjectV")
@@ -2547,7 +2547,7 @@ static jobject JNICALL bda_c2j_proxy_CallObjectMethodV(JNIEnv * env, jobject p1,
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallObjectMethodV")
@@ -2808,7 +2808,7 @@ static jboolean JNICALL bda_c2j_proxy_CallBooleanMethodV(JNIEnv * env, jobject p
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallBooleanMethodV")
@@ -3053,7 +3053,7 @@ static jbyte JNICALL bda_c2j_proxy_CallByteMethodV(JNIEnv * env, jobject p1, jme
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallByteMethodV")
@@ -3298,7 +3298,7 @@ static jchar JNICALL bda_c2j_proxy_CallCharMethodV(JNIEnv * env, jobject p1, jme
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallCharMethodV")
@@ -3543,7 +3543,7 @@ static jshort JNICALL bda_c2j_proxy_CallShortMethodV(JNIEnv * env, jobject p1, j
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallShortMethodV")
@@ -3788,7 +3788,7 @@ static jint JNICALL bda_c2j_proxy_CallIntMethodV(JNIEnv * env, jobject p1, jmeth
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallIntMethodV")
@@ -4033,7 +4033,7 @@ static jlong JNICALL bda_c2j_proxy_CallLongMethodV(JNIEnv * env, jobject p1, jme
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallLongMethodV")
@@ -4278,7 +4278,7 @@ static jfloat JNICALL bda_c2j_proxy_CallFloatMethodV(JNIEnv * env, jobject p1, j
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallFloatMethodV")
@@ -4523,7 +4523,7 @@ static jdouble JNICALL bda_c2j_proxy_CallDoubleMethodV(JNIEnv * env, jobject p1,
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallDoubleMethodV")
@@ -4765,7 +4765,7 @@ static void JNICALL bda_c2j_proxy_CallVoidMethodV(JNIEnv * env, jobject p1, jmet
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallVoidMethodV")
@@ -5018,7 +5018,7 @@ static jobject JNICALL bda_c2j_proxy_CallNonvirtualObjectMethodV(JNIEnv * env, j
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualObjectMethodV")
@@ -5288,7 +5288,7 @@ static jboolean JNICALL bda_c2j_proxy_CallNonvirtualBooleanMethodV(JNIEnv * env,
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualBooleanMethodV")
@@ -5542,7 +5542,7 @@ static jbyte JNICALL bda_c2j_proxy_CallNonvirtualByteMethodV(JNIEnv * env, jobje
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualByteMethodV")
@@ -5796,7 +5796,7 @@ static jchar JNICALL bda_c2j_proxy_CallNonvirtualCharMethodV(JNIEnv * env, jobje
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualCharMethodV")
@@ -6050,7 +6050,7 @@ static jshort JNICALL bda_c2j_proxy_CallNonvirtualShortMethodV(JNIEnv * env, job
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualShortMethodV")
@@ -6304,7 +6304,7 @@ static jint JNICALL bda_c2j_proxy_CallNonvirtualIntMethodV(JNIEnv * env, jobject
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualIntMethodV")
@@ -6558,7 +6558,7 @@ static jlong JNICALL bda_c2j_proxy_CallNonvirtualLongMethodV(JNIEnv * env, jobje
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualLongMethodV")
@@ -6812,7 +6812,7 @@ static jfloat JNICALL bda_c2j_proxy_CallNonvirtualFloatMethodV(JNIEnv * env, job
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualFloatMethodV")
@@ -7066,7 +7066,7 @@ static jdouble JNICALL bda_c2j_proxy_CallNonvirtualDoubleMethodV(JNIEnv * env, j
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualDoubleMethodV")
@@ -7317,7 +7317,7 @@ static void JNICALL bda_c2j_proxy_CallNonvirtualVoidMethodV(JNIEnv * env, jobjec
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p4;
+     va_copy(awrap.value.ap, p4);
 
     success = 1 
     && bda_check_env_match(s, env, "CallNonvirtualVoidMethodV")
@@ -9160,7 +9160,7 @@ static jobject JNICALL bda_c2j_proxy_CallStaticObjectMethodV(JNIEnv * env, jclas
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticObjectMethodV")
@@ -9424,7 +9424,7 @@ static jboolean JNICALL bda_c2j_proxy_CallStaticBooleanMethodV(JNIEnv * env, jcl
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticBooleanMethodV")
@@ -9672,7 +9672,7 @@ static jbyte JNICALL bda_c2j_proxy_CallStaticByteMethodV(JNIEnv * env, jclass p1
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticByteMethodV")
@@ -9920,7 +9920,7 @@ static jchar JNICALL bda_c2j_proxy_CallStaticCharMethodV(JNIEnv * env, jclass p1
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticCharMethodV")
@@ -10168,7 +10168,7 @@ static jshort JNICALL bda_c2j_proxy_CallStaticShortMethodV(JNIEnv * env, jclass 
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticShortMethodV")
@@ -10416,7 +10416,7 @@ static jint JNICALL bda_c2j_proxy_CallStaticIntMethodV(JNIEnv * env, jclass p1, 
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticIntMethodV")
@@ -10664,7 +10664,7 @@ static jlong JNICALL bda_c2j_proxy_CallStaticLongMethodV(JNIEnv * env, jclass p1
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticLongMethodV")
@@ -10912,7 +10912,7 @@ static jfloat JNICALL bda_c2j_proxy_CallStaticFloatMethodV(JNIEnv * env, jclass 
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticFloatMethodV")
@@ -11160,7 +11160,7 @@ static jdouble JNICALL bda_c2j_proxy_CallStaticDoubleMethodV(JNIEnv * env, jclas
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticDoubleMethodV")
@@ -11405,7 +11405,7 @@ static void JNICALL bda_c2j_proxy_CallStaticVoidMethodV(JNIEnv * env, jclass p1,
   if (bda_jvmti && agent_options.jinn && (s != NULL) && (s->mode != JVM) && !bda_is_in_jdwp_region(ret_addr)) {
     int success;    struct bda_var_arg_wrap awrap;
     awrap.type = BDA_VA_LIST;
-     awrap.value.ap = p3;
+     va_copy(awrap.value.ap, p3);
 
     success = 1 
     && bda_check_env_match(s, env, "CallStaticVoidMethodV")

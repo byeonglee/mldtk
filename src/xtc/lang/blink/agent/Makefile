@@ -19,24 +19,34 @@ ifndef JAVA_HOME
 endif
 
 
-JAVAC_OPTIONS  = -target 1.5 -g -Xlint:unchecked -d $(CLASS_DIR) -sourcepath $(SOURCE_DIR)
+JAVAC_OPTIONS  = -g -Xlint:unchecked -d $(CLASS_DIR) -sourcepath $(SOURCE_DIR)
 AGENT_SOURCES=Agent.java AgentVariable.java
 AGENT_CLASS_DIR=$(JAVA_DEV_ROOT)/classes/xtc/lang/blink/agent/
 AGENT_CLASSES=$(addprefix $(AGENT_CLASS_DIR),$(patsubst	%.java,%.class,$(AGENT_SOURCES)))
 AGENT_C_SOURCE_FILES=agent.c agent_main.c util.c state.c \
   j2c_proxy.c c2j_proxy.c agent_class.c options.c jnicheck.c
+ARCH=$(shell arch)
 
 ifneq (,$(findstring linux,$(OSTYPE)))
-  DLL_CC  = gcc -lm -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o 
+  DLL_CC  = gcc -fPIC -lm -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o 
   AGENT_DLL=$(JAVA_DEV_ROOT)/bin/libjinn.so
+ifeq ($(ARCH), x86_64)
+  AGENT_C_SOURCE_FILES += x86_64_linux.c
+else ifeq ($(ARCH), i686)
+  AGENT_C_SOURCE_FILES += x86_32.c
+else
+  $(error agent does not yet support $(shell arch))
+endif
 else
 ifeq  ($(OSTYPE),mingw)
   DLL_CC  = mingw32-gcc -Wl,--add-stdcall-alias -lm -g -shared -g -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/win32 -o 
   AGENT_DLL=$(JAVA_DEV_ROOT)/bin/jinn.dll
+  AGENT_C_SOURCE_FILES += x86_32.c
 else
 ifeq ($(OSTYPE),win32)
   DLL_CC = cl /Zi /LD /I $(JAVA_HOME)/include /I $(JAVA_HOME)/include/win32 /Fe
   AGENT_DLL=$(JAVA_DEV_ROOT)/bin/jinn.dll
+  AGENT_C_SOURCE_FILES += x86_32.c
 else
   $(error agent does not yet support $(OSTYPE))
 endif # win32

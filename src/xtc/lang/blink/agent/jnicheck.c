@@ -5,6 +5,7 @@
 #include <classfile_constants.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "agent_main.h"
 #include "state.h"
@@ -124,7 +125,7 @@ void htable_destroy(struct htable *t)
 
 int htable_hash(void *key)
 {
-    return (unsigned)key % (unsigned)HTABLE_BUCKET_SIZE;
+    return (uintptr_t)key % HTABLE_BUCKET_SIZE;
 }
 
 void htable_put(struct htable *t, void *key, void *value)
@@ -616,7 +617,7 @@ int bda_check_global_ref_leak(JNIEnv *env)
         int i;
         struct hentry *e;
 
-        printf("The following global references are alive.\n");
+        printf("The following global references are not released.\n");
         for(i=0; i < HTABLE_BUCKET_SIZE;i++)
             for(e=bda_global_ref_table->buckets[i];e != NULL;e=e->next) {
                 jobject o = (jobject)e->key;
@@ -635,7 +636,7 @@ int bda_check_weak_global_ref_leak(JNIEnv *env)
     if (htable_count(bda_weak_global_ref_table) > 0) {
         int i;
         struct hentry *e;
-        printf("The following weak global references are alive.\n");
+        printf("The following weak global references are not released.\n");
         for(i=0; i < HTABLE_BUCKET_SIZE;i++)
             for(e=bda_weak_global_ref_table->buckets[i];e != NULL;e=e->next) {
                 jobject o = (jobject)e->key;
