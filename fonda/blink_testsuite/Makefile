@@ -5,10 +5,9 @@ ifndef JAVAC
 JAVAC = javac
 endif
 DJAVAC = $(JAVAC) -classpath . -source 1.5 -g
-OSTYPE = $(shell echo $$OSTYPE)
 ifdef JAVA_HOME
-ifeq (,$(findstring linux,$(OSTYPE)))
-  DLL_CC  = $(CC) -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o 
+ifneq (,$(findstring linux,$(OSTYPE)))
+  DLL_CC  = $(CC) -g -fPIC -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
   DLL_PREFIX = lib
   DLL_SUFFIX = .so
   JNI_DLL_SUFFIX = $(DLL_SUFFIX)
@@ -51,7 +50,7 @@ JEANNIE_PROGS=$(basename $(wildcard *.jni))
 endif
 PROGS=$(JNI_PROGS) $(JEANNIE_PROGS)
 
-.PHONY: programs jni_programs jeannie_programs check clean
+.PHONY: programs jni_programs jeannie_programs test clean
 
 programs: jni_programs jeannie_programs
 
@@ -59,7 +58,7 @@ jni_programs: $(addsuffix .class,$(JNI_PROGS)) $(addsuffix $(JNI_DLL_SUFFIX),$(a
 
 jeannie_programs: $(JEANNIE_PROGS)
 
-check: programs *.test.exp
+test: programs *.test.exp
 	for P in $(TEST_PROGS);do env CLASSPATH=.:$(CLASSPATH) expect $${P}.test.exp;done
 
 

@@ -1,2 +1,9 @@
 bin/libjinn.so
 classes
+fonda/jinn_testsuite/*.class
+fonda/jinn_testsuite/lib*.so
+fonda/blink_testsuite/*.class
+fonda/blink_testsuite/lib*.so
+fonda/blink_testsuite/*.jni.i
+fonda/blink_testsuite/*.jni.pp
+fonda/blink_testsuite/*.jni.symbols

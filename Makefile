@@ -411,7 +411,9 @@ doc     :
 #  5. make check-java      : run tests for the Java analyzer
 #  6. make check-jeannie   : run tests for the Jeannie compiler
 #  7. make check-cpp       : run tests for SuperC
-#  8. make check           : run all tests
+#  8. make check-jinn      : run tests for Jinn
+#  9. make check-blink     : run tests for Blink
+# 10. make check           : run all tests
 #
 # RUNTESTFLAGS is a variable used to choose which files (.exp) to check
 # Example: make check-parser RUNTESTFLAGS="compile.exp ..." 
@@ -486,6 +488,12 @@ check-cpp: pre-check
 check-babble: pre-check
 	runtest --tool babble $(RUNTESTFLAGS)	
 	$(RM) babble.log babble.sum
+
+check-jinn: pre-check
+	$(MAKE) -C $(FONDA_DIR)/jinn_testsuite test
+
+check-blink: pre-check
+	$(MAKE) -C $(FONDA_DIR)/blink_testsuite test
 
 check: pre-check check-unit check-rats check-c check-c-layout check-java \
        check-jeannie check-cpp

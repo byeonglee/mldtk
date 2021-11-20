@@ -5,10 +5,10 @@ ifndef JAVAC
 JAVAC = javac
 endif
 DJAVAC = $(JAVAC) -classpath . -source 1.5 -g
-OSTYPE = $(shell echo $$OSTYPE)
+
 ifdef JAVA_HOME
 ifneq (,$(findstring linux,$(OSTYPE)))
-  DLL_CC  = $(CC) -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o 
+  DLL_CC  = $(CC) -fPIC -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
   DLL_PREFIX = lib
   DLL_SUFFIX = .so
   JNI_DLL_SUFFIX = $(DLL_SUFFIX)
@@ -53,7 +53,7 @@ programs:  $(addsuffix .class,$(PROGS)) $(addsuffix $(JNI_DLL_SUFFIX),$(addprefi
 $(DLL_PREFIX)%$(JNI_DLL_SUFFIX): %.c
 	$(DLL_CC)$@ $<
 
-test:
+test: programs
 	perl jinn.test.pl
 
 clean: 
