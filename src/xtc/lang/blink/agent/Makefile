@@ -4,20 +4,8 @@ SOURCE = $(wildcard *.java)
 JNI_SOURCE = 
 JAR_EXTRAS = 
 
-.PHONY: agent default
-
-default: classes agent
-
+ifdef JAVA_DEV_ROOT
 include $(JAVA_DEV_ROOT)/Makerules
-
-ifndef JAVA_DEV_ROOT
-  $(error JAVA_DEV_ROOT must be defined)
-endif
-
-ifndef JAVA_HOME
-  $(error JAVA_HOME must be defined)
-endif
-
 
 JAVAC_OPTIONS  = -g -Xlint:unchecked -d $(CLASS_DIR) -sourcepath $(SOURCE_DIR)
 AGENT_SOURCES=Agent.java AgentVariable.java
@@ -53,6 +41,13 @@ endif # win32
 endif # mingw
 endif # linux
 
+.PHONY: default agent cleanagent
+
+default: classes
+
+classes: agent
+
+clean: cleanagent
 
 agent: $(AGENT_DLL) 
 
@@ -70,7 +65,6 @@ agent_class.c: $(AGENT_CLASSES) $(CLASS)
 	class_agent_jni_assertion_failure $(AGENT_CLASS_DIR)/JNIAssertionFailure.class
 
 cleanagent: 
-	rm -f $(AGENT_DLL) $(AGENT_CLASSES)
-agent:
+	rm -f $(AGENT_DLL)
 
-
+endif
