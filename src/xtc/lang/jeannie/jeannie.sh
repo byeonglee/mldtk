@@ -283,7 +283,7 @@ if [ $STAGE == jni.pp ]; then
   COMMAND_PRINT="$COMMAND > $DEST"
 
   if [ $VERBOSE == true ]; then printlnPos "$COMMAND_PRINT"; fi
-  $COMMAND > $DEST
+  $COMMAND  | grep -v '^# 0 '> $DEST
   testStageSuccess $LINENO "$COMMAND_PRINT" $? $DEST
 fi
 

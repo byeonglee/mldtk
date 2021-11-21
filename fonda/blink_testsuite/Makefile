@@ -38,6 +38,7 @@ endif
 endif
 endif
 endif
+JEANNIE = $(JAVA_DEV_ROOT)/src/xtc/lang/jeannie/jeannie.sh
 
 # JNI programs
 JNI_PROGS=PingPong CompoundData BadErrorChecking BadNullArgument
@@ -63,7 +64,7 @@ test: programs *.test.exp
 
 
 %: %.jni
-	@if [ ! -f $@.class ];then jeannie.sh -g JeannieMain.jni; cp JeannieMain.jni.symbols.ref JeannieMain.jni.symbols;fi
+	@if [ ! -f $@.class ];then $(JEANNIE) -g JeannieMain.jni; cp JeannieMain.jni.symbols.ref JeannieMain.jni.symbols;fi
 
 %.class: %.java
 	$(DJAVAC) $<
