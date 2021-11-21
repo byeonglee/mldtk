@@ -4,7 +4,7 @@
 sub test_jinn($)
 {
     local($prog)=@_;
-    open FILE, "java -agentlib:jinn $prog 2>&1|" or die $!;
+    open FILE, "java -Djava.library.path=. -cp . -agentlib:jinn $prog 2>&1|" or die $!;
     local(@lines) = <FILE>;
     foreach (@lines) {
         chop;
