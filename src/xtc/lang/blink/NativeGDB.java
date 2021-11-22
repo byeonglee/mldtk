@@ -428,7 +428,7 @@ public class NativeGDB extends StdIOProcess implements NativeDebugger,
   }
 
   private boolean checkBreakPointHitPattern(String msg) {
-    Pattern p = p("(?:.*\n)*" + "Breakpoint (\\d+), (.*\n(?:.*\\n)*)");
+    Pattern p = p("(?:.*\n)*" + "Thread .+ hit Breakpoint (\\d+), (.*\n(?:.*\\n)*)");
     Matcher mgdbbp = p.matcher(msg);
     if (mgdbbp.matches()) {
       int bpid = Integer.valueOf(mgdbbp.group(1));

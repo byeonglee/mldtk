@@ -16,7 +16,7 @@ AGENT_C_SOURCE_FILES=agent.c agent_main.c util.c state.c \
 ARCH=$(shell arch)
 
 ifneq (,$(findstring linux,$(OSTYPE)))
-  DLL_CC  = gcc -fPIC -lm -g -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o 
+  DLL_CC  = gcc -fPIC -lm -g -Og -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
   AGENT_DLL=$(JAVA_DEV_ROOT)/bin/libjinn.so
 ifeq ($(ARCH), x86_64)
   AGENT_C_SOURCE_FILES += x86_64_linux.c
