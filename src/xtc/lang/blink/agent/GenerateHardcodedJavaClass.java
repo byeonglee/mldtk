@@ -145,10 +145,15 @@ public class GenerateHardcodedJavaClass {
       BufferedInputStream bis = new BufferedInputStream(is);
       os.write("/* This array is from " + inputFileName + ". */\n");
       os.printf("const char signed %s[%d] = {\n", arrayName, length);
-      int c, i=1;
+      int c, i=0;
       while ((c = is.read()) >= 0) {
-        os.printf("0x%02x, ", c);
-        if (i % 8 == 0) {os.write("\n");}
+        if (i % 8 == 0) {
+          os.printf("  0x%02x", c);
+        } else if (i % 8 == 7) {
+          os.printf(", 0x%02x,\n", c);
+        } else {
+          os.printf(", 0x%02x", c);
+        }
         i++;
       }
       os.write("\n");
