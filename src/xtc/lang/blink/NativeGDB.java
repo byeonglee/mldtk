@@ -352,8 +352,9 @@ public class NativeGDB extends StdIOProcess implements NativeDebugger,
       } else if (bptype.equals(BDA_BPTYPE_J2C_JNI_CALL)) {
         String native_target_address = readAddressValue(BDA_CBP_TARGET_NATIVE_ADDRESS); 
         // move the control to the prologue of the native method.
-        raeGDB("finish\n"); //bda_cbp -> jni_state_j2c_call
-        raeGDB("finish\n"); //jni_state_j2c_call -> j2c_proxy_xxx
+        raeGDB("finish\n"); //bda_cbp -> bda_state_j2c_call
+        raeGDB("finish\n"); //bda_state_j2c_call -> prof_j2c_call
+        raeGDB("finish\n"); //prof_j2c_call -> bda_j2c_proxy
         raeGDB("advance *" + native_target_address + "\n");
         dbg.enqueEvent(new Java2NativeCallEvent(this));
       } else if (bptype.equals(BDA_BPTYPE_J2C_JNI_RETURN)) {

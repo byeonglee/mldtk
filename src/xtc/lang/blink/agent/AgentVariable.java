@@ -1,7 +1,5 @@
 package xtc.lang.blink.agent;
 
-import static java.lang.String.format;
-
 /**
  * Blink's support for the convenience variables in Java. This class 
  * in particular represents a set of polymorphic
@@ -65,10 +63,15 @@ public class AgentVariable {
   }
 
   private static String genAccessExpression(int vid, String methodName, String typeName) {
-    return format("((%s)%s.%s(%d))",
-        typeName,
-        "xtc.lang.blink.agent.AgentVariable",
-        methodName, vid);
+    StringBuilder sb = new StringBuilder();
+    sb.append("((");
+    sb.append(typeName);
+    sb.append(")xtc.lang.blink.agent.AgentVariable.");
+    sb.append(methodName);
+    sb.append("(");
+    sb.append(vid);
+    sb.append("))");
+    return sb.toString();
   }
   /**
    * Take a class instance and return the fully qualified name of the
