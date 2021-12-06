@@ -1,0 +1,1 @@
+extern void dump_cpp_expr(Code<cpp,expr>);

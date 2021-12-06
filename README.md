@@ -8,7 +8,6 @@ Multi-language debugging toolkit (mldtk) is a collection of software tools deriv
  $ cd mldtk
  mldtk$ vi setup.sh
  mldtk$ source setup.sh
- mldtk$ mkdir classes
  mldtk$ make
  ```
  
@@ -16,6 +15,7 @@ Multi-language debugging toolkit (mldtk) is a collection of software tools deriv
  ```
  mldtk$ make check-jinn
  mldtk$ make check-blink
+ mldtk$ make check-marco
  ```
  
  ## Related research papers

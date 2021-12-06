@@ -1,0 +1,612 @@
+/* Marco Grammar */
+module Marco;
+
+header {
+  import java.util.ArrayList;
+  import java.util.Arrays;
+  import java.util.HashSet;
+  import java.util.List;
+  import java.util.Map;
+  import java.util.Set;
+  import java.util.TreeMap;
+  import xtc.lang.marco.type.CodeType;
+  import xtc.lang.marco.type.PrimitiveType;
+  import xtc.tree.Location;
+  import xtc.util.Action;
+}
+
+body {
+  public static final Set<String> MARCO_KEYWORDS =
+    new HashSet<String>(Arrays.asList("assert", "boolean", "Code", "const", "double", "else", "extern", "false", "for", "id", "if", "in", "import", "int", "list", "return", "set", "string", "true", "tuple", "type", "void", "with"));
+
+  public static final Set<String> CPP_KEYWORDS =
+    new HashSet<String>(Arrays.asList("and", "and_eq", "alignas", "alignof", "asm", "auto", "bitand", "bitor", "bool", "break", "case", "catch", "char", "char16_t", "char32_t", "class", "compl", "const", "constexpr", "const_cast", "continue", "decltype", "default", "delete", "double", "dynamic_cast", "else", "enum", "explicit", "export", "extern", "false", "float", "for", "friend", "goto", "if", "inline", "int", "long", "mutable", "namespace", "new", "noexcept", "not", "not_eq", "nullptr", "operator", "or", "or_eq", "private", "protected", "public", "register", "reinterpret_cast", "return", "short", "signed", "sizeof", "static", "static_assert", "static_cast", "struct", "switch", "template", "this", "thread_local", "throw", "true", "try", "typedef", "typeid", "typename", "union", "unsigned", "using", "virtual", "void", "volatile", "wchar_t", "while", "xor", "xor_eq"));
+
+  public static final Set<String> SQL_KEYWORDS =
+    new HashSet<String>(Arrays.asList("abort", "action", "add", "after", "all", "alter", "analyze", "and", "as", "asc", "attach", "autoincrement", "before", "begin", "between", "by", "cascade", "case", "cast", "check", "collate", "column", "commit", "conflict", "constraint", "create", "cross", "current_date", "current_time", "current_timestamp", "database", "default", "deferrable", "deferred", "delete", "desc", "detach", "distinct", "drop", "each", "else", "end", "escape", "except", "exclusive", "exists", "explain", "fail", "for", "foreign", "from", "full", "glob", "group", "having", "if", "ignore", "immediate", "in", "index", "indexed", "initially", "inner", "insert", "instead", "intersect", "into", "is", "isnull", "join", "key", "left", "like", "limit", "match", "natural", "no", "not", "notnull", "null", "of", "offset", "on", "or", "order", "outer", "plan", "pragma", "primary", "query", "raise", "references", "regexp", "reindex", "release", "rename", "replace", "restrict", "right", "rollback", "row", "savepoint", "select", "set", "table", "temp", "temporary", "then", "to", "transaction", "trigger", "union", "unique", "update", "using", "vacuum", "values", "view", "virtual", "when", "where"));
+
+  private final Location l(int yyStart) { return location(yyStart); }
+
+  private static final class AnnotationProperty {
+    final String _key;
+    final String[] _value;
+    AnnotationProperty(final String key, final Object value) {
+      _key = key;
+      _value = (String[])value;
+    }
+  }
+
+  private static final Fragment makeFragment(
+    Location startLoc, String language, String phrase,
+    List<AnnotationProperty> annotations, FragmentBody body, Location endLoc
+  ) {
+    CodeType type = new CodeType(language, phrase);
+    Map<String, String[]> properties = new TreeMap<String,String[]>();
+    for (AnnotationProperty a : annotations)
+      properties.put(a._key, a._value);
+    FragmentElement[] elements = body.flatten();
+    return new Fragment(startLoc, type, elements, properties,
+                        endLoc.line, endLoc.column);
+  }
+
+  private static final class FragmentBody extends FragmentElement {
+    private List<FragmentElement> _elems;
+    FragmentBody(final Location loc, final List<FragmentElement> elems) {
+      super(loc);
+      _elems = elems;
+    }
+    FragmentElement[] flatten() {
+      final List<FragmentElement> accum = new ArrayList<FragmentElement>();
+      flatten(accum);
+      return accum.toArray(new FragmentElement[accum.size()]);
+    }
+    private final void flatten(final List<FragmentElement> accum) {
+      for (final FragmentElement elem : _elems) {
+        if (elem instanceof FragmentBody) {
+          Location loc = new Location(elem.sourceFile,elem._line,elem._column);
+          accum.add(new ObjectToken(loc, "[", false, false));
+          ((FragmentBody)elem).flatten(accum);
+          accum.add(new ObjectToken(loc, "]", false, false));
+        } else {
+          accum.add(elem);
+        }
+      }
+    }
+    public final void accept(final Visitor visitor) {
+      assert false : "should be flattened away before traversal";
+      System.exit(-1);
+    }
+  }
+}
+
+option parser(xtc.lang.marco.ast.RatsMarcoParser);
+
+// ---------------- start of grammar rules ----------------
+
+public ProgramAst program =
+    WS t:topLevelDeclOrDef* EOF
+    {yyValue=new ProgramAst(l(yyStart), t.list().toArray(new TopLevelAst[0]));};
+
+TopLevelAst topLevelDeclOrDef =
+    importDecl
+  / typeDef
+  / functionDef
+  / externFuncDecl
+  / constDecl;
+
+ImportDecl importDecl =
+    IMPORT i:id SEMI {yyValue=new ImportDecl(l(yyStart), i);};
+
+// ---------------- types ----------------
+
+TypeDef typeDef =
+    TYPE i:id ASSIGN t:type SEMI
+    {yyValue=new TypeDef(l(yyStart), i, t);};
+
+TypeAst type =
+    i:id {yyValue=new UserTypeAst(l(yyStart), i);}
+  / VOID {yyValue=new VoidTypeAst(l(yyStart));}
+  / primitiveType
+  / codeType
+  / compositeType;
+
+CodeTypeAst codeType =
+    CODE LESS f:fragmentLanguage COMMA p:phraseType GREATER
+    {yyValue=new CodeTypeAst(l(yyStart), new CodeType(f, p));};
+
+PrimitiveTypeAst primitiveType =
+    BOOLEAN
+    {yyValue=new PrimitiveTypeAst(l(yyStart), PrimitiveType.BOOLEAN,"boolean");}
+  / INT
+    {yyValue=new PrimitiveTypeAst(l(yyStart), PrimitiveType.INT,    "int");}
+  / DOUBLE
+    {yyValue=new PrimitiveTypeAst(l(yyStart), PrimitiveType.DOUBLE, "double");}
+  / STRING
+    {yyValue=new PrimitiveTypeAst(l(yyStart), PrimitiveType.STRING, "string");};
+
+CompositeTypeAst compositeType =
+    TUPLE LESS h:attributeDecl t:(COMMA attributeDecl)* GREATER
+    {yyValue=new TupleTypeAst(l(yyStart),
+             new Pair<AttributeAst>(h, t).list().toArray(new AttributeAst[0]));}
+  / LIST LESS t:type GREATER
+    {yyValue=new ListTypeAst(l(yyStart), t);};
+
+AttributeAst attributeDecl =
+    t:type i:id
+    {yyValue=new AttributeAst(l(yyStart), i, t);};
+
+// ---------------- functions ----------------
+
+ExterFuncDecl externFuncDecl =
+    EXTERN r:type i:id LPAREN h:type t:(COMMA type)* RPAREN SEMI
+    {yyValue=new ExterFuncDecl(l(yyStart), i, r,
+               new Pair<TypeAst>(h, t).list().toArray(new TypeAst[0]));};
+
+FuncDefinition functionDef =
+    r:type i:id LPAREN h:funcFormal t:(COMMA funcFormal)* RPAREN b:blockStmt
+    {yyValue=new FuncDefinition(l(yyStart), r, i,
+           new Pair<FormalParamAst>(h, t).list().toArray(new FormalParamAst[0]),
+                                b);}
+  / r:type i:id LPAREN RPAREN b:blockStmt
+    {yyValue=new FuncDefinition(l(yyStart), r, i, new FormalParamAst[0], b);};
+
+FormalParamAst funcFormal =
+    t:type i:id {yyValue=new FormalParamAst(l(yyStart), i, t);};
+
+// ---------------- constants ----------------
+
+ConstDeclAst constDecl =
+    CONST INT l:id ASSIGN r:intLit SEMI
+    {yyValue=new ConstDeclAst(l(yyStart), l, r);};
+
+// ---------------- statements ----------------
+
+StmtAst stmt =
+    blockStmt
+  / declStmt
+  / assignStmt
+  / exprStmt
+  / ifStmt
+  / forStmt
+  / returnStmt
+  / assertStmt;
+
+BlockStmtAst blockStmt =
+    LBRACE s:stmt* r:rbrace
+    {yyValue=new BlockStmtAst(l(yyStart), s.list().toArray(new StmtAst[0]),
+                              r.line, r.column);};
+
+Location rbrace = RBRACE {yyValue=l(yyStart);};
+
+DeclStmtAst declStmt =
+    t:type i:id ASSIGN e:expr SEMI
+    {yyValue=new DeclStmtAst(l(yyStart), t, i, e);}
+  / t:type i:id SEMI
+    {yyValue=new DeclStmtAst(l(yyStart), t, i, null);};
+
+AssignStmtAst assignStmt =
+    i:id a:assignOp e:expr SEMI
+    {yyValue=new AssignStmtAst(l(yyStart), i, a, e);};
+
+ExprStmtAst exprStmt =
+    e:expr SEMI {yyValue=new ExprStmtAst(l(yyStart), e);};
+
+InfixOp assignOp =
+    ASSIGN {yyValue=InfixOp.ASSIGN;}
+  / ASSIGN_PLUS {yyValue=InfixOp.ASSIGN_PLUS;};
+
+IfStmtAst ifStmt =
+    IF LPAREN e:expr RPAREN t:stmt ELSE f:stmt
+    {yyValue=new IfStmtAst(l(yyStart), e, t, f);}
+  / IF LPAREN e:expr RPAREN t:stmt
+    {yyValue=new IfStmtAst(l(yyStart), e, t, null);};
+
+ForStmtAst forStmt =
+    FOR LPAREN t:type i:id IN e:expr RPAREN WITH v:id s:stmt
+    {yyValue=new ForStmtAst(l(yyStart), t, i, e, s, v);}
+  / FOR LPAREN t:type i:id IN e:expr RPAREN s:stmt
+    {yyValue=new ForStmtAst(l(yyStart), t, i, e, s, null);};
+
+ReturnStmt returnStmt =
+    RETURN e:expr SEMI {yyValue=new ReturnStmt(l(yyStart), e);}
+  / RETURN SEMI {yyValue=new ReturnStmt(l(yyStart), null);};
+
+AssertStmt assertStmt =
+    ASSERT c:expr COLON m:expr COMMA l:expr SEMI
+    {yyValue=new AssertStmt(l(yyStart), c, m, l);}
+  / ASSERT c:expr COLON m:expr SEMI
+    {yyValue=new AssertStmt(l(yyStart), c, m, null);}
+  / ASSERT c:expr SEMI
+    {yyValue=new AssertStmt(l(yyStart), c, null, null);};
+
+// ---------------- expressions ----------------
+
+ExprAst expr = membershipExpr;
+
+ExprAst membershipExpr =
+    h:logicalOrExpr t:membershipExprTrail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> membershipExprTrail =
+    o:membershipOp t:logicalOrExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp membershipOp = IN {yyValue=InfixOp.MEMBERSHIP;};
+
+ExprAst logicalOrExpr =
+    h:logicalAndExpr t:logicalOrExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> logicalOrExprTail =
+    o:logicalOrOp t:logicalAndExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp logicalOrOp = LOGICAL_OR {yyValue=InfixOp.LOGICAL_OR;};
+
+ExprAst logicalAndExpr =
+    h:bitwiseOrExpr t:logicalAndExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> logicalAndExprTail =
+    o:logicalAndOp t:bitwiseOrExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp logicalAndOp = LOGICAL_AND {yyValue=InfixOp.LOGICAL_AND;};
+
+ExprAst bitwiseOrExpr =
+    h:bitwiseXorExpr t:bitwiseOrExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> bitwiseOrExprTail =
+    o:bitwiseOrOp t:bitwiseXorExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp bitwiseOrOp = BIT_OR {yyValue=InfixOp.BIT_OR;};
+
+ExprAst bitwiseXorExpr =
+    h:bitwiseAndExpr t:bitwiseXorExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> bitwiseXorExprTail =
+    o:bitwiseXorOp t:bitwiseAndExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp bitwiseXorOp = BIT_XOR {yyValue=InfixOp.BIT_XOR;};
+
+ExprAst bitwiseAndExpr =
+    h:comparisonExpr t:bitwiseAndExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> bitwiseAndExprTail =
+    o:bitwiseAndOp t:comparisonExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp bitwiseAndOp = BIT_AND {yyValue=InfixOp.BIT_AND;};
+
+ExprAst comparisonExpr =
+    h:shiftExpr t:comparisonExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> comparisonExprTail =
+    o:comparisonOp t:shiftExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp comparisonOp =
+    EQUAL {yyValue=InfixOp.EQUAL;}
+  / GREATER_EQUAL {yyValue=InfixOp.GREATER_EQUAL;}
+  / GREATER {yyValue=InfixOp.GREATER;}
+  / LESS_EQUAL {yyValue=InfixOp.LESS_EQUAL;}
+  / LESS {yyValue=InfixOp.LESS;}
+  / NOT_EQUAL {yyValue=InfixOp.NOT_EQUAL;};
+
+ExprAst shiftExpr =
+    h:additiveExpr t:shiftExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> shiftExprTail =
+    o:shiftOp t:additiveExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp shiftOp =
+    LSHIFT {yyValue=InfixOp.LSHIFT;}
+  / RSHIFT {yyValue=InfixOp.RSHIFT;};
+
+ExprAst additiveExpr =
+    h:multiplicativeExpr t:additiveExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> additiveExprTail =
+    o:additiveOp t:multiplicativeExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp additiveOp =
+    PLUS {yyValue=InfixOp.PLUS;}
+  / MINUS {yyValue=InfixOp.MINUS;};
+
+ExprAst multiplicativeExpr =
+    h:unaryExpr t:multiplicativeExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> multiplicativeExprTail =
+    o:multiplicativeOp t:unaryExpr
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst h) {
+      return new InfixExprAst(o, h, t);}};};
+
+InfixOp multiplicativeOp =
+    MULT {yyValue=InfixOp.MULT;}
+  / DIVIDE {yyValue=InfixOp.DIVIDE;}
+  / PERCENT {yyValue=InfixOp.PERCENT;};
+
+ExprAst unaryExpr =
+    LOGICAL_NOT u:unaryExpr
+    {yyValue=new UnaryExprAst(l(yyStart), UnaryExprAst.UnaryOperator.NOT, u);}
+  / postfixExpr;
+
+ExprAst postfixExpr =
+    h:primaryExpr t:postfixExprTail* {yyValue=apply(t, h);};
+
+constant Action<ExprAst> postfixExprTail =
+    LBRACKET e:expr RBRACKET
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst base) {
+      return new ArrayRefAst(l(yyStart), base, e);}};}
+  / DOT i:id
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst base) {
+      return new FieldRefAst(l(yyStart), i, base);}};}
+  / LPAREN h:expr t:(COMMA expr)* RPAREN
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst base) {
+      return new CallExprAst(l(yyStart), (NameAst)base,
+               new Pair<ExprAst>(h, t).list().toArray(new ExprAst[0]));}};}
+  / LPAREN RPAREN
+    {yyValue=new Action<ExprAst>() { public ExprAst run(ExprAst base) {
+      return new CallExprAst(l(yyStart), (NameAst)base, new ExprAst[0]);}};};
+
+ExprAst primaryExpr =
+    boolLit
+  / intLit
+  / stringLit
+  / id
+  / listDisplay
+  / fragment
+  / parenExpr;
+
+BoolLitAst boolLit =
+    TRUE {yyValue=new BoolLitAst(l(yyStart), true);}
+  / FALSE {yyValue=new BoolLitAst(l(yyStart), false);};
+
+NumAst intLit =
+    i:INTLIT WS
+    {yyValue=new NumAst(l(yyStart), Integer.valueOf(i));};
+
+StringLitAst stringLit =
+    s:STRINGLIT WS
+    {yyValue=new StringLitAst(l(yyStart), s.substring(1, s.length()-1));};
+
+NameAst id = i:ID {yyValue=new NameAst(l(yyStart), i);};
+
+ExprAst parenExpr = LPAREN expr RPAREN;
+
+ExprAst listDisplay =
+    LBRACKET s:expr FOR t:type i:id IN f:expr IF c:expr RBRACKET
+    {yyValue=new ListForAst(l(yyStart), i, t, s, f, c);}
+  / LBRACKET s:expr FOR t:type i:id IN f:expr RBRACKET
+    {yyValue=new ListForAst(l(yyStart), i, t, s, f, null);}
+  / LBRACKET h:expr t:(COMMA expr)* RBRACKET
+    {yyValue=new ListAst(l(yyStart),
+                      new Pair<ExprAst>(h, t).list().toArray(new ExprAst[0]));}
+  / LBRACKET RBRACKET
+    {yyValue=new ListAst(l(yyStart), new ExprAst[0]);};
+
+// ---------------- fragments ----------------
+
+Fragment fragment =
+    cppFragment
+  / sqlFragment;
+
+Fragment cppFragment =
+    BACK_TICK l:"cpp" WS
+    LPAREN p:phraseType a:(COMMA annotationProperty)* RPAREN
+    b:cppFragmentBody
+    ^{ yyValue=makeFragment(l(yyStart), l, p, a.list(), b, l(yyBase));
+       yyResult=new SemanticValue(yyValue, yyBase); };
+
+Fragment sqlFragment =
+    BACK_TICK l:"sql" WS
+    LPAREN p:phraseType a:(COMMA annotationProperty)* RPAREN
+    b:sqlFragmentBody
+    ^{ yyValue=makeFragment(l(yyStart), l, p, a.list(), b, l(yyBase));
+       yyResult=new SemanticValue(yyValue, yyBase); };
+
+AnnotationProperty annotationProperty =
+    i:ID ASSIGN LBRACKET n:nameList RBRACKET
+    {yyValue=new AnnotationProperty(i, n);}
+  / i:ID
+    {yyValue=new AnnotationProperty(i, null);};
+
+/*String[]*/ Object nameList =
+    h:captuableName t:(COMMA captuableName)*
+    {yyValue=new Pair<String>(h, t).list().toArray(new String[0]);}
+  / /*empty*/
+    {yyValue=new String[0];};
+
+String captuableName =
+    ID
+  / ID_KEYWORD {yyValue="id";};
+
+String fragmentLanguage = ID;
+
+String phraseType =
+    ID
+  / ID_KEYWORD {yyValue="id";}
+  / TYPE {yyValue="type";};
+
+// ---------------- C++ fragment body ----------------
+
+FragmentBody cppFragmentBody =
+    LBRACKET f:cppFragmentElement* RBRACKET
+    {yyValue=new FragmentBody(l(yyStart), f.list());};
+
+FragmentElement cppFragmentElement =
+    cppFragmentBody
+  / cppId
+  / cppKeyword
+  / cppLiteral
+  / cppBlank
+  / cppOther;
+
+ObjectId cppId =
+    i:ID_INTERNAL CPP_WS &{!CPP_KEYWORDS.contains(i)}
+    {yyValue=new ObjectId(l(yyStart), i);};
+
+ObjectToken cppKeyword =
+    i:ID_INTERNAL CPP_WS &{CPP_KEYWORDS.contains(i)}
+    {yyValue=new ObjectToken(l(yyStart), i, false, false);};
+
+ObjectToken cppLiteral =
+    l:CPP_FLOATLIT  CPP_WS {yyValue=new ObjectToken(l(yyStart),l,false,false);}
+  / l:CPP_INTLIT    CPP_WS {yyValue=new ObjectToken(l(yyStart),l,false,false);}
+  / l:CPP_STRINGLIT CPP_WS {yyValue=new ObjectToken(l(yyStart),l,true, false);}
+  / l:CPP_CHARLIT   CPP_WS {yyValue=new ObjectToken(l(yyStart),l,false,true );};
+
+Blank cppBlank =
+    DOLLAR i:id {yyValue=new Blank(l(yyStart), i);}
+  / DOLLAR LBRACKET e:expr RBRACKET {yyValue=new Blank(l(yyStart), e);};
+
+ObjectToken cppOther =
+    t:CPP_OTHER CPP_WS {yyValue=new ObjectToken(l(yyStart), t, false, false);};
+
+String CPP_FLOATLIT =
+    ([0-9]* "." [0-9]+ / [0-9]+ ".") ([eE] ("+" / "-")? [0-9]+)? [flFL]?;
+String CPP_INTLIT = [0-9]+;
+String CPP_STRINGLIT = '"' ('\\' ["'nrt] / (![\n\r\\"] _))* '"';
+String CPP_CHARLIT = "'" ('\\' [nrt'] / (![\n\r\\'] _)) "'";
+
+String CPP_OTHER =
+    (!("[" / "]" / [a-zA-Z_] / [0-9] / '"' / "'" / "$" / [ \t\n\r]) _)+;
+
+void CPP_WS = ([ \t] / NEWLINE / CPP_COMMENT)*;
+void CPP_COMMENT =
+    "//" ( ![\n\r] _ )* (NEWLINE / &EOF)
+  / "/*" ( "*" !"/" / !"*" _ )* "*/";
+
+// ---------------- SQL fragment body ----------------
+
+FragmentBody sqlFragmentBody =
+    LBRACKET f:sqlFragmentElement* RBRACKET
+    {yyValue=new FragmentBody(l(yyStart), f.list());};
+
+FragmentElement sqlFragmentElement =
+    sqlFragmentBody
+  / sqlId
+  / sqlKeyword
+  / sqlLiteral
+  / sqlBlank
+  / sqlOther;
+
+ObjectId sqlId =
+    i:ID_INTERNAL SQL_WS &{!SQL_KEYWORDS.contains(i.toLowerCase())}
+    {yyValue=new ObjectId(l(yyStart), i);}
+  / i:SQL_QUOTEDID SQL_WS
+    {yyValue=new ObjectId(l(yyStart), i);};
+
+ObjectToken sqlKeyword =
+    i:ID_INTERNAL SQL_WS &{SQL_KEYWORDS.contains(i.toLowerCase())}
+    {yyValue=new ObjectToken(l(yyStart), i, false, false);};
+
+ObjectToken sqlLiteral =
+    l:SQL_FLOATLIT  SQL_WS {yyValue=new ObjectToken(l(yyStart),l,false,false);}
+  / l:SQL_INTLIT    SQL_WS {yyValue=new ObjectToken(l(yyStart),l,false,false);}
+  / l:SQL_STRINGLIT SQL_WS {yyValue=new ObjectToken(l(yyStart),l,true, false);};
+
+Blank sqlBlank =
+    DOLLAR i:id {yyValue=new Blank(l(yyStart), i);}
+  / DOLLAR LBRACKET e:expr RBRACKET {yyValue=new Blank(l(yyStart), e);};
+
+ObjectToken sqlOther =
+    t:SQL_OTHER SQL_WS {yyValue=new ObjectToken(l(yyStart), t, false, false);};
+
+String SQL_FLOATLIT = [0-9]+ "." [0-9]*;
+String SQL_INTLIT = [0-9]+;
+String SQL_STRINGLIT = "'" ('\\' ["'nrt] / (![\n\r\\"] _))* "'";
+String SQL_QUOTEDID = '"' [a-zA-Z0-9_]+ '"';
+
+String SQL_OTHER =
+    (!("[" / "]" / [a-zA-Z_] / [0-9] / '"' / "'" / "$" / [ \t\n\r]) _)+;
+
+void SQL_WS = ([ \t] / NEWLINE / SQL_COMMENT)*;
+void SQL_COMMENT =
+    "--" ( ![\n\r] _ )* (NEWLINE / &EOF)
+  / "/*" ( "*" !"/" / !"*" _ )* "*/";
+
+// ---------------- Marco tokens ----------------
+
+void ASSERT = "assert" WS;
+void BOOLEAN = "boolean" WS;
+void CODE = "Code" WS;
+void CONST = "const" WS;
+void DOUBLE = "double" WS;
+void ELSE = "else" WS;
+void EXTERN = "extern" WS;
+void FALSE = "false" WS;
+void FOR = "for" WS;
+void ID_KEYWORD = "id" WS;
+void IF = "if" WS;
+void IMPORT = "import" WS;
+void IN = "in" WS;
+void INT = "int" WS;
+void LIST = "list" WS;
+void RETURN = "return" WS;
+void SET = "set" WS;
+void STRING = "string" WS;
+void TUPLE = "tuple" WS;
+void TRUE = "true" WS;
+void TYPE = "type" WS;
+void VOID = "void" WS;
+void WITH = "with" WS;
+
+void ASSIGN = "=" WS;
+void ASSIGN_PLUS = "+=" WS;
+void BACK_TICK = "`" WS;
+void BIT_AND = "&" WS;
+void BIT_OR = "|" WS;
+void BIT_XOR = "^" WS;
+void COLON = ":" WS;
+void COMMA = "," WS;
+void DIVIDE = "/" WS;
+void DOLLAR = "$" WS;
+void DOT = "." WS;
+void EQUAL = "==" WS;
+void GREATER = ">" WS;
+void GREATER_EQUAL = ">=" WS;
+void LBRACE = "{" WS;
+void LBRACKET = "[" WS;
+void LESS = "<" WS;
+void LESS_EQUAL = "<=" WS;
+void LOGICAL_AND = "&&" WS;
+void LOGICAL_OR = "||" WS;
+void LOGICAL_NOT = "!" WS;
+void LPAREN = "(" WS;
+void LSHIFT = "<<" WS;
+void MINUS = "-" WS;
+void MULT = "*" WS;
+void NOT_EQUAL = "!=" WS;
+void PERCENT = "%" WS;
+void PLUS = "+" WS;
+void RBRACE = "}" WS;
+void RBRACKET = "]" WS;
+void RPAREN = ")" WS;
+void RSHIFT = ">>" WS;
+void SEMI = ";" WS;
+
+String ID = i:ID_INTERNAL WS &{!MARCO_KEYWORDS.contains(i)};
+String ID_INTERNAL = [a-zA-Z_] [a-zA-Z_0-9]*;
+
+String STRINGLIT = '"' ('\\' ["'nrt] / (![\n\r\\"] _))* '"';
+String INTLIT = [0-9]+;
+String FLOATLIT = [0-9]+ "." [0-9]*;
+String CHARLIT = "'" ('\\' [nrt'] / (![\n\r\\'] _)) "'";
+
+void WS = ([ \t] / NEWLINE / COMMENT)*;
+void NEWLINE = '\r' '\n' / '\r' / '\n';
+void COMMENT =
+    ('#' / "//") ( ![\n\r] _ )* (NEWLINE / &EOF)
+  / "/*" ( "*" !"/" / !"*" _ )* "*/";
+void EOF = !_;

@@ -47,7 +47,8 @@ PACKAGES = \
 	xtc.lang.cpp \
 	xtc.lang.jeannie \
 	xtc.lang.blink \
-	xtc.lang.blink.agent
+	xtc.lang.blink.agent \
+	xtc.lang.marco
 
 #***************************************************************************
 #
@@ -413,7 +414,8 @@ doc     :
 #  7. make check-cpp       : run tests for SuperC
 #  8. make check-jinn      : run tests for Jinn
 #  9. make check-blink     : run tests for Blink
-# 10. make check           : run all tests
+# 10. make check-marco     : run tests for Mcrco
+# 11. make check           : run all tests
 #
 # RUNTESTFLAGS is a variable used to choose which files (.exp) to check
 # Example: make check-parser RUNTESTFLAGS="compile.exp ..." 
@@ -494,6 +496,9 @@ check-jinn: pre-check
 
 check-blink: pre-check
 	$(MAKE) -C $(FONDA_DIR)/blink_testsuite test
+
+check-marco: pre-check
+	$(MAKE) -C $(FONDA_DIR)/marco_testsuite test
 
 check: pre-check check-unit check-rats check-c check-c-layout check-java \
        check-jeannie check-cpp
