@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -8,14 +8,14 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import xtc.lang.blink.agent.JNIFunction.ExtraArgumentType;
-import xtc.lang.blink.agent.JNIFunction.JNIAnnotatedType;
-import xtc.lang.blink.agent.JNIType.CStringType;
-import xtc.lang.blink.agent.JNIType.JFieldIDType;
-import xtc.lang.blink.agent.JNIType.JMethodIDType;
-import xtc.lang.blink.agent.JNIType.PointerType;
-import xtc.lang.blink.agent.JNIType.PrimitiveType;
-import xtc.lang.blink.agent.JNIType.ReferenceType;
+import xtc.lang.jinn.JNIFunction.ExtraArgumentType;
+import xtc.lang.jinn.JNIFunction.JNIAnnotatedType;
+import xtc.lang.jinn.JNIType.CStringType;
+import xtc.lang.jinn.JNIType.JFieldIDType;
+import xtc.lang.jinn.JNIType.JMethodIDType;
+import xtc.lang.jinn.JNIType.PointerType;
+import xtc.lang.jinn.JNIType.PrimitiveType;
+import xtc.lang.jinn.JNIType.ReferenceType;
 
 /**
  * A JNI Function proxy generator.

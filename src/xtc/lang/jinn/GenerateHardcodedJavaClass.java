@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -143,7 +143,6 @@ public class GenerateHardcodedJavaClass {
       long length = new File(inputFileName).length();
       InputStream is = new FileInputStream(inputFileName);
       BufferedInputStream bis = new BufferedInputStream(is);
-      os.write("/* This array is from " + inputFileName + ". */\n");
       os.printf("const char signed %s[%d] = {\n", arrayName, length);
       int c, i=0;
       while ((c = is.read()) >= 0) {

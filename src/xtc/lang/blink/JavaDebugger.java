@@ -18,7 +18,7 @@ import xtc.lang.blink.Event.JavaStepCompletionEvent;
 import xtc.lang.blink.Event.RawTextMessageEvent;
 import xtc.lang.blink.EventUtil.RegExpReplyHandler;
 import xtc.lang.blink.SymbolMapper.SourceFileAndLine;
-import xtc.lang.blink.agent.AgentJavaDeclaration;
+import xtc.lang.jinn.AgentJavaDeclaration;
 
 /** JDB driver for Blink debugger. */
 public class JavaDebugger extends StdIOProcess implements AgentJavaDeclaration {

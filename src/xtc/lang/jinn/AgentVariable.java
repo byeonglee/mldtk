@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * Blink's support for the convenience variables in Java. This class 
@@ -66,7 +66,7 @@ public class AgentVariable {
     StringBuilder sb = new StringBuilder();
     sb.append("((");
     sb.append(typeName);
-    sb.append(")xtc.lang.blink.agent.AgentVariable.");
+    sb.append(")xtc.lang.jinn.AgentVariable.");
     sb.append(methodName);
     sb.append("(");
     sb.append(vid);

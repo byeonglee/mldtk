@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * 9 primitives types: jboolean, jbyte, jchar, jshort, jint, jlong, jfloat, jdouble, jsize

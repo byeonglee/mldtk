@@ -46,8 +46,8 @@ PACKAGES = \
 	xtc.lang \
 	xtc.lang.cpp \
 	xtc.lang.jeannie \
+	xtc.lang.jinn \
 	xtc.lang.blink \
-	xtc.lang.blink.agent \
 	xtc.lang.marco
 
 #***************************************************************************

@@ -26,7 +26,7 @@ import xtc.lang.blink.Event.NativeStepCompletionEvent;
 import xtc.lang.blink.Event.NativeSignalEvent;
 import xtc.lang.blink.EventLoop.ReplyHandler;
 import xtc.lang.blink.SymbolMapper.SourceFileAndLine;
-import xtc.lang.blink.agent.AgentNativeDeclaration;
+import xtc.lang.jinn.AgentNativeDeclaration;
 
 /**
  * GNU GDB implementation as the native debugger.

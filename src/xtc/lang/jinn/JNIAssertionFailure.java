@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * @author Byeongcheol Lee

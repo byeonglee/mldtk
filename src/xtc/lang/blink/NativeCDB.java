@@ -24,7 +24,7 @@ import xtc.lang.blink.Event.NativeStepCompletionEvent;
 import xtc.lang.blink.Event.RawTextMessageEvent;
 import xtc.lang.blink.EventLoop.ReplyHandler;
 import xtc.lang.blink.SymbolMapper.SourceFileAndLine;
-import xtc.lang.blink.agent.AgentNativeDeclaration;
+import xtc.lang.jinn.AgentNativeDeclaration;
 
 /** Microsoft CDB driver as a native component debugger. */
 public class NativeCDB extends StdIOProcess

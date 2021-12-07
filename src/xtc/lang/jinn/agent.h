@@ -2,9 +2,9 @@
 #define _AGENT_H_
 
 /* Java Agent classes */
-#define AGENT_CLASS_NAME "xtc/lang/blink/agent/Agent"
-#define AGENT_VARIABLE_CLASS_NAME "xtc/lang/blink/agent/AgentVariable"
-#define AGENT_JNI_ASSERTION_FAILURE_CLASS_NAME "xtc/lang/blink/agent/JNIAssertionFailure"
+#define AGENT_CLASS_NAME "xtc/lang/jinn/Agent"
+#define AGENT_VARIABLE_CLASS_NAME "xtc/lang/jinn/AgentVariable"
+#define AGENT_JNI_ASSERTION_FAILURE_CLASS_NAME "xtc/lang/jinn/JNIAssertionFailure"
 
 /* The internal break point type. */
 typedef enum {

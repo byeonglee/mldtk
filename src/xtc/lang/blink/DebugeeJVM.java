@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import xtc.lang.blink.Event.RawTextMessageEvent;
-import xtc.lang.blink.agent.AgentCommandOptions;
+import xtc.lang.jinn.AgentCommandOptions;
 
 /** A debuggee JVM class. */
 public class DebugeeJVM extends StdIOProcess implements AgentCommandOptions {

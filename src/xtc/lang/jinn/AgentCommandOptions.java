@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * The Blink Agent's constant values visible to the Blink through the

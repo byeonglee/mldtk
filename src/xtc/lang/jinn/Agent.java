@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * A Blink debug agent. This agent provides two key functionalities. First, the

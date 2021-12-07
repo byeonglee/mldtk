@@ -1,12 +1,12 @@
 /**
  * 
  */
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import xtc.lang.blink.agent.JNIType.ReferenceType;
+import xtc.lang.jinn.JNIType.ReferenceType;
 
 /**
  * A JNI function description.

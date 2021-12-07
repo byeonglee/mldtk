@@ -1,5 +1,5 @@
-PACKAGE     = xtc.lang.blink.agent
-PACKAGE_LOC = xtc/lang/blink/agent
+PACKAGE     = xtc.lang.jinn
+PACKAGE_LOC = xtc/lang/jinn
 SOURCE = $(wildcard *.java)
 JNI_SOURCE = 
 JAR_EXTRAS = 
@@ -9,7 +9,7 @@ include $(JAVA_DEV_ROOT)/Makerules
 
 JAVAC_OPTIONS  = -g -Xlint:unchecked -d $(CLASS_DIR) -sourcepath $(SOURCE_DIR)
 AGENT_SOURCES=Agent.java AgentVariable.java
-AGENT_CLASS_DIR=$(JAVA_DEV_ROOT)/classes/xtc/lang/blink/agent/
+AGENT_CLASS_DIR=$(JAVA_DEV_ROOT)/classes/xtc/lang/jinn/
 AGENT_CLASSES=$(addprefix $(AGENT_CLASS_DIR),$(patsubst	%.java,%.class,$(AGENT_SOURCES)))
 AGENT_C_SOURCE_FILES=agent.c agent_main.c util.c state.c \
   j2c_proxy.c c2j_proxy.c agent_class.c options.c jnicheck.c
@@ -56,10 +56,10 @@ $(AGENT_DLL): $(AGENT_C_SOURCE_FILES)
 	$(DLL_CC)$@ $(AGENT_C_SOURCE_FILES)
 
 c2j_proxy.c: GenerateJNIFunctionProxy.java $(CLASS)
-	java -ea xtc.lang.blink.agent.GenerateJNIFunctionProxy -o c2j_proxy.c
+	java -ea xtc.lang.jinn.GenerateJNIFunctionProxy -o c2j_proxy.c
 
 agent_class.c: $(AGENT_CLASSES) $(CLASS)
-	java -ea xtc.lang.blink.agent.GenerateHardcodedJavaClass \
+	java -ea xtc.lang.jinn.GenerateHardcodedJavaClass \
 	-h agent_class.h -o agent_class.c \
 	class_agent $(AGENT_CLASS_DIR)/Agent.class \
 	class_agent_variable $(AGENT_CLASS_DIR)/AgentVariable.class \

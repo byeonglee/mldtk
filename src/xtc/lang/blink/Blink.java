@@ -29,14 +29,14 @@ import xtc.lang.blink.JavaDebugger.InitializedEvent;
 import xtc.lang.blink.JavaDebugger.ListenAddressEvent;
 import xtc.lang.blink.NativeDebugger.LanguageTransitionEventType;
 import xtc.lang.blink.SymbolMapper.SourceFileAndLine;
-import xtc.lang.blink.agent.AgentNativeDeclaration;
+import xtc.lang.jinn.AgentNativeDeclaration;
 import xtc.lang.blink.EventLoop.ReplyHandler;
 import xtc.lang.blink.EventUtil.EventReplyHandler;
 import xtc.lang.blink.EventUtil.ConjunctiveReplyHandler;
 import xtc.lang.blink.EventUtil.DeathReplyHandler;
 import xtc.lang.blink.EventUtil.J2CCompletionEventHandler;
 import xtc.lang.blink.EventUtil.EventReplyHandler.EventFilter;
-import static xtc.lang.blink.agent.AgentJavaDeclaration.*;
+import static xtc.lang.jinn.AgentJavaDeclaration.*;
 
 /**
  * The Blink debugger for the Java/C mixed mode source level debugging. 

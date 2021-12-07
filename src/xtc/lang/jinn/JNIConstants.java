@@ -1,13 +1,13 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
-import xtc.lang.blink.agent.JNIType.ArrayReferenceType;
-import xtc.lang.blink.agent.JNIType.CStringType;
-import xtc.lang.blink.agent.JNIType.JFieldIDType;
-import xtc.lang.blink.agent.JNIType.JMethodIDType;
-import xtc.lang.blink.agent.JNIType.PointerType;
-import xtc.lang.blink.agent.JNIType.PrimitiveType;
-import xtc.lang.blink.agent.JNIType.ReferenceType;
-import xtc.lang.blink.agent.JNIType.VoidType;
+import xtc.lang.jinn.JNIType.ArrayReferenceType;
+import xtc.lang.jinn.JNIType.CStringType;
+import xtc.lang.jinn.JNIType.JFieldIDType;
+import xtc.lang.jinn.JNIType.JMethodIDType;
+import xtc.lang.jinn.JNIType.PointerType;
+import xtc.lang.jinn.JNIType.PrimitiveType;
+import xtc.lang.jinn.JNIType.ReferenceType;
+import xtc.lang.jinn.JNIType.VoidType;
 
 public interface JNIConstants {
 

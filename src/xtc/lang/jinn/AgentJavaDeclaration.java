@@ -1,4 +1,4 @@
-package xtc.lang.blink.agent;
+package xtc.lang.jinn;
 
 /**
  * The Blink Agent's constant values visible to the Blink through the Java
@@ -13,10 +13,10 @@ public interface AgentJavaDeclaration {
   public static final String BDA_AGENT_SOURCE_FILE = "Agent.java";
 
   /** The agent name.*/
-  public static final String BDA_AGENT_NAME = "xtc.lang.blink.agent.Agent";
+  public static final String BDA_AGENT_NAME = Agent.class.getName();
 
   /** The agent convenience variable manager name. */
-  public static final String BDA_AGENT_VARIABLE_NAME = "xtc.lang.blink.agent.AgentVariable";
+  public static final String BDA_AGENT_VARIABLE_NAME = AgentVariable.class.getName();
 
   /** The initialization method.*/
   public static final String BDA_INIT = "init";

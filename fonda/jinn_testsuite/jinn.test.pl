@@ -8,7 +8,7 @@ sub test_jinn($)
     local(@lines) = <FILE>;
     foreach (@lines) {
         chop;
-        if (/Exception in thread .+ xtc.lang.blink.agent.JNIAssertionFailure:/) {
+        if (/Exception in thread .+ xtc.lang.jinn.JNIAssertionFailure:/) {
             printf "%25s %10s: An exception was thrown.\n", $prog, "SUCCESS";
             return;
         } elsif (/The following .+ are not released/) {
