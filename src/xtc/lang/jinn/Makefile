@@ -15,9 +15,8 @@ AGENT_C_SOURCE_FILES=agent.c agent_main.c util.c state.c \
   j2c_proxy.c c2j_proxy.c agent_class.c options.c jnicheck.c
 ARCH=$(shell arch)
 
-ifneq (,$(findstring linux,$(OSTYPE)))
-  DLL_CC  = gcc -fPIC -lm -g -Og -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
-  AGENT_DLL=$(JAVA_DEV_ROOT)/bin/libjinn.so
+DLL_CC  = gcc -fPIC -lm -g -Og -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
+AGENT_DLL=$(JAVA_DEV_ROOT)/bin/libjinn.so
 ifeq ($(ARCH), x86_64)
   AGENT_C_SOURCE_FILES += j2c_proxy_x86_64.c
   AGENT_C_SOURCE_FILES += j2c_proxy_x86_64.S
@@ -26,21 +25,6 @@ else ifeq ($(ARCH), i686)
 else
   $(error agent does not yet support $(shell arch))
 endif
-else
-ifeq  ($(OSTYPE),mingw)
-  DLL_CC  = mingw32-gcc -Wl,--add-stdcall-alias -lm -g -shared -g -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/win32 -o 
-  AGENT_DLL=$(JAVA_DEV_ROOT)/bin/jinn.dll
-  AGENT_C_SOURCE_FILES += x86_32.c
-else
-ifeq ($(OSTYPE),win32)
-  DLL_CC = cl /Zi /LD /I $(JAVA_HOME)/include /I $(JAVA_HOME)/include/win32 /Fe
-  AGENT_DLL=$(JAVA_DEV_ROOT)/bin/jinn.dll
-  AGENT_C_SOURCE_FILES += x86_32.c
-else
-  $(error agent does not yet support $(OSTYPE))
-endif # win32
-endif # mingw
-endif # linux
 
 .PHONY: default agent cleanagent
 
