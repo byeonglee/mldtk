@@ -18,10 +18,10 @@ ARCH=$(shell arch)
 DLL_CC  = gcc -fPIC -lm -g -Og -shared -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -o
 AGENT_DLL=$(JAVA_DEV_ROOT)/bin/libjinn.so
 ifeq ($(ARCH), x86_64)
-  AGENT_C_SOURCE_FILES += j2c_proxy_x86_64.c
-  AGENT_C_SOURCE_FILES += j2c_proxy_x86_64.S
+  AGENT_C_SOURCE_FILES += arch_x86_64.c
+  AGENT_C_SOURCE_FILES += arch_x86_64.S
 else ifeq ($(ARCH), i686)
-  AGENT_C_SOURCE_FILES += x86_32.c
+  AGENT_C_SOURCE_FILES += arch_x86_32.c
 else
   $(error agent does not yet support $(shell arch))
 endif
